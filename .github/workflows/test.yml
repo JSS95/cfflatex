@@ -1,0 +1,46 @@
+name: Test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  l3build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The .tlg files were saved with TeX Live 2025; log messages can change
+      # between releases, so moving to a newer one means re-running
+      # `l3build save` for the affected tests.
+      - name: Install TeX Live
+        uses: teatimeguest/setup-texlive-action@v3
+        with:
+          version: 2025
+          packages: |
+            scheme-basic
+            l3build
+            lt3luabridge
+            lua-tinyyaml
+            lm
+            cm-super
+
+      # Runs testfiles/ with pdfLaTeX and LuaLaTeX, and testfiles-noshell/
+      # with pdfLaTeX without shell escape (see build.lua).
+      - name: Run tests
+        run: l3build check
+
+      - name: Show differences from the expected logs
+        if: failure()
+        run: cat build/test*/*.diff
+
+      - name: Upload test logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: l3build-test-results
+          path: |
+            build/test*/*.diff
+            build/test*/*.log

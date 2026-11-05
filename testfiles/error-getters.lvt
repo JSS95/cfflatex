@@ -1,0 +1,15 @@
+% Getters report misuse without stopping TeX.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+\begin{document}
+\START
+\TEST{\cfftitle before \includecff}{\TYPE{[\cfftitle]}}
+\TEST{\cffauthor before \includecff}{\TYPE{[\cffauthor{1}{given-names}]}}
+\OMIT
+\includecff{paper.cff}
+\TIMO
+\TEST{author index 0}{\TYPE{[\cffauthor{0}{given-names}]}}
+\TEST{author index past the last author}{\TYPE{[\cffauthor{3}{given-names}]}}
+\END

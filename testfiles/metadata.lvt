@@ -1,0 +1,72 @@
+% \includecff, \cfftitle, and \cffauthor read the selected citation.
+% \OMIT ... \TIMO hides lt3luabridge's engine-specific log lines.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+\begin{document}
+\START
+\TEST{default source is preferred-citation}{
+  \OMIT
+  \includecff{paper.cff}
+  \TIMO
+  \TYPE{\cfftitle}
+}
+\TEST{source=preferred-citation}{
+  \OMIT
+  \includecff[source=preferred-citation]{paper.cff}
+  \TIMO
+  \TYPE{\cfftitle}
+}
+\TEST{source=root}{
+  \OMIT
+  \includecff[source=root]{paper.cff}
+  \TIMO
+  \TYPE{\cfftitle}
+  \TYPE{\cffauthor{1}{given-names} | \cffauthor{1}{family-names}}
+  \TYPE{\cffauthor{1}{orcid}}
+}
+\TEST{source=root without preferred-citation}{
+  \OMIT
+  \includecff[source=root]{root-only.cff}
+  \TIMO
+  \TYPE{\cfftitle}
+}
+\TEST{absent author fields are empty}{
+  \OMIT
+  \includecff{mixed-authors.cff}
+  \TIMO
+  \TYPE{[\cffauthor{1}{family-names}] [\cffauthor{1}{given-names}]}
+  \TYPE{[\cffauthor{2}{name}] [\cffauthor{2}{family-names}]}
+  \TYPE{[\cffauthor{3}{given-names}] [\cffauthor{3}{orcid}]}
+}
+\TEST{each include replaces the previous metadata}{
+  \OMIT
+  \includecff[source=root]{paper.cff}
+  \TIMO
+  \TYPE{\cfftitle: [\cffauthor{1}{orcid}]}
+  \OMIT
+  \includecff{paper.cff}
+  \TIMO
+  \TYPE{\cfftitle: [\cffauthor{1}{orcid}]}
+}
+\TEST{file in a subdirectory with a space}{
+  \OMIT
+  \includecff{data/citation file.cff}
+  \TIMO
+  \TYPE{\cfftitle}
+}
+\TEST{TeX special characters are escaped}{
+  \OMIT
+  \includecff[source=root]{special.cff}
+  \TIMO
+  \TYPE{\cfftitle}
+  \TYPE{\cffauthor{1}{name}}
+}
+\TEST{line breaks in values become spaces}{
+  \OMIT
+  \includecff[source=root]{multiline.cff}
+  \TIMO
+  \TYPE{\cfftitle}
+}
+\END

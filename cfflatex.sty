@@ -12,13 +12,13 @@
   { Install~cfflatex.lua~alongside~cfflatex.sty. }
 \msg_new:nnn { cfflatex } { invalid } { Cannot~read~CFF~file:~#1. }
 \msg_new:nnn { cfflatex } { not-loaded }
-  { Load~a~CFF~file~with~\iow_char:N\\includecff~first. }
+  { Call~\iow_char:N\\includecff~first. }
 \msg_new:nnn { cfflatex } { author-index }
   { Author~index~'#1'~is~out~of~range. }
 \msg_new:nnn { cfflatex } { shell-escape }
   {
-    pdfLaTeX~requires~unrestricted~shell~escape~to~read~CFF~files.
-    ~Compile~with~--shell-escape,~or~use~LuaLaTeX.
+    pdfLaTeX~requires~unrestricted~shell~escape~to~read~CFF~files.~
+    Compile~with~--shell-escape,~or~use~LuaLaTeX.
   }
 
 % Keys are "title" and "authors/<index>/<field>".

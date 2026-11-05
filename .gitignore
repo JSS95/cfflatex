@@ -329,3 +329,12 @@ TSWLatexianTemp*
 # option is specified. Footnotes are the stored in a file with suffix Notes.bib.
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
+
+## cffLaTeX
+# lt3luabridge writes these when pdfLaTeX runs cfflatex.lua via shell escape.
+*.luabridge.lua
+*.luabridge.err
+# Compiled documents (no PDF is tracked in this repository).
+*.pdf
+# l3build test and build output.
+build/

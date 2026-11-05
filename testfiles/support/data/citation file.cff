@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: Please cite this software.
+type: software
+title: Code archive
+authors:
+  - family-names: Developer
+    given-names: Ada
+    orcid: https://orcid.org/0000-0002-1825-0097
+preferred-citation:
+  type: article
+  title: A research manuscript
+  authors:
+    - family-names: Müller
+      given-names: Jörg
+    - family-names: L'Hôpital
+      given-names: François

@@ -1,0 +1,19 @@
+This is a generated file for the l3build validation system.
+Don't change this file in any respect.
+\g_tmpa_iow=\write...
+Package luabridge Info: Writing a helper Lua script to file error-no-preferred.luabridge.lua
+Package luabridge Info: Executing a helper Lua script from file error-no-preferred.luabridge.lua
+(|TEXMF_OUTPUT_DIRECTORY=${TEXMF_OUTPUT_DIRECTORY:-.}
+texlua $TEXMF_OUTPUT_DIRECTORY/error-no-preferred.luabridge.lua)
+! Fatal Package cfflatex Error: Cannot read CFF file: the CFF file has no 'preferred-citation'.
+Type <return> to continue.
+ ...                                              
+l. ...\includecff{root-only.cff}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+This is a fatal error: LaTeX will abort.
+! Emergency stop.
+<read *> 
+l. ...\includecff{root-only.cff}
+*** (cannot \read from terminal in nonstop modes)

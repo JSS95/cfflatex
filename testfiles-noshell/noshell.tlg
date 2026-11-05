@@ -1,0 +1,14 @@
+This is a generated file for the l3build validation system.
+Don't change this file in any respect.
+! Fatal Package cfflatex Error: pdfLaTeX requires unrestricted shell escape to read CFF files. Compile with --shell-escape, or use LuaLaTeX.
+Type <return> to continue.
+ ...                                              
+l. ...\includecff{paper.cff}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+This is a fatal error: LaTeX will abort.
+! Emergency stop.
+<read *> 
+l. ...\includecff{paper.cff}
+*** (cannot \read from terminal in nonstop modes)

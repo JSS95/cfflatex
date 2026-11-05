@@ -1,0 +1,19 @@
+% The README example typesets without errors or missing characters.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+
+\includecff{paper.cff}
+\title{\cfftitle}
+\author{
+  \cffauthor{1}{given-names}~\cffauthor{1}{family-names}
+  \and
+  \cffauthor{2}{given-names}~\cffauthor{2}{family-names}
+}
+\date{}
+
+\begin{document}
+\START
+\maketitle
+\END
