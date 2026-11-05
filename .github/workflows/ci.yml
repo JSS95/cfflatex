@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # Lint stage. The test jobs start only after every lint job passes.
+
+  badness:
+    name: Lint LaTeX (badness)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # badness checks the .sty and .tex files it discovers. The .lvt tests
+      # end with l3build's \END instead of \end{document}, which it cannot
+      # parse, and it does not discover them.
+      - name: Check formatting
+        run: pipx run badness==0.28.0 format --check .
+
+      - name: Lint
+        run: pipx run badness==0.28.0 lint .
+
+  explcheck:
+    name: Lint expl3 (explcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install TeX Live
+        uses: teatimeguest/setup-texlive-action@v3
+        with:
+          version: 2026
+          packages: |
+            scheme-basic
+            expltools
+
+      # Settings are in .explcheckrc.
+      - name: Lint
+        run: explcheck --warnings-are-errors cfflatex.sty
+
+  luacheck:
+    name: Lint Lua (luacheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install luacheck
+        run: sudo apt-get update && sudo apt-get install -y lua-check
+
+      # Settings are in .luacheckrc.
+      - name: Lint
+        run: luacheck .
+
+  # Test stage.
+
+  l3build:
+    name: l3build (TeX Live ${{ matrix.texlive }})
+    needs: [badness, explcheck, luacheck]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Supported TeX Live releases. Both share the same .tlg files; when
+        # adding a release, check that they still match.
+        texlive: [2025, 2026]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install TeX Live
+        uses: teatimeguest/setup-texlive-action@v3
+        with:
+          version: ${{ matrix.texlive }}
+          packages: |
+            scheme-basic
+            l3build
+            lt3luabridge
+            lua-tinyyaml
+            lm
+            cm-super
+
+      # Runs testfiles/ with pdfLaTeX and LuaLaTeX, and testfiles-noshell/
+      # with pdfLaTeX without shell escape (see build.lua).
+      - name: Run tests
+        run: l3build check
+
+      - name: Show differences from the expected logs
+        if: failure()
+        run: cat build/test*/*.diff
+
+      - name: Upload test logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: l3build-test-results-texlive-${{ matrix.texlive }}
+          path: |
+            build/test*/*.diff
+            build/test*/*.log

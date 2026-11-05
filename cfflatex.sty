@@ -6,15 +6,12 @@
 \ProvidesExplPackage{cfflatex}{2026-11-06}{0.1.0}
   {Import Citation File Format metadata into LaTeX}
 \RequirePackage{lt3luabridge}
-\ExplSyntaxOn
 
-\msg_new:nnn { cfflatex } { missing-file }
-  { CFF~file~'#1'~was~not~found. }
+\msg_new:nnn { cfflatex } { missing-file } { CFF~file~'#1'~was~not~found. }
 \msg_new:nnn { cfflatex } { missing-helper }
   { Install~cfflatex.lua~alongside~cfflatex.sty. }
 \msg_new:nnn { cfflatex } { invalid } { Cannot~read~CFF~file:~#1. }
-\msg_new:nnn { cfflatex } { not-loaded }
-  { Call~\iow_char:N\\includecff~first. }
+\msg_new:nnn { cfflatex } { not-loaded } { Call~\iow_char:N\\includecff~first. }
 \msg_new:nnn { cfflatex } { author-index }
   { Author~index~'#1'~is~out~of~range. }
 \msg_new:nnn { cfflatex } { shell-escape }
@@ -30,7 +27,7 @@
 \tl_new:N \l__cfflatex_source_tl
 \tl_new:N \l__cfflatex_filename_tl
 \tl_new:N \g__cfflatex_helper_tl
-\str_new:N \l__cfflatex_filename_lua_str
+\str_new:N \l__cfflatex_file_lua_str
 \str_new:N \l__cfflatex_helper_lua_str
 
 % Prefer the helper next to this package so both files share a version.
@@ -43,7 +40,7 @@
 \keys_define:nn { cfflatex / include }
   {
     source .choices:nn = { root, preferred-citation }
-      { \tl_set_eq:NN \l__cfflatex_source_tl \l_keys_choice_tl },
+      { \tl_set_eq:NN \l__cfflatex_source_tl \l_keys_value_tl },
   }
 
 % Quote a file name as a Lua string literal; the file contents are parsed as
@@ -58,20 +55,21 @@
     \str_put_right:Nn #2 { " }
   }
 
-% Called by the TeX code that cfflatex.lua returns.
-\cs_new_protected:Npn \__cfflatex_store:nn #1#2
+% Called by the TeX code that cfflatex.lua returns; explcheck cannot see these
+% uses, so it would report the functions as unused (W401).
+\cs_new_protected:Npn \__cfflatex_store:nn #1#2 % noqa: w401
   { \prop_gput:Nnn \g__cfflatex_values_prop {#1} {#2} }
-\cs_new_protected:Npn \__cfflatex_finish:n #1
+\cs_new_protected:Npn \__cfflatex_finish:n #1 % noqa: w401
   {
     \int_gset:Nn \g__cfflatex_author_count_int {#1}
     \bool_gset_true:N \g__cfflatex_loaded_bool
   }
-\cs_new_protected:Npn \__cfflatex_fail:n #1
+\cs_new_protected:Npn \__cfflatex_fail:n #1 % noqa: w401
   { \msg_fatal:nnn { cfflatex } { invalid } {#1} }
 
 % \includecff[source=<root|preferred-citation>]{<file>}
 % Each call replaces the previously loaded metadata.
-\NewDocumentCommand \includecff { O{} m }
+\NewDocumentCommand \includecff {O{} m}
   {
     \group_begin:
     \tl_set:Nn \l__cfflatex_source_tl { preferred-citation }
@@ -86,7 +84,7 @@
     \bool_gset_false:N \g__cfflatex_loaded_bool
     \int_gzero:N \g__cfflatex_author_count_int
     \prop_gclear:N \g__cfflatex_values_prop
-    \__cfflatex_lua_quote:NN \l__cfflatex_filename_tl \l__cfflatex_filename_lua_str
+    \__cfflatex_lua_quote:NN \l__cfflatex_filename_tl \l__cfflatex_file_lua_str
     \__cfflatex_lua_quote:NN \g__cfflatex_helper_tl \l__cfflatex_helper_lua_str
     \luabridge_now:e
       {
@@ -94,7 +92,7 @@
         local~helper = \exp_not:V \l__cfflatex_helper_lua_str;
         local~cfflatex = dofile(kpse.find_file(helper,~"tex")~or~helper);
         print(cfflatex.read(
-        \exp_not:V \l__cfflatex_filename_lua_str,
+        \exp_not:V \l__cfflatex_file_lua_str,
         "\l__cfflatex_source_tl"
         ));
       }
@@ -112,12 +110,11 @@
 % \cffauthor{<index>}{<field>} expands to a field of the <index>-th author,
 % counting from 1. An absent field expands to nothing.
 \cs_generate_variant:Nn \prop_item:Nn { Ne }
-\NewExpandableDocumentCommand \cffauthor { m m }
+\NewExpandableDocumentCommand \cffauthor {m m}
   {
     \bool_if:NTF \g__cfflatex_loaded_bool
       {
-        \bool_lazy_or:nnTF
-          { \int_compare_p:nNn {#1} < { 1 } }
+        \bool_lazy_or:nnTF { \int_compare_p:nNn {#1} < { 1 } }
           { \int_compare_p:nNn {#1} > { \g__cfflatex_author_count_int } }
           { \msg_expandable_error:nnn { cfflatex } { author-index } {#1} }
           {
@@ -128,5 +125,4 @@
       { \msg_expandable_error:nn { cfflatex } { not-loaded } }
   }
 
-\ExplSyntaxOff
 \endinput
