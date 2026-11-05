@@ -99,3 +99,46 @@ jobs:
           path: |
             build/test*/*.diff
             build/test*/*.log
+
+  doc:
+    name: Build the manual
+    needs: [badness, explcheck, luacheck]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # l3doc needs the packages after lua-tinyyaml.
+      - name: Install TeX Live
+        uses: zauguin/install-texlive@c9f3ea3d51b2e04d092c4f9d208a19542d5dabcf # v4.5.0
+        with:
+          texlive_version: 2026
+          packages: >-
+            scheme-basic
+            l3build
+            lt3luabridge
+            lua-tinyyaml
+            alphalph
+            booktabs
+            csquotes
+            enumitem
+            fancyvrb
+            hologo
+            hypdoc
+            underscore
+
+      # Typesets cfflatex.tex into cfflatex.pdf with LuaLaTeX (see build.lua).
+      - name: Build the manual
+        run: l3build doc
+
+      - name: Upload the manual
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfflatex-manual
+          path: cfflatex.pdf
+
+      - name: Upload the log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfflatex-manual-log
+          path: build/doc/*.log

@@ -1,0 +1,185 @@
+% SPDX-License-Identifier: MIT
+% Copyright (c) 2026 cffLaTeX contributors
+%
+% The cffLaTeX manual. Typeset it with `l3build doc`, or with
+% `lualatex cfflatex.tex` next to cfflatex.sty, cfflatex.lua, and CITATION.cff.
+\documentclass{l3doc}
+\usepackage{cfflatex}
+
+% l3doc strips two characters from each verbatim line, which in .dtx files
+% are "% "; this file is plain LaTeX.
+\fvset{gobble=0}
+
+% The manual is its own example: its title and author come from the
+% CITATION.cff file of this package.
+\includecff[source=root]{CITATION.cff}
+\GetFileInfo{cfflatex.sty}
+\title{\cfftitle}
+\author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
+\date{Version \fileversion, released \filedate}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  The \pkg{cfflatex} package reads the title and authors of a citation from a
+  Citation File Format (CFF) file, such as the |CITATION.cff| file of a research
+  software repository, into a \LaTeX{} document. The metadata is then written
+  only once.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+A |CITATION.cff| file tells people how to cite a piece of research software. Its
+\texttt{preferred-citation} section often describes the paper about the
+software, whose manuscript is written in \LaTeX{} and repeats the same title and
+authors. With \pkg{cfflatex}, the manuscript reads them from the CFF file
+instead.
+
+The title and author of this manual are themselves read from the |CITATION.cff|
+file of \pkg{cfflatex}.
+
+\section{Requirements}
+
+\pkg{cfflatex} parses the CFF file in Lua, through the \pkg{lt3luabridge} and
+\pkg{lua-tinyyaml} packages, so it needs either
+\begin{itemize}
+  \item Lua\LaTeX{}, which runs the Lua code directly, or
+  \item pdf\LaTeX{} with unrestricted shell escape (|--shell-escape|), which
+        runs the Lua code with |texlua|.
+\end{itemize}
+It supports \TeX{} Live 2025 and later.
+
+\section{Usage}
+
+Given a |CITATION.cff| file containing
+\begin{Verbatim}
+cff-version: 1.2.0
+message: Please cite the paper in preferred-citation.
+type: software
+title: My Paper Code
+authors:
+  - family-names: Doe
+    given-names: John
+preferred-citation:
+  type: article
+  title: My Paper
+  authors:
+    - family-names: Doe
+      given-names: Jane
+    - family-names: Doe
+      given-names: John
+\end{Verbatim}
+the following document typesets the title and authors of the paper:
+\begin{Verbatim}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+
+\includecff{CITATION.cff}
+\title{\cfftitle}
+\author{
+  \cffauthor{1}{given-names}~\cffauthor{1}{family-names} \and
+  \cffauthor{2}{given-names}~\cffauthor{2}{family-names}
+}
+\date{}
+
+\begin{document}
+\maketitle
+\end{document}
+\end{Verbatim}
+Compile it with either of
+\begin{Verbatim}
+lualatex manuscript.tex
+pdflatex --shell-escape manuscript.tex
+\end{Verbatim}
+
+\section{Reference}
+
+\begin{function}{\includecff}
+  \begin{syntax}
+    \cs{includecff} \oarg{options} \marg{file}
+  \end{syntax}
+  Reads the citation metadata in \meta{file}, which is found like any other
+  input file. The command can be used in the preamble or in the document. Each
+  call replaces the metadata read by the previous one.
+
+  The only option is
+  \begin{description}
+    \item[\texttt{source=preferred-citation}] reads the
+          \texttt{preferred-citation} section. This is the default.
+    \item[\texttt{source=root}] reads the top level of the file, which describes
+          the software itself.
+  \end{description}
+  The selected citation must have a \texttt{title} and a nonempty list of
+  \texttt{authors}.
+\end{function}
+
+\begin{function}[EXP]{\cfftitle}
+  \begin{syntax}
+    \cs{cfftitle}
+  \end{syntax}
+  Expands to the \texttt{title} of the citation.
+\end{function}
+
+\begin{function}[EXP]{\cffauthor}
+  \begin{syntax}
+    \cs{cffauthor} \marg{index} \marg{field}
+  \end{syntax}
+  Expands to the \meta{field} of the \meta{index}-th author, counting from~1.
+  \meta{field} is a key of the author entry in the CFF file, such as
+  \texttt{given-names}, \texttt{family-names}, \texttt{name-particle},
+  \texttt{name-suffix}, \texttt{name} (for an organization),
+  \texttt{affiliation}, \texttt{email}, or \texttt{orcid}. A field that the
+  author does not have expands to nothing.
+\end{function}
+
+Both \cs{cfftitle} and \cs{cffauthor} are expandable, so they also work where
+\LaTeX{} expands its argument, for example in the \texttt{pdftitle} and
+\texttt{pdfauthor} options of \pkg{hyperref}.
+
+\section{Text in the metadata}
+
+Values are inserted as text. The \TeX{} special characters
+\verb+\ { } % # $ & _ ~ ^+ are printed as themselves, so \LaTeX{} markup in the
+CFF file is not interpreted. Line breaks inside a value become spaces. Non-ASCII
+characters are kept; with pdf\LaTeX{}, use a font encoding that has them, such
+as \texttt{T1}.
+
+\section{Errors}
+
+The following errors stop compilation.
+\begin{description}
+  \item[CFF file `\meta{file}' was not found.] \meta{file} is not in the current
+        directory or the \TeX{} search path.
+  \item[pdfLaTeX requires unrestricted shell escape \ldots] Use Lua\LaTeX{}, or
+        run pdf\LaTeX{} with |--shell-escape|.
+  \item[Cannot read CFF file: \meta{reason}.] The file cannot be used. For
+        example, it has no \texttt{preferred-citation} section while
+        \texttt{source=preferred-citation} is selected, or the selected citation
+        has no \texttt{title} or \texttt{authors}.
+  \item[Install cfflatex.lua alongside cfflatex.sty.] \pkg{cfflatex} is
+        incompletely installed.
+\end{description}
+The following errors are reported while expanding \cs{cfftitle} or
+\cs{cffauthor}.
+\begin{description}
+  \item[Call \cs{includecff} first.] No CFF file has been read yet.
+  \item[Author index `\meta{index}' is out of range.] The citation has fewer
+        than \meta{index} authors.
+\end{description}
+
+\section{Limitations}
+
+\pkg{cfflatex} reads only the \texttt{title} and the fields of the
+\texttt{authors} of the selected citation. The YAML parser, \pkg{lua-tinyyaml},
+supports a subset of YAML that covers usual CFF files.
+
+\section{License}
+
+\pkg{cfflatex} is distributed under the MIT License. Its source code is at
+\url{https://github.com/JSS95/cfflatex}, where bugs can be reported.
+
+\end{document}

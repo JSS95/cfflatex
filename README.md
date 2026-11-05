@@ -4,13 +4,14 @@ With cffLaTeX, you don't need to write your paper metadata twice.
 
 ## Requirements
 
-- `lt3luabridge`
-- `lua-tinyyaml`
-- pdfLaTeX with `--shell-escape` or LuaLaTeX.
+- LuaLaTeX, or pdfLaTeX with `--shell-escape`
+- The `lt3luabridge` and `lua-tinyyaml` packages
+- TeX Live 2025 or later
 
 ## Installation
 
-Install `cfflatex.sty` and `cfflatex.lua` in a local TeX tree such as `~/texmf/tex/latex/cfflatex/`.
+Install `cfflatex.sty` and `cfflatex.lua` in a local TeX tree such as
+`~/texmf/tex/latex/cfflatex/`, or put them next to your document.
 
 ## Quick start
 
@@ -62,3 +63,25 @@ Compile with either:
 pdflatex --shell-escape manuscript.tex
 lualatex manuscript.tex
 ```
+
+## Documentation
+
+The manual, `cfflatex.pdf`, describes every command, the errors, and the
+limitations. Open it with `texdoc cfflatex` when the package is installed from
+CTAN, or build it with `l3build doc`.
+
+## Development
+
+[l3build](https://ctan.org/pkg/l3build) runs the tests and builds the manual
+and the CTAN archive:
+
+```sh
+l3build check   # tests with pdfLaTeX and LuaLaTeX
+l3build doc     # cfflatex.pdf
+l3build ctan    # cfflatex-ctan.zip
+```
+
+## License
+
+cffLaTeX is distributed under the MIT License; see `LICENSE`. Report bugs at
+<https://github.com/JSS95/cfflatex/issues>.

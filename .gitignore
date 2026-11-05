@@ -336,5 +336,7 @@ TSWLatexianTemp*
 *.luabridge.err
 # Compiled documents (no PDF is tracked in this repository).
 *.pdf
-# l3build test and build output.
+# l3build test and build output, and the CTAN archives from `l3build ctan`.
 build/
+*-ctan.zip
+*.tds.zip
