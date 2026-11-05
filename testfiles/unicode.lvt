@@ -1,0 +1,15 @@
+% Non-ASCII author names keep their characters.
+% l3build logs them as UTF-8 bytes with pdfTeX and as code points with
+% LuaTeX, hence unicode.luatex.tlg.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+\begin{document}
+\START
+\OMIT
+\includecff{paper.cff}
+\TIMO
+\TYPE{\cffauthor{1}{given-names} | \cffauthor{1}{family-names}}
+\TYPE{\cffauthor{2}{given-names} | \cffauthor{2}{family-names}}
+\END

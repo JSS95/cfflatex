@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: m
+title: Code archive
+authors:
+  - name: Someone
+preferred-citation:
+  type: article
+  title: Mixed authors
+  authors:
+    - family-names: FamilyOnly
+    - name: Research Collaboration
+    - given-names: GivenOnly

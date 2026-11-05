@@ -1,0 +1,9 @@
+% pdfLaTeX needs unrestricted shell escape to run cfflatex.lua.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+\begin{document}
+\START
+\includecff{paper.cff}
+\END

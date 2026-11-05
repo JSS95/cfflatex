@@ -1,0 +1,4 @@
+# explcheck configuration (expltools in TeX Live).
+# Whitespace inside braces is left to the badness formatter, whose style
+# differs from S204.
+ignored_issues = ["s204"]

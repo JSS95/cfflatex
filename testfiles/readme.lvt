@@ -1,0 +1,22 @@
+% The README example typesets without errors or missing characters.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+
+\includecff{paper.cff}
+\title{\cfftitle}
+\author{
+  \cffauthor{1}{given-names}~\cffauthor{1}{family-names}
+  \and
+  \cffauthor{2}{given-names}~\cffauthor{2}{family-names}
+}
+\date{}
+
+\begin{document}
+% \maketitle sets math in \large; load those fonts here, because TeX Live 2025
+% logs them and 2026 does not.
+\sbox0{\large $x$}
+\START
+\maketitle
+\END

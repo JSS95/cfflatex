@@ -1,0 +1,11 @@
+% The selected citation needs a title.
+% With pdfTeX the log also shows the lt3luabridge shell call, which cannot be
+% hidden before a fatal error, hence a separate .luatex.tlg.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+\begin{document}
+\START
+\includecff[source=root]{no-title.cff}
+\END

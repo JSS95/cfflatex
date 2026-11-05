@@ -1,0 +1,14 @@
+This is a generated file for the l3build validation system.
+Don't change this file in any respect.
+! Fatal Package cfflatex Error: Cannot read CFF file: 'root/authors/1' must be a mapping.
+Type <return> to continue.
+ ...                                              
+l. ...\includecff[source=root]{author-string.cff}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+This is a fatal error: LaTeX will abort.
+! Emergency stop.
+<read *> 
+l. ...\includecff[source=root]{author-string.cff}
+*** (cannot \read from terminal in nonstop modes)
