@@ -8,17 +8,21 @@ on:
 
 jobs:
   l3build:
+    name: l3build (TeX Live ${{ matrix.texlive }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Supported TeX Live releases. Both share the same .tlg files; when
+        # adding a release, check that they still match.
+        texlive: [2025, 2026]
     steps:
       - uses: actions/checkout@v4
 
-      # The .tlg files were saved with TeX Live 2025; log messages can change
-      # between releases, so moving to a newer one means re-running
-      # `l3build save` for the affected tests.
       - name: Install TeX Live
         uses: teatimeguest/setup-texlive-action@v3
         with:
-          version: 2025
+          version: ${{ matrix.texlive }}
           packages: |
             scheme-basic
             l3build
@@ -40,7 +44,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: l3build-test-results
+          name: l3build-test-results-texlive-${{ matrix.texlive }}
           path: |
             build/test*/*.diff
             build/test*/*.log
