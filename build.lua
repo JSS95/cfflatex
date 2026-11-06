@@ -53,7 +53,10 @@ test_order = {"log", "pdf", "fls"}
 -- LuaLaTeX runs cfflatex.lua without shell escape.
 typesetfiles = {"cfflatex.tex"}
 typesetexe = "lualatex"
-docfiles = {"CITATION.cff"}
+docfiles = {"CITATION.cff", "cfflatex.bib"}
+-- l3build defaults to bibtex8, which is not in every TeX Live installation.
+bibtexexe = "bibtex"
+bibtexopts = ""
 textfiles = {"README.md", "CHANGELOG.md", "LICENSE"}
 
 -- The manual shows the version and date of cfflatex.sty, unless the

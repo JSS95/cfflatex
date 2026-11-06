@@ -18,9 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # badness checks the .sty and .tex files it discovers. The .lvt tests
-      # end with l3build's \END instead of \end{document}, which it cannot
-      # parse, and it does not discover them.
+      # badness checks the .sty, .tex, and .bib files it discovers; in
+      # cfflatex.bib, for example, missing required fields and duplicate keys.
+      # The .lvt tests end with l3build's \END instead of \end{document},
+      # which it cannot parse, and it does not discover them.
       - name: Check formatting
         run: pipx run badness==0.28.0 format --check .
 

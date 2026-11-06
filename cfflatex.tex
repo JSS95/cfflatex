@@ -35,14 +35,26 @@
 
 \section{Introduction}
 
-A |CITATION.cff| file tells people how to cite a piece of research software. Its
-\texttt{preferred-citation} section often describes the paper about the
-software, whose manuscript is written in \LaTeX{} and repeats the same title,
-abstract, and authors. With \pkg{cfflatex}, the manuscript reads them from the
-CFF file instead.
+Software is a product of research and should be cited like one~\cite{smith2016}.
+The Citation File Format (CFF)~\cite{druskat2021} makes this practical by
+keeping a YAML-format file with |cff| extension, typically named |CITATION.cff|,
+in the software repository. The CFF file holds the metadata needed to cite the
+software which an be read by both people and programs. This practice allows
+automated tools to easily discover and use the citation metadata.
 
-The title, abstract, and author of this manual are themselves read from the
-|CITATION.cff| file of \pkg{cfflatex}.
+The CFF file and the cited manuscript are often kept and developed together in a
+single repository, the latter usually written in \LaTeX. Developers need to keep
+duplicate metadata in sync between the CFF file and the manuscript, which can be
+tedious and error-prone. This complication is even more pronounced when the
+software and the manuscript are developed in parallel, the former metadata being
+kept in the top level of the CFF file while the latter metadata being kept in the
+subsection of the CFF file such as \texttt{preferred-citation}.
+
+\pkg{cfflatex} relieves this burden by keeping the CFF file as the single source of
+metadata and importing it into the \LaTeX document. The metadata, such as the title,
+abstract, and authors, are imported as \LaTeX macros that dynamically expand whenever
+the CFF file changes. This ensures that the metadata are synced across the repository,
+allowing for easier maintenance and automation of the development process.
 
 \section{Requirements}
 
@@ -56,6 +68,7 @@ The title, abstract, and author of this manual are themselves read from the
 It supports \TeX{} Live 2025 and later.
 
 \section{Usage}
+\label{sec:usage}
 
 Given a |CITATION.cff| file containing
 \begin{Verbatim}
@@ -202,5 +215,11 @@ fields of the \texttt{authors} of the selected citation. The YAML parser,
 
 \pkg{cfflatex} is distributed under the MIT License. Its source code is at
 \url{https://github.com/JSS95/cfflatex}, where bugs can be reported.
+
+% Long URLs leave ragged lines rather than stretched spaces.
+\raggedright
+% Number the references in the order they are first cited.
+\bibliographystyle{unsrt}
+\bibliography{cfflatex}
 
 \end{document}
