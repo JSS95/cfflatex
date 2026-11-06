@@ -105,8 +105,8 @@ function update_tag(file, content, tagname, tagdate)
   return content
 end
 
--- l3build asks for the uploader's email, or takes it from --email. It also
--- asks CTAN whether this is a new package or an update.
+-- l3build asks for the uploader's email, or takes it from --email. CD passes
+-- --file with the GitHub Release notes as the CTAN announcement.
 uploadconfig = {
   pkg = "cfflatex",
   version = package_version(),
@@ -125,3 +125,17 @@ uploadconfig = {
   repository = "https://github.com/JSS95/cfflatex",
   bugtracker = "https://github.com/JSS95/cfflatex/issues",
 }
+
+-- CD opts into noninteractive submission of the archive it already built.
+-- Treat HTTP errors as failures, including errors from the upload endpoint.
+if os.getenv("CFFLATEX_CTAN_UPLOAD") == "true" then
+  ctanupload = true
+  curlexe = "curl --fail-with-body --silent --show-error"
+    .. " --connect-timeout 30 --max-time 300"
+end
+
+-- The catalogue lookup in cd.yml distinguishes a new package from an update.
+local ctan_update = os.getenv("CFFLATEX_CTAN_UPDATE")
+if ctan_update then
+  uploadconfig.update = ctan_update == "true"
+end
