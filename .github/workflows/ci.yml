@@ -58,7 +58,7 @@ jobs:
 
       # Settings are in .explcheckrc.
       - name: Lint
-        run: explcheck --warnings-are-errors cfflatex.sty
+        run: explcheck --warnings-are-errors cfflatex.sty cfflatex-style-*.def
 
   luacheck:
     name: Lint Lua (luacheck)

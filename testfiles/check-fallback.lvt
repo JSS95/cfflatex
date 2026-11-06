@@ -1,0 +1,20 @@
+% The style option of the package gives the check, whatever style
+% \cffsetauthors uses. When the region of the style is not found, the whole
+% document is checked at its end, if the style allows it.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[style=titleblock]{cfflatex}
+\includecff[source=preferred-citation]{paper.cff}
+\title{\cff{title}}
+\cffsetauthors[style=standard]
+\date{}
+
+\begin{document}
+% \maketitle sets math in \large; load those fonts here, because TeX Live 2025
+% logs them and 2026 does not.
+\sbox0{\large $x$}
+\START
+\TEST{\maketitle is not a region of the style}{\maketitle}
+\TEST{the whole document lacks the abstract}{\UseHook{enddocument}}
+\END

@@ -1,0 +1,58 @@
+% Public style registration, file loading, hooks, overrides and diagnostics.
+\input{regression-test}
+\documentclass{article}
+\usepackage{cfflatex}
+\includecff{authors-contacts.cff}
+\begingroup
+\cffdeclareauthorstyle{inline}{
+  contact = {},
+  name = {#1{given-names}},
+  author = {\TYPE{inline/#1/#2}},
+}
+\endgroup
+\begin{document}
+\makeatletter
+\START
+\TEST{global inline registration}{\cffsetauthors[style=inline]}
+\TEST{file plugin and lifecycle}{
+  \cffsetauthors[style=regression]
+  \TYPE{names/\cffauthornames}
+}
+\TEST{user overrides before style selection}{
+  \cffsetauthors[name={#1{given-names}},affiliation-mark=arabic,style=regression]
+}
+\TEST{user overrides after style selection}{
+  \cffsetauthors[style=regression,name={#1{given-names}},affiliation-mark=arabic]
+}
+\TEST{custom renderer reorders declarations}{
+  \cffsetauthors[style=regression,render={
+    \cffforeachaffiliation{\cffrenderaffiliation{\cffaffiliationindex}}
+    \cffforeachauthor{\cffrenderauthor{\cffauthorindex}}
+  }]
+  \TYPE{names/\cffauthornames}
+}
+\TEST{state resets between calls}{
+  \cffsetauthors[contact={}]
+  \TYPE{\detokenize\expandafter{\@author}}
+  \TYPE{names/\cffauthornames}
+}
+\TEST{author and affiliation code emit declarations}{
+  \cffsetauthors[style=regression,
+    author-code={\cffemit{\TYPE{code-author/#1/#2}}},
+    affiliation-code={\cffemit{\TYPE{code-affiliation/#1/#2}}},
+    validate={\TYPE{validate}},
+  ]
+}
+\TEST{duplicate registration preserves the original}{
+  \cffdeclareauthorstyle{inline}{author={\TYPE{replaced}}}
+  \cffsetauthors[style=inline]
+}
+\TEST{built-in names are registered}{\cffdeclareauthorstyle{authblk}{}}
+\TEST{invalid registration name}{\cffdeclareauthorstyle{../invalid}{}}
+\TEST{invalid selection name}{\cffsetauthors[style=../invalid]}
+\TEST{missing plugin}{\cffsetauthors[style=absent]}
+\TEST{file does not register the requested style}{\cffsetauthors[style=unregistered]}
+\TEST{missing package prevents declarations}{
+  \cffsetauthors[style=inline,requires=cfflatex-nonexistent]
+}
+\END

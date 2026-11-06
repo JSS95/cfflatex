@@ -22,7 +22,7 @@ local help = [[Usage: cfflatexpand [OPTIONS] manuscript.tex
 
 Expand CFF fields, counts, author/affiliation/contact accessors, metadata
 loops, \cffsetauthors, and \cffauthornames, and remove cfflatex loading commands.
-Author declarations support standard/authblk styles and custom templates.
+Author declarations support built-in and file-based styles and custom templates.
 The current version supports one literal \includecff in a single TeX file.
 CFF filenames are relative to the input TeX file. \cffsetauthors requires
 LuaLaTeX and runs the shared author renderer with --no-shell-escape.
@@ -188,7 +188,9 @@ local function main()
   local expand = load_module("cfflatexpand")
   local function render_authors(model, author_options)
     load_module("cfflatex")
-    return load_module("cfflatexpand-authors").render(model, author_options, script_directory)
+    local document_directory = absolute(selected.input):match("^(.*[/\\])")
+    return load_module("cfflatexpand-authors").render(model, author_options,
+      script_directory, document_directory)
   end
   local result = expand.transform(read_file(selected.input), selected.input, render_authors)
   if selected.output and selected.output ~= "-" then

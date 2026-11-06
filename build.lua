@@ -7,7 +7,7 @@
 module = "cfflatex"
 
 sourcefiles = {
-  "cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+  "cfflatex.sty", "cfflatex-style-*.def", "cfflatex.lua", "cfflatex-data.lua",
   "cfflatexpand", "cfflatexpand.lua", "cfflatexpand-authors.lua",
 }
 -- l3build separates scriptfiles from the TeX runtime files during installation.

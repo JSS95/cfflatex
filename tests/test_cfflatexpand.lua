@@ -272,6 +272,7 @@ local ok, message = xpcall(function()
     local command = texmf .. "/scripts/cfflatex/cfflatexpand"
     equal(read_file(command), read_file(root .. "/cfflatexpand"))
     for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+      "cfflatex-style-standard.def", "cfflatex-style-authblk.def",
       "cfflatexpand.lua", "cfflatexpand-authors.lua"}) do
       local path = texmf .. "/tex/latex/cfflatex/" .. filename
       equal(read_file(path), read_file(root .. "/" .. filename))
@@ -833,6 +834,109 @@ note={3}{Team note}]
     assert(not result.stdout:find("\\affil", 1, true))
   end)
 
+  test("document-local plugins run hooks and custom renderers during export", function(f)
+    local source = mkdir(f.directory .. "/source files")
+    local input = source .. "/paper.tex"
+    write_file(source .. "/CITATION.cff", rich_citation)
+    write_file(source .. "/cfflatex-style-journal.def", [[
+\cffdeclareauthorstyle{journal}{
+requires={cfflatex-nonexistent},
+validate={\PackageError{journal}{Validation must not run during export}{}},
+name={#1{family-names}},contact={},affiliation-mark=Roman,
+begin={\cffemit{\journalBegin{\cff{title}}}},
+prepare-author={\cffemit{\journalIndex{#1}}},
+author-code={\cffemit{\journalAuthor{#1}{#2}}},
+affiliation-code={\cffemit{\journalAffiliation{#1}{#2}}},
+render={
+  \cffforeachaffiliation{\cffrenderaffiliation{\cffaffiliationindex}}
+  \cffforeachauthor{\cffrenderauthor{\cffauthorindex}}},
+end={\cffemit{\journalEnd}},
+}
+]])
+    write_file(input, preamble .. [[\cffsetauthors[style=journal]
+\hypersetup{pdfauthor={\cffauthornames}}
+]])
+    local result = f:cli(input)
+    success(result)
+    contains(result.stdout, [[\journalBegin {Research Paper}]])
+    contains(result.stdout, [[\journalIndex {2}]])
+    contains(result.stdout, [[\journalAffiliation {II}{Univ B}]])
+    contains(result.stdout, [[\journalAuthor {II,I}{Two}]])
+    contains(result.stdout, [[\journalEnd]])
+    contains(result.stdout, [[\hypersetup{pdfauthor={One, Two, }}]])
+    assert(result.stdout:find("\\journalAffiliation", 1, true)
+      < result.stdout:find("\\journalAuthor", 1, true), "renderer order was lost")
+    assert(not result.stdout:find("\\cff", 1, true), "export retained a plugin command")
+    equal(names(source), "CITATION.cff,cfflatex-style-journal.def,paper.tex")
+    -- User overrides win even when they precede style=.
+    write_file(input, preamble .. [=[\cffsetauthors[name={#1{given-names}},style=journal]]=])
+    result = f:cli(input)
+    success(result)
+    contains(result.stdout, [[\journalAuthor {II,I}{Ben}]])
+  end)
+
+  test("plugins are also found on the caller's TeX input search path", function(f)
+    local plugins = mkdir(f.directory .. "/plugins")
+    write_file(plugins .. "/cfflatex-style-searchpath.def", [[
+\cffdeclareauthorstyle{searchpath}{
+  contact={},name={#1{family-names}},author={\journalAuthor{#2}}}
+]])
+    write_file(f.input, preamble .. [=[\cffsetauthors[style=searchpath]]=])
+    local previous = os.getenv("TEXINPUTS")
+    os.setenv("TEXINPUTS", plugins .. (windows and ";" or ":") .. (previous or ""))
+    local worked, result = pcall(function() return f:cli(f.input) end)
+    os.setenv("TEXINPUTS", previous)
+    assert(worked, result)
+    success(result)
+    contains(result.stdout, [[\journalAuthor {Doe}]])
+  end)
+
+  test("the style option of the package is the default author style", function(f)
+    write_file(f.cff, rich_citation)
+    -- Check keys are part of the style but do not affect the export.
+    write_file(f.directory .. "/cfflatex-style-titleblock.def", [[
+\cffdeclareauthorstyle{titleblock}{
+  contact={},name={#1{family-names}},author={\journalAuthor{#2}},
+  check-fields={title,authors,abstract},
+  check-region={hooks={env/@twocolumnfalse/begin}{env/@twocolumnfalse/end},document},
+}
+]])
+    local header = replace(preamble, "{cfflatex}", "[check, style=titleblock]{cfflatex}")
+    write_file(f.input, header .. "\\cffsetauthors\n")
+    local result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, [[\journalAuthor {One}]])
+    contains(result.stdout, [[\journalAuthor {Two}]])
+    assert(not result.stdout:find("titleblock", 1, true), "export retained the package option")
+    -- style= of \cffsetauthors overrides the option of the package.
+    write_file(f.input, header .. "\\cffsetauthors[style=standard]\n")
+    result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, [[\author {Ann\nobreakspace One\and Ben\nobreakspace Two]])
+    for _, pair in ipairs({{"style=../titleblock", "invalid author style name"},
+      {"style=titleblock,unknown", "style=NAME options are supported"},
+      {"style={titleblock}", "without TeX commands"}}) do
+      write_file(f.input, replace(preamble, "{cfflatex}", "[" .. pair[1] .. "]{cfflatex}"))
+      local rejected = f:cli(f.input)
+      failure(rejected, pair[2])
+      contains(rejected.stderr, f.input .. ":2:")
+    end
+  end)
+
+  test("plugin loading errors and inline definitions keep source diagnostics", function(f)
+    write_file(f.directory .. "/cfflatex-style-empty.def", "\\endinput\n")
+    for _, pair in ipairs({
+      {"\\cffsetauthors[style=empty]", "Author style 'empty' was not registered"},
+      {"\\cffsetauthors[style=../invalid]", "Invalid author style name"},
+      {"\\cffdeclareauthorstyle{inline}{}", "cfflatex-style-NAME.def"},
+    }) do
+      write_file(f.input, preamble .. pair[1])
+      local result = f:cli(f.input)
+      failure(result, pair[2])
+      contains(result.stderr, f.input .. ":4:1:")
+    end
+  end)
+
   test("author declarations require one preamble call after loading", function(f)
     for _, pair in ipairs({
       {"\\cffsetauthors\n" .. preamble, "call \\includecff"},
@@ -894,12 +998,27 @@ exit 1
     assert(worked, detail)
   end, windows and "POSIX engine stub" or nil)
 
-  for _, style in ipairs({"standard", "authblk"}) do
+  for _, style in ipairs({"standard", "authblk", "journal"}) do
     test(style .. " author export matches native rendering and footnotes", function(f)
       write_file(f.cff, rich_citation)
-      for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua"}) do
+      for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+        "cfflatex-style-standard.def", "cfflatex-style-authblk.def"}) do
         write_file(f.directory .. "/" .. filename, read_file(root .. "/" .. filename))
       end
+      write_file(f.directory .. "/cfflatex-style-journal.def", [[
+\cffdeclareauthorstyle{journal}{
+  requires={authblk},
+  validate={\IfPackageLoadedTF{authblk}{}{\PackageError{journal}{Load authblk}{}}},
+  author={\author[{{}#1}]{#2}},affiliation={\affil[#1]{#2}},
+  render={
+    \cffforeachauthor{
+      \cffrenderauthor{\cffauthorindex}
+      \cffforeachauthoraffiliation{\cffauthorindex}{
+        \cffrenderaffiliation{\cffconvertaffiliationindex
+          {\cffauthorindex}{\cffauthoraffiliationindex}}}}
+  },
+}
+]])
       -- Observe shipped glyphs and executed footnotes, including authblk's
       -- protected expansion when collecting its authors.
       local observer = [[\ProvidesPackage{observer}
@@ -971,7 +1090,8 @@ note={1}{First \cff{title}},note={1}{Second},note={\cffcount{authors}}{Team note
 
   test("metadata export agrees with native TeX and compiles independently", function(f)
     write_file(f.cff, rich_citation)
-    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua"}) do
+    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+      "cfflatex-style-standard.def", "cfflatex-style-authblk.def"}) do
       write_file(f.directory .. "/" .. filename, read_file(root .. "/" .. filename))
     end
     write_file(f.input, preamble .. [=[
@@ -1023,11 +1143,12 @@ End}
 
   test("native package finds its sibling data module outside cwd", function(f)
     local package_directory = mkdir(f.directory .. "/package")
-    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua"}) do
+    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+      "cfflatex-style-standard.def", "cfflatex-style-authblk.def"}) do
       write_file(package_directory .. "/" .. filename, read_file(root .. "/" .. filename))
     end
-    write_file(f.input, replace(document, "{cfflatex}",
-      "{" .. package_directory .. "/cfflatex}"))
+    write_file(f.input, replace(replace(document, "{cfflatex}",
+      "{" .. package_directory .. "/cfflatex}"), "\\author{Jane Doe}", "\\cffsetauthors"))
     compile(f.directory, "manuscript.tex")
   end, not executable("lualatex") and "lualatex is required" or nil)
 end, debug.traceback)
