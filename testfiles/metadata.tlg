@@ -1,9 +1,9 @@
 This is a generated file for the l3build validation system.
 Don't change this file in any respect.
 ============================================================
-TEST 1: default source is preferred-citation
+TEST 1: default source is the top level
 ============================================================
-A research manuscript
+Code archive
 ============================================================
 ============================================================
 TEST 2: source=preferred-citation
@@ -11,14 +11,14 @@ TEST 2: source=preferred-citation
 A research manuscript
 ============================================================
 ============================================================
-TEST 3: source=root
+TEST 3: top-level fields
 ============================================================
 Code archive
 Ada | Developer
 https://orcid.org/0000-0002-1825-0097
 ============================================================
 ============================================================
-TEST 4: source=root without preferred-citation
+TEST 4: top level without preferred-citation
 ============================================================
 Code archive
 ============================================================
@@ -38,7 +38,7 @@ A research manuscript: []
 ============================================================
 TEST 7: file in a subdirectory with a space
 ============================================================
-A research manuscript
+Code archive
 ============================================================
 ============================================================
 TEST 8: TeX special characters are escaped
@@ -72,4 +72,11 @@ TEST 12: abstract is cleared by the next include
 TEST 13: line breaks in a literal-block abstract become spaces
 ============================================================
 [First line second line. Second paragraph.]
+============================================================
+============================================================
+TEST 14: source selects any top-level key
+============================================================
+A thesis about the software
+Sam | Student
+The thesis describes the software.
 ============================================================

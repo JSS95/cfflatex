@@ -6,7 +6,7 @@
 \usepackage{cfflatex}
 \begin{document}
 \START
-\TEST{default source is preferred-citation}{
+\TEST{default source is the top level}{
   \OMIT
   \includecff{paper.cff}
   \TIMO
@@ -18,23 +18,23 @@
   \TIMO
   \TYPE{\cfftitle}
 }
-\TEST{source=root}{
+\TEST{top-level fields}{
   \OMIT
-  \includecff[source=root]{paper.cff}
+  \includecff{paper.cff}
   \TIMO
   \TYPE{\cfftitle}
   \TYPE{\cffauthor{1}{given-names} | \cffauthor{1}{family-names}}
   \TYPE{\cffauthor{1}{orcid}}
 }
-\TEST{source=root without preferred-citation}{
+\TEST{top level without preferred-citation}{
   \OMIT
-  \includecff[source=root]{root-only.cff}
+  \includecff{root-only.cff}
   \TIMO
   \TYPE{\cfftitle}
 }
 \TEST{absent author fields are empty}{
   \OMIT
-  \includecff{mixed-authors.cff}
+  \includecff[source=preferred-citation]{mixed-authors.cff}
   \TIMO
   \TYPE{[\cffauthor{1}{family-names}] [\cffauthor{1}{given-names}]}
   \TYPE{[\cffauthor{2}{name}] [\cffauthor{2}{family-names}]}
@@ -42,11 +42,11 @@
 }
 \TEST{each include replaces the previous metadata}{
   \OMIT
-  \includecff[source=root]{paper.cff}
+  \includecff{paper.cff}
   \TIMO
   \TYPE{\cfftitle: [\cffauthor{1}{orcid}]}
   \OMIT
-  \includecff{paper.cff}
+  \includecff[source=preferred-citation]{paper.cff}
   \TIMO
   \TYPE{\cfftitle: [\cffauthor{1}{orcid}]}
 }
@@ -58,24 +58,24 @@
 }
 \TEST{TeX special characters are escaped}{
   \OMIT
-  \includecff[source=root]{special.cff}
+  \includecff{special.cff}
   \TIMO
   \TYPE{\cfftitle}
   \TYPE{\cffauthor{1}{name}}
 }
 \TEST{line breaks in values become spaces}{
   \OMIT
-  \includecff[source=root]{multiline.cff}
+  \includecff{multiline.cff}
   \TIMO
   \TYPE{\cfftitle}
 }
 \TEST{abstract of the selected citation}{
   \OMIT
-  \includecff{paper.cff}
+  \includecff[source=preferred-citation]{paper.cff}
   \TIMO
   \TYPE{\cffabstract}
   \OMIT
-  \includecff[source=root]{paper.cff}
+  \includecff{paper.cff}
   \TIMO
   \TYPE{\cffabstract}
 }
@@ -87,7 +87,7 @@
 }
 \TEST{abstract is cleared by the next include}{
   \OMIT
-  \includecff[source=root]{paper.cff}
+  \includecff{paper.cff}
   \TIMO
   \TYPE{[\cffabstract]}
   \OMIT
@@ -97,8 +97,16 @@
 }
 \TEST{line breaks in a literal-block abstract become spaces}{
   \OMIT
-  \includecff[source=root]{multiline.cff}
+  \includecff{multiline.cff}
   \TIMO
   \TYPE{[\cffabstract]}
+}
+\TEST{source selects any top-level key}{
+  \OMIT
+  \includecff[source=x-thesis]{custom-key.cff}
+  \TIMO
+  \TYPE{\cfftitle}
+  \TYPE{\cffauthor{1}{given-names} | \cffauthor{1}{family-names}}
+  \TYPE{\cffabstract}
 }
 \END

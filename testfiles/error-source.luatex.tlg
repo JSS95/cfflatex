@@ -1,7 +1,14 @@
 This is a generated file for the l3build validation system.
 Don't change this file in any respect.
-! LaTeX Error: Key 'cfflatex/include/source' accepts only a fixed set of choices.
-For immediate help type H <return>.
+! Fatal Package cfflatex Error: Cannot read CFF file: 'authors' must be a mapping.
+Type <return> to continue.
  ...                                              
-l. ...\includecff[source=references]{paper.cff}
-The key 'cfflatex/include/source' only accepts predefined values, and 'references' is not one of these.
+l. ...\includecff[source=authors]{paper.cff}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+This is a fatal error: LaTeX will abort.
+! Emergency stop.
+<read *> 
+l. ...\includecff[source=authors]{paper.cff}
+*** (cannot \read from terminal in nonstop modes)

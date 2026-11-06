@@ -7,5 +7,5 @@
 \usepackage{cfflatex}
 \begin{document}
 \START
-\includecff{no-authors.cff}
+\includecff[source=preferred-citation]{no-authors.cff}
 \END

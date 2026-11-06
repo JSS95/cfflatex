@@ -12,7 +12,7 @@
 
 % The manual is its own example: its title, abstract, and author come from the
 % CITATION.cff file of this package.
-\includecff[source=root]{CITATION.cff}
+\includecff{CITATION.cff}
 \title{\cfftitle}
 \author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
 
@@ -74,13 +74,13 @@ This manuscript itself is an example of using \pkg{cfflatex}. Its |CITATION.cff|
 is
 \VerbatimInput{CITATION.cff}
 
-Because this CFF file describes the software itself at its top level, the preamble of this
-manual should read it with the |source=root| option.
-The \LaTeX{} manuscript then imports and accesses the metadata by
+This CFF file describes the software itself at its top level, which
+\cs{includecff} reads by default. The \LaTeX{} manuscript then imports and
+accesses the metadata by
 \begin{Verbatim}
 \documentclass{l3doc}
 \usepackage{cfflatex}
-\includecff[source=root]{CITATION.cff}
+\includecff{CITATION.cff}
 \title{\cfftitle}
 \author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
 
@@ -93,6 +93,19 @@ The \LaTeX{} manuscript then imports and accesses the metadata by
 \end{Verbatim}
 
 \subsection{Specifying the source level}
+
+By default, \cs{includecff} reads the top level of the CFF file, which describes
+the software itself. The |source| option selects another citation instead:
+|source=|\meta{key} reads the mapping under the top-level \meta{key}. The
+manuscript of a paper about the software, for example, reads the
+\texttt{preferred-citation} section of the CFF file, which describes the paper:
+\begin{Verbatim}
+\includecff[source=preferred-citation]{CITATION.cff}
+\end{Verbatim}
+Any other top-level key is read in the same way, provided that its value is a
+mapping with a \texttt{title} and \texttt{authors}. Note that CFF~1.2.0 defines
+\texttt{preferred-citation} as the only such key and allows no others, so a file
+with another key fails CFF validation.
 
 \subsection{Text in the metadata}
 
@@ -120,12 +133,11 @@ when the CFF file changes.
   input file. The command can be used in the preamble or in the document. Each
   call replaces the metadata read by the previous one.
 
-  The only option is
+  Without options, the citation is the top level of the file, which describes
+  the software itself. The only option is
   \begin{description}
-    \item[\texttt{source=preferred-citation}] reads the
-          \texttt{preferred-citation} section. This is the default.
-    \item[\texttt{source=root}] reads the top level of the file, which describes
-          the software itself.
+    \item[\texttt{source=}\meta{key}] reads the mapping under the top-level
+          \meta{key} instead, such as \texttt{preferred-citation}.
   \end{description}
   The selected citation must have a \texttt{title} and a nonempty list of
   \texttt{authors}.
@@ -171,10 +183,8 @@ The following errors stop compilation.
   \item[pdfLaTeX requires unrestricted shell escape \ldots] Use Lua\LaTeX{}, or
         run pdf\LaTeX{} with |--shell-escape|.
   \item[Cannot read CFF file: \meta{reason}.] The file cannot be used. For
-        example, it has no \texttt{preferred-citation} section while
-        \texttt{source=preferred-citation} is selected, or the selected citation
-        has no \texttt{title} or \texttt{authors}, or its \texttt{abstract} is
-        not text.
+        example, it has no top-level key given by \texttt{source}, or that key
+        does not hold a mapping, or the selected citation has incorrect structure.
   \item[Install cfflatex.lua alongside cfflatex.sty.] \pkg{cfflatex} is
         incompletely installed.
 \end{description}

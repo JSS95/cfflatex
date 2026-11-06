@@ -11,6 +11,7 @@ First release.
 
 ### Added
 
-- `\includecff[source=root|preferred-citation]{file}` reads a CFF file.
+- `\includecff[source=key]{file}` reads the top level of a CFF file, or the
+  mapping under its top-level `key`, such as `preferred-citation`.
 - `\cfftitle` and `\cffabstract` expand to the title and abstract of the selected citation.
 - `\cffauthor{index}{field}` expands to the author fields of the selected citation.

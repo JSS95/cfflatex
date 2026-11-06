@@ -3,8 +3,8 @@
 % document when one of them changes. See test_types in build.lua.
 \documentclass{article}
 \usepackage{cfflatex}
-\includecff{paper.cff}
-\includecff[source=root]{data/citation file.cff}
+\includecff[source=preferred-citation]{paper.cff}
+\includecff{data/citation file.cff}
 \begin{document}
 \cfftitle
 \end{document}

@@ -53,20 +53,24 @@ local function store(path, value)
     .. path .. "}{" .. tex_text(value) .. "}"
 end
 
+-- An empty source selects the top level of the file. Any other source is a
+-- top-level key, such as preferred-citation, whose value is the citation.
+-- The prefix is put before field names in error messages.
 local function select_citation(data, source)
   if kind(data) ~= "map" then
     error("the CFF file must contain a mapping", 0)
   end
-  if source == "root" then
-    return data, "root"
-  elseif source == "preferred-citation" then
-    local selected = data["preferred-citation"]
-    if selected == nil then
-      error("the CFF file has no 'preferred-citation'", 0)
-    end
-    return selected, "preferred-citation"
+  if source == "" then
+    return data, ""
   end
-  error("unknown source '" .. tostring(source) .. "'", 0)
+  local selected = data[source]
+  if selected == nil then
+    error("the CFF file has no '" .. source .. "'", 0)
+  end
+  if kind(selected) ~= "map" then
+    error("'" .. source .. "' must be a mapping", 0)
+  end
+  return selected, source .. "/"
 end
 
 local function read(filename, source)
@@ -84,31 +88,28 @@ local function read(filename, source)
   -- Dates stay text, as CFF writes them.
   local data = yaml.parse(contents, {timestamps = false})
   local selected, prefix = select_citation(data, source)
-  if kind(selected) ~= "map" then
-    error("'" .. prefix .. "' must be a mapping", 0)
-  end
 
   local output = {}
   if not is_scalar(selected.title) then
-    error("'" .. prefix .. "/title' must be a string", 0)
+    error("'" .. prefix .. "title' must be a string", 0)
   end
   output[#output + 1] = store("title", selected.title)
 
   -- The abstract is optional; when absent, \cffabstract expands to nothing.
   if selected.abstract ~= nil then
     if not is_scalar(selected.abstract) then
-      error("'" .. prefix .. "/abstract' must be a string", 0)
+      error("'" .. prefix .. "abstract' must be a string", 0)
     end
     output[#output + 1] = store("abstract", selected.abstract)
   end
 
   local authors = selected.authors
   if kind(authors) ~= "seq" or #authors == 0 then
-    error("'" .. prefix .. "/authors' must be a nonempty sequence", 0)
+    error("'" .. prefix .. "authors' must be a nonempty sequence", 0)
   end
   for index, author in ipairs(authors) do
     if kind(author) ~= "map" then
-      error("'" .. prefix .. "/authors/" .. index .. "' must be a mapping", 0)
+      error("'" .. prefix .. "authors/" .. index .. "' must be a mapping", 0)
     end
     for key, value in pairs(author) do
       if type(key) == "string" and is_scalar(value) then

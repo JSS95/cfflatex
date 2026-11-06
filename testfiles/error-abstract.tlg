@@ -5,15 +5,15 @@ Package luabridge Info: Writing a helper Lua script to file error-abstract.luabr
 Package luabridge Info: Executing a helper Lua script from file error-abstract.luabridge.lua
 (|TEXMF_OUTPUT_DIRECTORY=${TEXMF_OUTPUT_DIRECTORY:-.}
 texlua $TEXMF_OUTPUT_DIRECTORY/error-abstract.luabridge.lua)
-! Fatal Package cfflatex Error: Cannot read CFF file: 'root/abstract' must be a string.
+! Fatal Package cfflatex Error: Cannot read CFF file: 'abstract' must be a string.
 Type <return> to continue.
  ...                                              
-l. ...\includecff[source=root]{abstract-list.cff}
+l. ...\includecff{abstract-list.cff}
 LaTeX does not know anything more about this error, sorry.
 Try typing <return> to proceed.
 If that doesn't work, type X <return> to quit.
 This is a fatal error: LaTeX will abort.
 ! Emergency stop.
 <read *> 
-l. ...\includecff[source=root]{abstract-list.cff}
+l. ...\includecff{abstract-list.cff}
 *** (cannot \read from terminal in nonstop modes)

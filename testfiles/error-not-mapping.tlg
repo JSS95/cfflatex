@@ -8,12 +8,12 @@ texlua $TEXMF_OUTPUT_DIRECTORY/error-not-mapping.luabridge.lua)
 ! Fatal Package cfflatex Error: Cannot read CFF file: the CFF file must contain a mapping.
 Type <return> to continue.
  ...                                              
-l. ...\includecff[source=root]{not-mapping.cff}
+l. ...\includecff{not-mapping.cff}
 LaTeX does not know anything more about this error, sorry.
 Try typing <return> to proceed.
 If that doesn't work, type X <return> to quit.
 This is a fatal error: LaTeX will abort.
 ! Emergency stop.
 <read *> 
-l. ...\includecff[source=root]{not-mapping.cff}
+l. ...\includecff{not-mapping.cff}
 *** (cannot \read from terminal in nonstop modes)

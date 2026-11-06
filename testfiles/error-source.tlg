@@ -1,12 +1,19 @@
 This is a generated file for the l3build validation system.
 Don't change this file in any respect.
-! LaTeX Error: Key 'cfflatex/include/source' accepts only a fixed set of choices.
-For immediate help type H <return>.
- ...                                              
-l. ...\includecff[source=references]{paper.cff}
-The key 'cfflatex/include/source' only accepts predefined values, and 'references' is not one of these.
 \g_tmpa_iow=\write...
 Package luabridge Info: Writing a helper Lua script to file error-source.luabridge.lua
 Package luabridge Info: Executing a helper Lua script from file error-source.luabridge.lua
 (|TEXMF_OUTPUT_DIRECTORY=${TEXMF_OUTPUT_DIRECTORY:-.}
 texlua $TEXMF_OUTPUT_DIRECTORY/error-source.luabridge.lua)
+! Fatal Package cfflatex Error: Cannot read CFF file: 'authors' must be a mapping.
+Type <return> to continue.
+ ...                                              
+l. ...\includecff[source=authors]{paper.cff}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+This is a fatal error: LaTeX will abort.
+! Emergency stop.
+<read *> 
+l. ...\includecff[source=authors]{paper.cff}
+*** (cannot \read from terminal in nonstop modes)

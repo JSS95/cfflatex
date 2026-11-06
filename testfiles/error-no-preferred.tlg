@@ -8,12 +8,12 @@ texlua $TEXMF_OUTPUT_DIRECTORY/error-no-preferred.luabridge.lua)
 ! Fatal Package cfflatex Error: Cannot read CFF file: the CFF file has no 'preferred-citation'.
 Type <return> to continue.
  ...                                              
-l. ...\includecff{root-only.cff}
+l. ......[source=preferred-citation]{root-only.cff}
 LaTeX does not know anything more about this error, sorry.
 Try typing <return> to proceed.
 If that doesn't work, type X <return> to quit.
 This is a fatal error: LaTeX will abort.
 ! Emergency stop.
 <read *> 
-l. ...\includecff{root-only.cff}
+l. ......[source=preferred-citation]{root-only.cff}
 *** (cannot \read from terminal in nonstop modes)

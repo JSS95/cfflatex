@@ -7,5 +7,5 @@
 \usepackage{cfflatex}
 \begin{document}
 \START
-\includecff[source=root]{not-mapping.cff}
+\includecff{not-mapping.cff}
 \END

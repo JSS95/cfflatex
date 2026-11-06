@@ -43,8 +43,8 @@ Write:
 \usepackage[T1]{fontenc}
 \usepackage{cfflatex}
 
-%\includecff[source=root]{CITATION.cff}  % reads fields in top level
-\includecff{CITATION.cff}  % reads fields in preferred-citation
+%\includecff{CITATION.cff}  % reads fields in top level
+\includecff[source=preferred-citation]{CITATION.cff}  % reads fields in preferred-citation
 \title{\cfftitle}
 \author{
   \cffauthor{1}{given-names}~\cffauthor{1}{family-names}

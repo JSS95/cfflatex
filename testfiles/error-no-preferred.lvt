@@ -1,4 +1,4 @@
-% The default source needs preferred-citation.
+% A source key that the file does not have stops TeX.
 % With pdfTeX the log also shows the lt3luabridge shell call, which cannot be
 % hidden before a fatal error, hence a separate .luatex.tlg.
 \input{regression-test}
@@ -7,5 +7,5 @@
 \usepackage{cfflatex}
 \begin{document}
 \START
-\includecff{root-only.cff}
+\includecff[source=preferred-citation]{root-only.cff}
 \END

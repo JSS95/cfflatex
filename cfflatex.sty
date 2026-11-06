@@ -28,6 +28,7 @@
 \tl_new:N \g__cfflatex_helper_tl
 \str_new:N \l__cfflatex_file_lua_str
 \str_new:N \l__cfflatex_helper_lua_str
+\str_new:N \l__cfflatex_source_lua_str
 \ior_new:N \g__cfflatex_dependency_ior
 \cs_generate_variant:Nn \ior_open:Nn { NV }
 
@@ -40,12 +41,12 @@
 
 \keys_define:nn { cfflatex / include }
   {
-    source .choices:nn = { root, preferred-citation }
-      { \tl_set_eq:NN \l__cfflatex_source_tl \l_keys_value_tl },
+    source .tl_set:N = \l__cfflatex_source_tl,
+    source .value_required:n = true,
   }
 
-% Quote a file name as a Lua string literal; the file contents are parsed as
-% YAML and never become Lua source.
+% Quote a file name or a source key as a Lua string literal; the file contents
+% are parsed as YAML and never become Lua source.
 \cs_new_protected:Npn \__cfflatex_lua_quote:NN #1#2
   {
     \str_set:Ne #2 { \tl_to_str:V #1 }
@@ -68,12 +69,13 @@
 \cs_new_protected:Npn \__cfflatex_fail:n #1 % noqa: w401
   { \msg_fatal:nnn { cfflatex } { invalid } {#1} }
 
-% \includecff[source=<root|preferred-citation>]{<file>}
-% Each call replaces the previously loaded metadata.
+% \includecff[source=<key>]{<file>}
+% Reads the top level of <file>, or the mapping under its top-level <key>, such
+% as preferred-citation. Each call replaces the previously loaded metadata.
 \NewDocumentCommand \includecff {O{} m}
   {
     \group_begin:
-    \tl_set:Nn \l__cfflatex_source_tl { preferred-citation }
+    \tl_clear:N \l__cfflatex_source_tl
     \keys_set:nn { cfflatex / include } {#1}
     \file_get_full_name:nNF {#2} \l__cfflatex_filename_tl
       { \msg_fatal:nnn { cfflatex } { missing-file } {#2} }
@@ -94,6 +96,7 @@
     \prop_gclear:N \g__cfflatex_values_prop
     \__cfflatex_lua_quote:NN \l__cfflatex_filename_tl \l__cfflatex_file_lua_str
     \__cfflatex_lua_quote:NN \g__cfflatex_helper_tl \l__cfflatex_helper_lua_str
+    \__cfflatex_lua_quote:NN \l__cfflatex_source_tl \l__cfflatex_source_lua_str
     \luabridge_now:e
       {
         local~kpse = require("kpse");
@@ -101,7 +104,7 @@
         local~cfflatex = dofile(kpse.find_file(helper,~"tex")~or~helper);
         print(cfflatex.read(
         \exp_not:V \l__cfflatex_file_lua_str,
-        "\l__cfflatex_source_tl"
+        \exp_not:V \l__cfflatex_source_lua_str
         ));
       }
     \group_end:
