@@ -107,11 +107,11 @@
   }
 
 % \cfftitle expands to the title of the loaded citation.
-\NewExpandableDocumentCommand \cfftitle {} { \__cfflatex_value:n { title } }
+\NewExpandableDocumentCommand \cfftitle {} {\__cfflatex_value:n { title }}
 
 % \cffabstract expands to the abstract of the loaded citation, or to nothing if
 % it has none.
-\NewExpandableDocumentCommand \cffabstract {} { \__cfflatex_value:n { abstract } }
+\NewExpandableDocumentCommand \cffabstract {} {\__cfflatex_value:n { abstract }}
 
 % \cffauthor{<index>}{<field>} expands to a field of the <index>-th author,
 % counting from 1. An absent field expands to nothing.

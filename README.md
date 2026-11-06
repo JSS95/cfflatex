@@ -82,6 +82,23 @@ l3build doc
 
 ## Development
 
+### Lint
+
+Requires:
+
+* [badness](https://pypi.org/project/badness/)
+* [expltools](https://ctan.org/pkg/expltools)
+* [lua-check](https://github.com/lunarmodules/luacheck)
+
+```sh
+badness format .
+badness lint .
+explcheck --warnings-are-errors cfflatex.sty
+luacheck .
+```
+
+### Build
+
 [l3build](https://ctan.org/pkg/l3build) runs the tests and builds the manual and the CTAN archive:
 
 ```sh

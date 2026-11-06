@@ -32,12 +32,11 @@
 A |CITATION.cff| file tells people how to cite a piece of research software. Its
 \texttt{preferred-citation} section often describes the paper about the
 software, whose manuscript is written in \LaTeX{} and repeats the same title,
-abstract, and authors. With \pkg{cfflatex}, the manuscript reads them from the CFF file
-instead.
+abstract, and authors. With \pkg{cfflatex}, the manuscript reads them from the
+CFF file instead.
 
 The title, abstract, and author of this manual are themselves read from the
-|CITATION.cff|
-file of \pkg{cfflatex}.
+|CITATION.cff| file of \pkg{cfflatex}.
 
 \section{Requirements}
 
@@ -146,10 +145,9 @@ pdflatex --shell-escape manuscript.tex
   author does not have expands to nothing.
 \end{function}
 
-\cs{cfftitle}, \cs{cffabstract}, and \cs{cffauthor} are expandable, so they
-also work where \LaTeX{} expands its argument, for example in the
-\texttt{pdftitle}, \texttt{pdfsubject}, and \texttt{pdfauthor} options of
-\pkg{hyperref}.
+\cs{cfftitle}, \cs{cffabstract}, and \cs{cffauthor} are expandable, so they also
+work where \LaTeX{} expands its argument, for example in the \texttt{pdftitle},
+\texttt{pdfsubject}, and \texttt{pdfauthor} options of \pkg{hyperref}.
 
 \section{Text in the metadata}
 
@@ -157,9 +155,8 @@ Values are inserted as text. The \TeX{} special characters
 \verb+\ { } % # $ & _ ~ ^+ are printed as themselves, so \LaTeX{} markup in the
 CFF file is not interpreted. Line breaks inside a value become spaces, so the
 paragraphs of a multi-paragraph abstract run together, and spaces at either end
-are dropped. Non-ASCII
-characters are kept; with pdf\LaTeX{}, use a font encoding that has them, such
-as \texttt{T1}.
+are dropped. Non-ASCII characters are kept; with pdf\LaTeX{}, use a font
+encoding that has them, such as \texttt{T1}.
 
 \section{Errors}
 
@@ -188,8 +185,8 @@ The following errors are reported while expanding \cs{cfftitle},
 \section{Limitations}
 
 \pkg{cfflatex} reads only the \texttt{title}, the \texttt{abstract}, and the
-fields of the \texttt{authors} of the selected citation. The YAML parser, \pkg{lua-tinyyaml},
-supports a subset of YAML that covers usual CFF files.
+fields of the \texttt{authors} of the selected citation. The YAML parser,
+\pkg{lua-tinyyaml}, supports a subset of YAML that covers usual CFF files.
 
 \section{License}
 
