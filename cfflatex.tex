@@ -15,41 +15,11 @@
 % CITATION.cff file of this package.
 \includecff{CITATION.cff}
 \title{\cfftitle}
-% authblk lists the affiliations and the email address below the authors,
-% marked a, b, ... and *. Each author is marked with the letters of their
-% affiliations, converted to the numbers that \cffforeachaffiliation gives the
-% \affil below, and the last author, the corresponding author, also with * for
-% the email address. The \author of authblk expands the name when it is called,
-% so \protect keeps \cffauthor for \maketitle, where the check of cfflatex sees
-% it. authblk also keeps the name unexpanded and expands it later, outside the
-% loop, so \cffdoc@author takes the index of the author as a number.
-\makeatletter
-\def\cffdoc@author#1{%
-  \def\cffdoc@marks{}%
-  \cffforeachauthoraffiliation{#1}{%
-    \edef\cffdoc@marks{%
-      \cffdoc@marks\ifnum\cffauthoraffiliationindex>1 ,\fi
-      \@alph{\cffconvertaffiliationindex{#1}{\cffauthoraffiliationindex}}}}%
-  \ifnum#1=\cffauthorcount
-  \edef\cffdoc@marks{\cffdoc@marks\ifx\cffdoc@marks\@empty\else,\fi*}%
-  \fi
-  \author[\cffdoc@marks]{%
-    \protect\cffauthor{#1}{given-names}~\protect\cffauthor{#1}{family-names}%
-  }}
-\def\cffdoc@names{}
-\cffforeachauthor{%
-  \edef\cffdoc@index{\cffauthorindex}%
-  \expandafter\cffdoc@author\expandafter{\cffdoc@index}%
-  \protected@edef\cffdoc@names{%
-    \cffdoc@names\ifx\cffdoc@names\@empty\else, \fi
-    \cffauthor{\cffdoc@index}{given-names}
-    \cffauthor{\cffdoc@index}{family-names}}}
-\cffforeachaffiliation{%
-  \affil[\@alph{\cffaffiliationindex}]{\cffaffiliation{\cffaffiliationindex}}}
-\affil[*]{E-mail: \cffauthor{\cffauthorcount}{email}}
+% The authors, with authblk: marks for their affiliations, which authblk lists
+% below them, and email footnotes for the contacts of the citation.
+\cffsetauthors[style=authblk]
 % hyperref cannot take the PDF author from the \author of authblk.
-\hypersetup{pdfauthor={\cffdoc@names}}
-\makeatother
+\hypersetup{pdfauthor={\cffauthornames}}
 
 % The version and date of cfflatex.sty, unless the build defines others: CI
 % shows the commit or the release that the manual was built from. See
@@ -156,6 +126,26 @@ allows multiple affiliations per author by separating them with semicolons in
 the \texttt{affiliation} field of the author. Affiliations of each author can be
 accessed individually by \cs{cffauthoraffiliation} and related commands. Refer
 to Section~\ref{sec:reference} for details.
+
+\subsection{Declaring the authors}
+\label{sec:setauthors}
+
+\cs{cffsetauthors} declares the authors of the citation for \cs{maketitle}. It
+marks each author with their affiliations, numbered among the distinct
+affiliations of the citation, and with a footnote for each contact of the
+citation that has the same names. With the \pkg{authblk} package, which lists
+the affiliations below the authors, the title page of this manual is made by
+\begin{Verbatim}
+\usepackage{authblk}
+\includecff{CITATION.cff}
+\title{\cfftitle}
+\cffsetauthors[style=authblk]
+\hypersetup{pdfauthor={\cffauthornames}}
+\end{Verbatim}
+The default style collects the authors in the \cs{author} of the standard
+classes, without the affiliations. The keys of \cs{cffsetauthors} change how a
+name is made, how the authors and the affiliations are declared, and the marks
+and the footnotes (Section~\ref{sec:reference}).
 
 \subsection{Text in the metadata}
 
@@ -290,6 +280,67 @@ The package has one option, |check|, which is |true| by default
   of the current affiliation.
 \end{function}
 
+\begin{function}[EXP]{\cffcontactcount, \cffcontact}
+  \begin{syntax}
+    \cs{cffcontactcount}
+    \cs{cffcontact} \marg{index} \marg{field}
+  \end{syntax}
+  Expand to the number of contacts of the citation, which is 0 if it has none,
+  and to the \meta{field} of the \meta{index}-th contact, counting from~1. As
+  for \cs{cffauthor}, \meta{field} is a key of the contact entry, such as
+  \texttt{email}, and a field that the contact does not have expands to nothing.
+\end{function}
+
+\begin{function}{\cffforeachcontact, \cffcontactindex}
+  \begin{syntax}
+    \cs{cffforeachcontact} \marg{code}
+    \cs{cffcontactindex}
+  \end{syntax}
+  \cs{cffforeachcontact} runs \meta{code} once for each contact of the citation,
+  in order, and \cs{cffcontactindex} expands to the index of the current
+  contact, counting from~1.
+\end{function}
+
+\begin{function}{\cffsetauthors, \cffauthornames}
+  \begin{syntax}
+    \cs{cffsetauthors} \oarg{keys}
+    \cs{cffauthornames}
+  \end{syntax}
+  \cs{cffsetauthors} declares the authors of the citation for \cs{maketitle}, as
+  Section~\ref{sec:setauthors} describes. Call this function once after
+  \cs{includecff}. \cs{cffauthornames} expands to the names of the authors,
+  separated by commas and made by the \texttt{name} template. The \meta{keys}
+  are
+  \begin{description}
+    \item[\texttt{style=standard}] collects the authors in one \cs{author},
+          separated by \cs{and}, without the affiliations. This is the default.
+    \item[\texttt{style=authblk}] declares each author with \cs{author} and each
+          affiliation with \cs{affil} of the \pkg{authblk} package.
+    \item[\texttt{name=}\textmd{\meta{template}}] makes the name of an author.
+          |#1| takes a field of the author. The default is
+          |#1{given-names}~#1{family-names}|.
+    \item[\texttt{affiliation-mark=}\textmd{\meta{style}}] numbers the
+          affiliations with |alph| (the default), |Alph|, |arabic|, |roman|, or
+          |Roman|.
+    \item[\texttt{separator=}\textmd{\meta{text}}] separates the marks of an
+          author. The default is a comma.
+    \item[\texttt{contact=}\textmd{\meta{template}}] is the footnote of an
+          author who is a contact. |#1| takes a field of the contact. The
+          default is |E-mail: #1{email}|, and an empty template gives no
+          footnotes.
+    \item[\texttt{note=}\textmd{\marg{index}\marg{text}}] adds a footnote with
+          \meta{text} to the \meta{index}-th author, such as a current
+          affiliation. \meta{index} is an integer expression, such as
+          |\cffauthorcount| for the last author. The key can be given several
+          times. The footnotes follow those of the contacts, in order.
+    \item[\texttt{author=}\textmd{\meta{template}}] declares an author, with the
+          marks |#1| and the name |#2|.
+    \item[\texttt{affiliation=}\textmd{\meta{template}}] declares an
+          affiliation, with the mark |#1| and the name |#2|. An empty template
+          gives no affiliations.
+  \end{description}
+\end{function}
+
 \section{Errors and warnings}
 
 The following errors stop compilation.
@@ -307,14 +358,21 @@ The following errors stop compilation.
         incompletely installed.
 \end{description}
 
-The following errors are reported while expanding CFF macros.
+The following errors are reported while using the commands of
+Section~\ref{sec:reference}.
 \begin{description}
   \item[Call \cs{includecff} first.] No CFF file has been read yet.
+  \item[style=authblk needs the authblk package.] Load \pkg{authblk} before
+        \cs{cffsetauthors}.
   \item[Author index `\textmd{\meta{index}}' is out of range.] The citation has
         fewer than \meta{index} authors.
   \item[Affiliation `\textmd{\meta{k}}' is out of range.] The author or the
         citation has fewer than \meta{k} affiliations.
+  \item[Contact `\textmd{\meta{index}}' is out of range.] The citation has fewer
+        than \meta{index} contacts.
   \item[Not inside \cs{cffforeachauthor}.] \cs{cffauthorindex} is used outside
+        the loop.
+  \item[Not inside \cs{cffforeachcontact}.] \cs{cffcontactindex} is used outside
         the loop.
   \item[Not inside an affiliation loop.] \cs{cffaffiliationindex} is used
         outside the loops over affiliations.

@@ -14,9 +14,14 @@
 \TEST{\cffforeachaffiliation before \includecff}{\cffforeachaffiliation{\TYPE{never}}}
 \TEST{\cffconvertaffiliationindex before \includecff}
   {\TYPE{[\cffconvertaffiliationindex{1}{1}]}}
+\TEST{\cffcontactcount before \includecff}{\TYPE{[\cffcontactcount]}}
+\TEST{\cffcontact before \includecff}{\TYPE{[\cffcontact{1}{name}]}}
+\TEST{\cffforeachcontact before \includecff}{\cffforeachcontact{\TYPE{never}}}
 \OMIT
 \includecff{paper.cff}
 \TIMO
+\TEST{contact index past the last contact}{\TYPE{[\cffcontact{1}{name}]}}
+\TEST{\cffcontactindex outside \cffforeachcontact}{\TYPE{[\cffcontactindex]}}
 \TEST{affiliation index of \cffconvertaffiliationindex}
   {\TYPE{[\cffconvertaffiliationindex{1}{1}]}}
 \TEST{author index of \cffconvertaffiliationindex}

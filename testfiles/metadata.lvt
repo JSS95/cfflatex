@@ -263,4 +263,42 @@
     \xdef\x{\x)}}
   \TYPE{\x}
 }
+\TEST{contacts}{
+  \OMIT
+  \includecff{contacts.cff}
+  \TIMO
+  \TYPE{\cffcontactcount}
+  \TYPE{\cffcontact{1}{given-names} | \cffcontact{1}{family-names}
+    | \cffcontact{1}{email}}
+  \TYPE{\cffcontact{2}{name} | \cffcontact{2}{email}
+    | [\cffcontact{2}{given-names}]}
+}
+\TEST{contacts of the selected citation}{
+  \OMIT
+  \includecff[source=preferred-citation]{contacts.cff}
+  \TIMO
+  \TYPE{\cffcontactcount: \cffcontact{1}{family-names} \cffcontact{1}{email}}
+  \OMIT
+  \includecff{paper.cff}
+  \TIMO
+  \TYPE{\cffcontactcount}
+  \gdef\x{}
+  \cffforeachcontact{\xdef\x{\x never}}
+  \TYPE{[\x]}
+}
+\TEST{foreach contact}{
+  \OMIT
+  \includecff{contacts.cff}
+  \TIMO
+  \gdef\x{}
+  \cffforeachcontact{%
+    \xdef\x{\x[\cffcontactindex:\cffcontact{\cffcontactindex}{family-names}%
+      \cffcontact{\cffcontactindex}{name}]}}
+  \TYPE{\x}
+  \gdef\x{}
+  \begingroup
+  \cffforeachcontact{\endgroup\xdef\x{\x\cffcontactindex}\begingroup}
+  \endgroup
+  \TYPE{\x}
+}
 \END

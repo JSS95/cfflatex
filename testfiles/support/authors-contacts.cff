@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: m
+title: Affiliated paper
+authors:
+  - family-names: One
+    given-names: Ann
+    affiliation: Univ A
+  - family-names: Two
+    given-names: Ben
+    affiliation: "Univ B; Univ A"
+contact:
+  - name: Support Team
+    email: team@example.org
+  - family-names: Two
+    given-names: Ben
+    email: ben@example.org
