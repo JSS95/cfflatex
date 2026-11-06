@@ -3,9 +3,9 @@ message: If you use cffLaTeX, please cite it using these metadata.
 type: software
 title: "cffLaTeX: Import CFF metadata into LaTeX"
 abstract: >-
-  cffLaTeX reads the title, abstract, and authors of a citation from a Citation
-  File Format (CFF) file, such as the CITATION.cff file of a research software
-  repository, into a LaTeX document, so that the metadata is written only once.
+  Modern research software and datasets often include a CFF (Citation File Format) file to provide metadata for proper citation.
+  When you write the manuscript that is to be cited, you need to ensure that the manuscript and the CFF file have consistent metadata.
+  cffLaTeX helps with this process by reading the metadata from the CFF file and incorporating it into the LaTeX document.
 authors:
   - family-names: Song
     given-names: Jisoo
