@@ -4,6 +4,9 @@ on:
   push:
     branches: [master]
   pull_request:
+  # The manual of a release shows its tag (see the doc job).
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -125,6 +128,25 @@ jobs:
             hologo
             hypdoc
             underscore
+
+      # The cover of the manual shows what it was built from: the tag and the
+      # publication date for a release, otherwise the commit and its date.
+      # build.lua passes these variables to the manual.
+      - name: Set the version and date of the manual
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          PUBLISHED_AT: ${{ github.event.release.published_at }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = release ]; then
+            version=$TAG
+            date=${PUBLISHED_AT%%T*}
+          else
+            version=$(git rev-parse --short HEAD)
+            date=$(git log -1 --format=%cs)
+          fi
+          echo "Manual version: $version ($date)"
+          echo "CFFLATEX_DOC_VERSION=$version" >> "$GITHUB_ENV"
+          echo "CFFLATEX_DOC_DATE=$date" >> "$GITHUB_ENV"
 
       # Typesets cfflatex.tex into cfflatex.pdf with LuaLaTeX (see build.lua).
       - name: Build the manual

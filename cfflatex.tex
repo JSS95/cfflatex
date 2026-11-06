@@ -13,10 +13,16 @@
 % The manual is its own example: its title, abstract, and author come from the
 % CITATION.cff file of this package.
 \includecff[source=root]{CITATION.cff}
-\GetFileInfo{cfflatex.sty}
 \title{\cfftitle}
 \author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
-\date{Version \fileversion, released \filedate}
+
+% The version and date of cfflatex.sty, unless the build defines others: CI
+% shows the commit or the release that the manual was built from. See
+% CFFLATEX_DOC_VERSION in build.lua.
+\GetFileInfo{cfflatex.sty}
+\providecommand\cfflatexdocversion{\fileversion}
+\providecommand\cfflatexdocdate{\filedate}
+\date{Version \cfflatexdocversion\ (\cfflatexdocdate)}
 
 \begin{document}
 \maketitle

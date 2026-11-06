@@ -56,6 +56,26 @@ typesetexe = "lualatex"
 docfiles = {"CITATION.cff"}
 textfiles = {"README.md", "CHANGELOG.md", "LICENSE"}
 
+-- The manual shows the version and date of cfflatex.sty, unless the
+-- environment variables CFFLATEX_DOC_VERSION and CFFLATEX_DOC_DATE give
+-- others. CI sets them to the commit hash and commit date for a push, and to
+-- the tag and publication date for a release (see .github/workflows/ci.yml).
+local function doc_value(name)
+  local value = os.getenv(name)
+  if value == nil or value == "" then
+    return nil
+  end
+  -- The value is put in the shell command that runs LuaLaTeX.
+  assert(value:match("^[%w.+-]+$"),
+    name .. " may contain only letters, digits, '.', '+', and '-'")
+  return value
+end
+
+local doc_version = doc_value("CFFLATEX_DOC_VERSION")
+local doc_date = doc_value("CFFLATEX_DOC_DATE")
+typesetcmds = (doc_version and ("\\def\\cfflatexdocversion{" .. doc_version .. "}") or "")
+  .. (doc_date and ("\\def\\cfflatexdocdate{" .. doc_date .. "}") or "")
+
 -- Release -------------------------------------------------------------------
 
 -- The version and date live in \ProvidesExplPackage in cfflatex.sty; the
