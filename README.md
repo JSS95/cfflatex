@@ -93,12 +93,15 @@ Requires:
 * [badness](https://pypi.org/project/badness/)
 * [expltools](https://ctan.org/pkg/expltools)
 * [lua-check](https://github.com/lunarmodules/luacheck)
+* [Ruff](https://docs.astral.sh/ruff/)
 
 ```sh
 badness format .
 badness lint .
 explcheck --warnings-are-errors cfflatex.sty
 luacheck .
+ruff format .
+ruff check .
 python3 .ci/check_versions.py
 ```
 

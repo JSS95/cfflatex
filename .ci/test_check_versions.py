@@ -89,7 +89,9 @@ class VersionCheckTests(unittest.TestCase):
             "[1.2.3-rc.1] - 2026-11-06",
         ):
             with self.subTest(heading=heading):
-                self.changelog.write_text(f"## {heading}\n\nDevelopment.\n\n" + released)
+                self.changelog.write_text(
+                    f"## {heading}\n\nDevelopment.\n\n" + released
+                )
                 result = self.run_check()
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("Skipping version check", result.stdout)
