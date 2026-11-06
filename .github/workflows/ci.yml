@@ -113,7 +113,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # l3doc needs the packages after lua-tinyyaml.
+      # l3doc needs the packages after lua-tinyyaml; preprint provides authblk,
+      # which sets the author and affiliations of the manual.
       - name: Install TeX Live
         uses: zauguin/install-texlive@c9f3ea3d51b2e04d092c4f9d208a19542d5dabcf # v4.5.0
         with:
@@ -131,6 +132,7 @@ jobs:
             hologo
             hypdoc
             underscore
+            preprint
 
       # The cover of the manual shows what it was built from: the tag and the
       # publication date for a release, otherwise the commit and its date.

@@ -5,6 +5,7 @@
 % `lualatex cfflatex.tex` next to cfflatex.sty, cfflatex.lua, and CITATION.cff.
 \documentclass{l3doc}
 \usepackage{cfflatex}
+\usepackage{authblk}
 
 % l3doc strips two characters from each verbatim line, which in .dtx files
 % are "% "; this file is plain LaTeX.
@@ -14,20 +15,18 @@
 % CITATION.cff file of this package.
 \includecff{CITATION.cff}
 \title{\cfftitle}
-% \maketitle gives footnote marks no width, so that a single mark does not
-% shift the centered name; two marks in a row would overlap. Give them back
-% their width, and put a thin space between them. \texorpdfstring keeps the
-% space out of the PDF metadata, which hyperref builds from \author.
-\makeatletter
-\AddToHook{cmd/@maketitle/before}{%
-  \def\@makefnmark{\@textsuperscript{\normalfont\@thefnmark}}}
-\makeatother
-\author{
-  \cffauthor{1}{given-names}~\cffauthor{1}{family-names}%
-  \footnote{\cffauthoraffiliation{1}{1}}\texorpdfstring{\,}{}%
-  \footnote{\cffauthoraffiliation{1}{2}}
-  \footnote{E-mail: \cffauthor{1}{email}}
+% authblk lists the affiliations and the email address below the author,
+% marked a, b, ... and *. Its \author expands the name when it is called,
+% so \protect keeps \cffauthor for \maketitle, where the check of cfflatex
+% sees it.
+\author[{a,b,*}]{%
+  \protect\cffauthor{1}{given-names}~\protect\cffauthor{1}{family-names}%
 }
+\affil[{a}]{\cffauthoraffiliation{1}{1}}
+\affil[{b}]{\cffauthoraffiliation{1}{2}}
+\affil[*]{E-mail: \cffauthor{1}{email}}
+% hyperref cannot take the PDF author from the \author of authblk.
+\hypersetup{pdfauthor={\cffauthor{1}{given-names} \cffauthor{1}{family-names}}}
 
 % The version and date of cfflatex.sty, unless the build defines others: CI
 % shows the commit or the release that the manual was built from. See
