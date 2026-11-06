@@ -14,7 +14,20 @@
 % CITATION.cff file of this package.
 \includecff{CITATION.cff}
 \title{\cfftitle}
-\author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
+% \maketitle gives footnote marks no width, so that a single mark does not
+% shift the centered name; two marks in a row would overlap. Give them back
+% their width, and put a thin space between them. \texorpdfstring keeps the
+% space out of the PDF metadata, which hyperref builds from \author.
+\makeatletter
+\AddToHook{cmd/@maketitle/before}{%
+  \def\@makefnmark{\@textsuperscript{\normalfont\@thefnmark}}}
+\makeatother
+\author{
+  \cffauthor{1}{given-names}~\cffauthor{1}{family-names}%
+  \footnote{\cffauthoraffiliation{1}{1}}\texorpdfstring{\,}{}%
+  \footnote{\cffauthoraffiliation{1}{2}}
+  \footnote{E-mail: \cffauthor{1}{email}}
+}
 
 % The version and date of cfflatex.sty, unless the build defines others: CI
 % shows the commit or the release that the manual was built from. See
