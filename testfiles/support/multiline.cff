@@ -3,5 +3,10 @@ message: m
 title: >-
   A title
   on two lines
+abstract: |
+  First line
+  second line.
+
+  Second paragraph.
 authors:
   - name: Someone

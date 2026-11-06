@@ -4,6 +4,9 @@ on:
   push:
     branches: [master]
   pull_request:
+  # The manual of a release shows its tag (see the doc job).
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -15,9 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # badness checks the .sty and .tex files it discovers. The .lvt tests
-      # end with l3build's \END instead of \end{document}, which it cannot
-      # parse, and it does not discover them.
+      # badness checks the .sty, .tex, and .bib files it discovers; in
+      # cfflatex.bib, for example, missing required fields and duplicate keys.
+      # The .lvt tests end with l3build's \END instead of \end{document},
+      # which it cannot parse, and it does not discover them.
       - name: Check formatting
         run: pipx run badness==0.28.0 format --check .
 
@@ -99,3 +103,137 @@ jobs:
           path: |
             build/test*/*.diff
             build/test*/*.log
+
+  doc:
+    name: Build the manual
+    needs: [badness, explcheck, luacheck]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # l3doc needs the packages after lua-tinyyaml.
+      - name: Install TeX Live
+        uses: zauguin/install-texlive@c9f3ea3d51b2e04d092c4f9d208a19542d5dabcf # v4.5.0
+        with:
+          texlive_version: 2026
+          packages: >-
+            scheme-basic
+            l3build
+            lt3luabridge
+            lua-tinyyaml
+            alphalph
+            booktabs
+            csquotes
+            enumitem
+            fancyvrb
+            hologo
+            hypdoc
+            underscore
+
+      # The cover of the manual shows what it was built from: the tag and the
+      # publication date for a release, otherwise the commit and its date.
+      # build.lua passes these variables to the manual.
+      - name: Set the version and date of the manual
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          PUBLISHED_AT: ${{ github.event.release.published_at }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = release ]; then
+            version=$TAG
+            date=${PUBLISHED_AT%%T*}
+          else
+            version=$(git rev-parse --short HEAD)
+            date=$(git log -1 --format=%cs)
+          fi
+          echo "Manual version: $version ($date)"
+          echo "CFFLATEX_DOC_VERSION=$version" >> "$GITHUB_ENV"
+          echo "CFFLATEX_DOC_DATE=$date" >> "$GITHUB_ENV"
+
+      # Typesets cfflatex.tex into cfflatex.pdf with LuaLaTeX (see build.lua).
+      - name: Build the manual
+        run: l3build doc
+
+      - name: Upload the manual
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfflatex-manual
+          path: cfflatex.pdf
+
+      - name: Upload the log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfflatex-manual-log
+          path: build/doc/*.log
+
+  # Deploy stage: publish the manual of the head of master to GitHub Pages.
+  # Pages must use "GitHub Actions" as its source (Settings > Pages). Every
+  # deployment replaces the whole site, so it shows only the latest manual.
+
+  pages:
+    name: Deploy the manual to GitHub Pages
+    needs: doc
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    # Deployments run one at a time. A queued deployment is replaced by a
+    # newer one, and a deployment whose commit is no longer the head of master
+    # is skipped below, so an older run never overwrites a newer manual.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Check that this commit is still the head of master
+        id: head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/master" --jq .sha)
+          if [ "$head" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "master is now at $head; skipping $GITHUB_SHA."
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download the manual
+        if: steps.head.outputs.current == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: cfflatex-manual
+          path: site
+
+      # The site root opens the manual.
+      - name: Add an index page
+        if: steps.head.outputs.current == 'true'
+        run: |
+          cat > site/index.html <<'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>cffLaTeX manual</title>
+            <meta http-equiv="refresh" content="0; url=cfflatex.pdf">
+          </head>
+          <body>
+            <p><a href="cfflatex.pdf">cffLaTeX manual (PDF)</a></p>
+          </body>
+          </html>
+          HTML
+
+      - name: Upload the site
+        if: steps.head.outputs.current == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - name: Deploy
+        id: deploy
+        if: steps.head.outputs.current == 'true'
+        uses: actions/deploy-pages@v5

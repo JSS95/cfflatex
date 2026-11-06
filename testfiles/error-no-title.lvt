@@ -7,5 +7,5 @@
 \usepackage{cfflatex}
 \begin{document}
 \START
-\includecff[source=root]{no-title.cff}
+\includecff{no-title.cff}
 \END

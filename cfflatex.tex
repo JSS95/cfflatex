@@ -1,0 +1,193 @@
+% SPDX-License-Identifier: MIT
+% Copyright (c) 2026 cffLaTeX contributors
+%
+% The cffLaTeX manual. Typeset it with `l3build doc`, or with
+% `lualatex cfflatex.tex` next to cfflatex.sty, cfflatex.lua, and CITATION.cff.
+\documentclass{l3doc}
+\usepackage{cfflatex}
+
+% l3doc strips two characters from each verbatim line, which in .dtx files
+% are "% "; this file is plain LaTeX.
+\fvset{gobble=0}
+
+% The manual is its own example: its title, abstract, and author come from the
+% CITATION.cff file of this package.
+\includecff{CITATION.cff}
+\title{\cfftitle}
+\author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
+
+% The version and date of cfflatex.sty, unless the build defines others: CI
+% shows the commit or the release that the manual was built from. See
+% CFFLATEX_DOC_VERSION in build.lua.
+\GetFileInfo{cfflatex.sty}
+\providecommand\cfflatexdocversion{\fileversion}
+\providecommand\cfflatexdocdate{\filedate}
+\date{Version \cfflatexdocversion\ (\cfflatexdocdate)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  \cffabstract
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+Software is a product of research and should be cited like one~\cite{smith2016}.
+The Citation File Format (CFF)~\cite{druskat2021} makes this practical by
+keeping a YAML-format file with |cff| extension, typically named |CITATION.cff|,
+in the software repository. The CFF file holds the metadata needed to cite the
+software which an be read by both people and programs. This practice allows
+automated tools to easily discover and use the citation metadata.
+
+The CFF file and the cited manuscript are often kept and developed together in a
+single repository, the latter usually written in \LaTeX{}. Developers need to
+keep duplicate metadata in sync between the CFF file and the manuscript, which
+can be tedious and error-prone. This complication is even more pronounced when
+the software and the manuscript are developed in parallel, the former metadata
+being kept in the top level of the CFF file while the latter metadata being kept
+in the subsection of the CFF file such as \texttt{preferred-citation}.
+
+\pkg{cfflatex} relieves this burden by keeping the CFF file as the single source
+of metadata and importing it into the \LaTeX{} document. The metadata, such as
+the title, abstract, and authors, are imported as \LaTeX{} macros that
+dynamically expand whenever the CFF file changes. This ensures that the metadata
+are synced across the repository, allowing for easier maintenance and automation
+of the development process.
+
+\section{Requirements}
+
+\pkg{cfflatex} parses the CFF file in Lua using the \pkg{lt3luabridge} and
+\pkg{lua-tinyyaml} packages. It needs either
+\begin{itemize}
+  \item Lua\LaTeX{}, which runs the Lua code directly, or
+  \item pdf\LaTeX{} with unrestricted shell escape (|--shell-escape|), which
+        runs the Lua code with |texlua|.
+\end{itemize}
+It supports \TeX{} Live 2025 and later.
+
+\section{Usage}
+
+This manuscript itself is an example of using \pkg{cfflatex}. Its |CITATION.cff|
+is
+\VerbatimInput{CITATION.cff}
+
+The \LaTeX{} manuscript then imports and accesses the metadata by
+\begin{Verbatim}
+\documentclass{l3doc}
+\usepackage{cfflatex}
+\includecff{CITATION.cff}
+\title{\cfftitle}
+\author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+  \cffabstract
+\end{abstract}
+\end{document}
+\end{Verbatim}
+
+\subsection{Specifying the source level}
+
+By default, \cs{includecff} reads the top level of the CFF file. The
+|source=|\meta{key} option selects another citation under the top-level
+\meta{key}, such as \texttt{preferred-citation}. Any other top-level key is read
+in the same way. Note that CFF~1.2.0 defines \texttt{preferred-citation} as the
+only such key and allows no others, so a file with another key fails CFF
+validation.
+
+\subsection{Text in the metadata}
+
+Values are inserted as text. The \TeX{} special characters
+\verb+\ { } % # $ & _ ~ ^+ are printed as themselves, so \LaTeX{} markup in the
+CFF file is not interpreted. Line breaks inside a value become spaces, so the
+paragraphs of a multi-paragraph abstract run together, and spaces at either end
+are dropped. Non-ASCII characters are kept. With pdf\LaTeX{}, use a font
+encoding that has them, such as \texttt{T1}.
+
+\subsection{Recording the CFF file}
+
+\cs{includecff} records the CFF file as an input in the |.fls| file that the
+|-recorder| option writes. Build tools that read it, such as latexmk and the
+LaTeX Workshop extension of Visual Studio Code, therefore rebuild the document
+when the CFF file changes.
+
+\section{Reference}
+
+\begin{function}{\includecff}
+  \begin{syntax}
+    \cs{includecff} \oarg{options} \marg{file}
+  \end{syntax}
+  Reads the citation metadata in \meta{file}. The command can be used in the
+  preamble or in the document. Each call replaces the metadata read by the
+  previous one.
+
+  \begin{description}
+    \item[\texttt{source=}\textmd{\meta{key}}] reads the mapping under the
+          top-level \meta{key} instead. Without this option, the citation is the
+          top level of the file.
+  \end{description}
+\end{function}
+
+\begin{function}[EXP]{\cfftitle}
+  \begin{syntax}
+    \cs{cfftitle}
+  \end{syntax}
+  Expands to the \texttt{title} of the citation.
+\end{function}
+
+\begin{function}[EXP]{\cffabstract}
+  \begin{syntax}
+    \cs{cffabstract}
+  \end{syntax}
+  Expands to the \texttt{abstract} of the citation.
+\end{function}
+
+\begin{function}[EXP]{\cffauthor}
+  \begin{syntax}
+    \cs{cffauthor} \marg{index} \marg{field}
+  \end{syntax}
+  Expands to the \meta{field} of the \meta{index}-th author, counting from~1.
+  \meta{field} is a key of the author entry in the CFF file, such as
+  \texttt{given-names} or \texttt{family-names}. A field that the author does
+  not have expands to nothing.
+\end{function}
+
+\section{Errors}
+
+The following errors stop compilation.
+\begin{description}
+  \item[CFF file `\textmd{\meta{file}}' was not found.] \meta{file} is not in
+        the current directory or the \TeX{} search path.
+  \item[pdfLaTeX requires unrestricted shell escape \ldots] Use Lua\LaTeX{}, or
+        run pdf\LaTeX{} with |--shell-escape|.
+  \item[Cannot read CFF file: \textmd{\meta{reason}}.] The file cannot be used.
+        For example, it has no top-level key given by \texttt{source}, or that
+        key does not hold a mapping, or the selected citation has incorrect
+        structure.
+  \item[Install cfflatex.lua alongside cfflatex.sty.] \pkg{cfflatex} is
+        incompletely installed.
+\end{description}
+
+The following errors are reported while expanding CFF macros.
+\begin{description}
+  \item[Call \cs{includecff} first.] No CFF file has been read yet.
+  \item[Author index `\textmd{\meta{index}}' is out of range.] The citation has
+        fewer than \meta{index} authors.
+\end{description}
+
+\section{License}
+
+\pkg{cfflatex} is distributed under the MIT License. Its source code is at
+\url{https://github.com/JSS95/cfflatex}, where bugs can be reported.
+
+% Long URLs leave ragged lines rather than stretched spaces.
+\raggedright
+% Number the references in the order they are first cited.
+\bibliographystyle{unsrt}
+\bibliography{cfflatex}
+
+\end{document}

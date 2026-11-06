@@ -4,7 +4,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{cfflatex}
 
-\includecff{paper.cff}
+\includecff[source=preferred-citation]{paper.cff}
 \title{\cfftitle}
 \author{
   \cffauthor{1}{given-names}~\cffauthor{1}{family-names}

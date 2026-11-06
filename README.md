@@ -1,16 +1,17 @@
-# cffLaTeX: Import CFF file into your LaTeX document
+# cffLaTeX: Import your CFF file into your LaTeX document
 
 With cffLaTeX, you don't need to write your paper metadata twice.
 
 ## Requirements
 
-- `lt3luabridge`
-- `lua-tinyyaml`
-- pdfLaTeX with `--shell-escape` or LuaLaTeX.
+- LuaLaTeX, or pdfLaTeX with `--shell-escape`
+- The `lt3luabridge` and `lua-tinyyaml` packages
+- TeX Live 2025 or later
 
 ## Installation
 
 Install `cfflatex.sty` and `cfflatex.lua` in a local TeX tree such as `~/texmf/tex/latex/cfflatex/`.
+Alternatively, you can put them next to your document.
 
 ## Quick start
 
@@ -27,6 +28,7 @@ authors:
 preferred-citation:
   type: article
   title: My Paper
+  abstract: My paper abstract.
   authors:
     - family-names: Doe
       given-names: Jane
@@ -41,8 +43,8 @@ Write:
 \usepackage[T1]{fontenc}
 \usepackage{cfflatex}
 
-%\includecff[source=root]{CITATION.cff}  % reads fields in top level
-\includecff{CITATION.cff}  % reads fields in preferred-citation
+%\includecff{CITATION.cff}  % reads fields in top level
+\includecff[source=preferred-citation]{CITATION.cff}  % reads fields in preferred-citation
 \title{\cfftitle}
 \author{
   \cffauthor{1}{given-names}~\cffauthor{1}{family-names}
@@ -53,6 +55,9 @@ Write:
 
 \begin{document}
 \maketitle
+\begin{abstract}
+  \cffabstract
+\end{abstract}
 \end{document}
 ```
 
@@ -62,3 +67,47 @@ Compile with either:
 pdflatex --shell-escape manuscript.tex
 lualatex manuscript.tex
 ```
+
+## Documentation
+
+The manual is `cfflatex.pdf`.
+
+### Building the document
+
+Run:
+
+```sh
+l3build doc
+```
+
+## Development
+
+### Lint
+
+Requires:
+
+* [badness](https://pypi.org/project/badness/)
+* [expltools](https://ctan.org/pkg/expltools)
+* [lua-check](https://github.com/lunarmodules/luacheck)
+
+```sh
+badness format .
+badness lint .
+explcheck --warnings-are-errors cfflatex.sty
+luacheck .
+```
+
+### Build
+
+[l3build](https://ctan.org/pkg/l3build) runs the tests and builds the manual and the CTAN archive:
+
+```sh
+l3build check   # tests with pdfLaTeX and LuaLaTeX
+l3build doc     # cfflatex.pdf
+l3build ctan    # cfflatex-ctan.zip
+```
+
+## License
+
+cffLaTeX is distributed under the MIT License.
+Report bugs at <https://github.com/JSS95/cfflatex/issues>.

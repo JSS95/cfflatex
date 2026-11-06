@@ -8,7 +8,7 @@
 \begin{document}
 \START
 \OMIT
-\includecff{paper.cff}
+\includecff[source=preferred-citation]{paper.cff}
 \TIMO
 \TYPE{\cffauthor{1}{given-names} | \cffauthor{1}{family-names}}
 \TYPE{\cffauthor{2}{given-names} | \cffauthor{2}{family-names}}

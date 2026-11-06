@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: m
+title: Code archive
+authors:
+  - name: Developer
+x-thesis:
+  type: thesis
+  title: A thesis about the software
+  abstract: The thesis describes the software.
+  authors:
+    - family-names: Student
+      given-names: Sam
