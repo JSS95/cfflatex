@@ -20,6 +20,10 @@ authors:
       Seoul National University,
       Republic of Korea
     email: "jeesoo9595@snu.ac.kr"
+contact:
+  - family-names: Song
+    given-names: Jisoo
+    email: "jeesoo9595@snu.ac.kr"
 repository-code: https://github.com/JSS95/cfflatex
 license: MIT
 keywords:

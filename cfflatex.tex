@@ -15,25 +15,47 @@
 % CITATION.cff file of this package.
 \includecff{CITATION.cff}
 \title{\cfftitle}
-% authblk lists the affiliations and the email address below the authors,
-% marked a, b, ... and *. Each author is marked with the letters of their
-% affiliations, converted to the numbers that \cffforeachaffiliation gives the
-% \affil below, and the last author, the corresponding author, also with * for
-% the email address. The \author of authblk expands the name when it is called,
-% so \protect keeps \cffauthor for \maketitle, where the check of cfflatex sees
-% it. authblk also keeps the name unexpanded and expands it later, outside the
-% loop, so \cffdoc@author takes the index of the author as a number.
+% authblk lists the affiliations below the authors, marked a, b, .... Each
+% author is marked with the letters of their affiliations, and the authors who
+% are contacts of the citation with footnotes giving their email addresses,
+% marked *, \dag, ... in order. The \author of authblk expands the name when it
+% is called, so \protect keeps \cffauthor for \maketitle, where the check of
+% cfflatex sees it. authblk also keeps the name unexpanded and expands it
+% later, outside the loop, so \cffdoc@author takes the index of the author as a
+% number.
 \makeatletter
+% Like \thanks in \maketitle, but typesets the footnote symbol as text, at the
+% end of the marks that authblk sets as a superscript after the name. The text
+% of the footnote is expanded when \author of authblk is called.
+\protected\def\cffdoc@thanks#1{%
+  \stepcounter{footnote}%
+  \protected@xdef\@thefnmark{\thefootnote}\@thefnmark
+  \protected@xdef\@thanks{%
+    \@thanks\protect\footnotetext[\the\c@footnote]{#1}}}
+% Sets \cffdoc@whoa to the names of the #2-th entry of the author or contact
+% getter #1.
+\def\cffdoc@who#1#2{%
+  \protected@edef\cffdoc@whoa{%
+    #1{#2}{given-names}|#1{#2}{family-names}|#1{#2}{name}}}
+% Typesets the #1-th author with the letters of their affiliations, converted
+% to the numbers that \cffforeachaffiliation gives the \affil below, and a
+% footnote with the email address of each contact that is this author.
 \def\cffdoc@author#1{%
   \def\cffdoc@marks{}%
   \cffforeachauthoraffiliation{#1}{%
     \edef\cffdoc@marks{%
       \cffdoc@marks\ifnum\cffauthoraffiliationindex>1 ,\fi
       \@alph{\cffconvertaffiliationindex{#1}{\cffauthoraffiliationindex}}}}%
-  \ifnum#1=\cffauthorcount
-  \edef\cffdoc@marks{\cffdoc@marks\ifx\cffdoc@marks\@empty\else,\fi*}%
-  \fi
-  \author[\cffdoc@marks]{%
+  \cffdoc@who\cffauthor{#1}\let\cffdoc@author@who\cffdoc@whoa
+  \cffforeachcontact{%
+    \cffdoc@who\cffcontact{\cffcontactindex}%
+    \protected@edef\cffdoc@email{\cffcontact{\cffcontactindex}{email}}%
+    \ifx\cffdoc@whoa\cffdoc@author@who\ifx\cffdoc@email\@empty\else
+    \protected@edef\cffdoc@marks{%
+      \cffdoc@marks\ifx\cffdoc@marks\@empty\else,\fi
+      \cffdoc@thanks{E-mail: \cffdoc@email}}%
+    \fi\fi}%
+  \author[{\cffdoc@marks}]{%
     \protect\cffauthor{#1}{given-names}~\protect\cffauthor{#1}{family-names}%
   }}
 \def\cffdoc@names{}
@@ -46,7 +68,6 @@
     \cffauthor{\cffdoc@index}{family-names}}}
 \cffforeachaffiliation{%
   \affil[\@alph{\cffaffiliationindex}]{\cffaffiliation{\cffaffiliationindex}}}
-\affil[*]{E-mail: \cffauthor{\cffauthorcount}{email}}
 % hyperref cannot take the PDF author from the \author of authblk.
 \hypersetup{pdfauthor={\cffdoc@names}}
 \makeatother
