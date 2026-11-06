@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   templates, affiliation marks, contact footnotes, and repeated notes.
   Author conversion runs LuaLaTeX with shell escape disabled. The exported
   declarations compile without cfflatex or the CFF file.
+- CTAN and TDS archives include the executable `cfflatexpand` command and all
+  required Lua modules. `l3build install` installs them into a local TeX tree.
+  CI tests the installed command, and CD tests the built TDS archive before release.
 
 ### Fixed
 

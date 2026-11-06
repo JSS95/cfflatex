@@ -2,6 +2,7 @@
 -- Copyright (c) 2026 cffLaTeX contributors
 -- Run with texlua tests/test_cfflatexpand.lua; no test framework is required.
 -- CLI and package checks run in separate processes with temporary files.
+-- --installed tests a temporary l3build installation; --tds ZIP tests an archive.
 
 local lfs = require("lfs")
 local windows = package.config:sub(1, 1) == "\\"
@@ -13,6 +14,16 @@ end
 local root = assert(script:match("^(.*)[/\\]tests[/\\][^/\\]+$"))
 local cli = root .. "/cfflatexpand"
 local texlua = "texlua"
+local installed = arg[1] == "--installed" or arg[1] == "--tds"
+local tds = arg[1] == "--tds" and arg[2] or nil
+if (#arg > 0 and not installed) or (arg[1] == "--installed" and #arg ~= 1)
+  or (arg[1] == "--tds" and (#arg ~= 2 or tds == "")) then
+  io.stderr:write("Usage: texlua tests/test_cfflatexpand.lua [--installed | --tds ZIP]\n")
+  os.exit(1)
+end
+if tds and not tds:match("^[/\\]") and not tds:match("^%a:[/\\]") then
+  tds = initial_directory .. "/" .. tds
+end
 
 local citation = "title: Example Paper\nauthors:\n  - family-names: Doe\n"
 local preamble = "\\documentclass{article}\n\\usepackage{cfflatex}\n"
@@ -158,6 +169,7 @@ if lfs.attributes(reservation) then
 end
 local cache = mkdir(temporary .. "/tex-cache")
 local old_texmfvar, old_texmfcache = os.getenv("TEXMFVAR"), os.getenv("TEXMFCACHE")
+local old_texmfhome, old_path = os.getenv("TEXMFHOME"), os.getenv("PATH")
 os.setenv("TEXMFVAR", cache)
 os.setenv("TEXMFCACHE", cache)
 
@@ -245,6 +257,41 @@ local function test(name, body, skip)
 end
 
 local ok, message = xpcall(function()
+  if installed then
+    local texmf = mkdir(temporary .. "/texmf")
+    if tds then
+      success(run_command({"unzip", "-q", tds, "-d", texmf}, temporary))
+      for _, filename in ipairs({"cfflatex.pdf", "README.md", "LICENSE"}) do
+        assert(lfs.isfile(texmf .. "/doc/latex/cfflatex/" .. filename),
+          "TDS archive is missing " .. filename)
+      end
+    else
+      success(run_command({"l3build", "install", "--texmfhome", texmf}, root))
+    end
+    os.setenv("TEXMFHOME", texmf)
+    local command = texmf .. "/scripts/cfflatex/cfflatexpand"
+    equal(read_file(command), read_file(root .. "/cfflatexpand"))
+    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+      "cfflatexpand.lua", "cfflatexpand-authors.lua"}) do
+      local path = texmf .. "/tex/latex/cfflatex/" .. filename
+      equal(read_file(path), read_file(root .. "/" .. filename))
+      local located = run_command({"kpsewhich", filename}, temporary)
+      success(located)
+      equal(located.stdout:gsub("[\r\n]+$", ""):gsub("\\", "/"), path:gsub("\\", "/"))
+    end
+    if windows then
+      cli = command
+    else
+      assert(lfs.attributes(command, "permissions"):sub(3, 3) == "x",
+        "installed cfflatexpand is not executable")
+      local bin = mkdir(temporary .. "/bin")
+      cli = bin .. "/cfflatexpand"
+      assert(lfs.link(command, cli, true))
+      os.setenv("PATH", bin .. ":" .. old_path)
+    end
+    io.write(tds and "Testing the TDS archive\n" or "Testing l3build install\n")
+  end
+
   test("stdout from another directory", function(f)
     local result = f:cli(f.input)
     success(result)
@@ -255,7 +302,7 @@ local ok, message = xpcall(function()
   end)
 
   test("executable entry point", function(f)
-    success(run_command({cli, f.input}, f.directory))
+    success(run_command({installed and "cfflatexpand" or cli, f.input}, f.directory))
   end, windows and "POSIX shebang" or nil)
 
   test("output options and stdout alias", function(f)
@@ -822,8 +869,8 @@ printf 'engine failure\n'
 exit 1
 ]])
     success(run_command({"chmod", "+x", bin .. "/lualatex"}, f.directory))
-    local old_path = os.getenv("PATH")
-    os.setenv("PATH", bin .. ":" .. old_path)
+    local engine_path = os.getenv("PATH")
+    os.setenv("PATH", bin .. ":" .. engine_path)
     os.setenv("CFFLATEXPAND_TEST_ENGINE_CALL", marker)
     local worked, detail = pcall(function()
       success(f:cli(f.input))
@@ -842,7 +889,7 @@ exit 1
       local directory = assert(call:match("^[^\n]+"))
       assert(not lfs.attributes(directory), "helper directory was not removed")
     end)
-    os.setenv("PATH", old_path)
+    os.setenv("PATH", engine_path)
     os.setenv("CFFLATEXPAND_TEST_ENGINE_CALL", nil)
     assert(worked, detail)
   end, windows and "POSIX engine stub" or nil)
@@ -988,6 +1035,8 @@ end, debug.traceback)
 assert(lfs.chdir(initial_directory))
 os.setenv("TEXMFVAR", old_texmfvar)
 os.setenv("TEXMFCACHE", old_texmfcache)
+os.setenv("TEXMFHOME", old_texmfhome)
+os.setenv("PATH", old_path)
 remove_tree(temporary)
 if not ok then
   io.stderr:write(message, "\n")

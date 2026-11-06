@@ -125,6 +125,9 @@ jobs:
       - name: Test the export CLI
         run: texlua tests/test_cfflatexpand.lua
 
+      - name: Test the installed export CLI
+        run: texlua tests/test_cfflatexpand.lua --installed
+
       - name: Show differences from the expected logs
         if: failure()
         run: cat build/test*/*.diff

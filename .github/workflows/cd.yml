@@ -54,6 +54,11 @@ jobs:
       - name: Build the package
         run: l3build ctan
 
+      # Exercise the distributed files outside the checkout, including the
+      # executable command and Kpathsea lookup through a bin-directory link.
+      - name: Test the packaged export CLI
+        run: texlua tests/test_cfflatexpand.lua --tds cfflatex.tds.zip
+
       # Both release jobs download this archive; neither rebuilds it.
       - name: Upload the package
         uses: actions/upload-artifact@v4

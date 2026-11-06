@@ -201,25 +201,30 @@ cases, load the package with the |check=false| option:
 
 The Lua command-line tool \texttt{cfflatexpand} replaces metadata commands with
 their values and removes the cfflatex package load and \cs{includecff}. The
-resulting source can be compiled without cfflatex or the CFF file. From a source
-checkout, run either
+resulting source can be compiled without cfflatex or the CFF file. Install the
+command as described in the README, then run either
 \begin{Verbatim}
-./cfflatexpand manuscript.tex > submission.tex
-./cfflatexpand manuscript.tex --output submission.tex
-./cfflatexpand manuscript.tex -o submission.tex
+cfflatexpand manuscript.tex > submission.tex
+cfflatexpand manuscript.tex --output submission.tex
+cfflatexpand manuscript.tex -o submission.tex
 \end{Verbatim}
+From a source checkout, use \texttt{./cfflatexpand} instead. The command runs
+with \texttt{texlua}. Converting \cs{cffsetauthors} also requires LuaLaTeX,
+which runs with shell escape disabled.
 
 The exporter also supports \cs{cffsetauthors} with the \texttt{standard} and
 \texttt{authblk} styles and the keys described in Section~\ref{sec:setauthors}.
 It emits ordinary author and affiliation declarations, preserving the name,
 contact, and declaration templates, affiliation marks, separators, and notes.
+The output still needs the class or package that provides its declarations, such
+as authblk for that style.
 
 For a manuscript split into several TeX files, first merge it with latexpand.
 Keep the merged file beside the root manuscript and keep the literal CFF
 filename valid there:
 \begin{Verbatim}
 latexpand manuscript.tex > manuscript-flat.tex
-./cfflatexpand manuscript-flat.tex --output submission.tex
+cfflatexpand manuscript-flat.tex --output submission.tex
 \end{Verbatim}
 
 \section{Reference}
