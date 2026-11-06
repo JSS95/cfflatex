@@ -1,0 +1,244 @@
+% SPDX-License-Identifier: MIT
+% Copyright (c) 2026 cffLaTeX contributors
+\ProvidesFile{cfflatex-style-rsc.def}[cffLaTeX RSC author style]
+\ExplSyntaxOn
+
+% The article template of the Royal Society of Chemistry typesets its title
+% block by hand in a @twocolumnfalse environment, without \maketitle, and lists
+% the footnotes of the first page after the block with \footnotetext. This
+% style defines two commands for them:
+%   \rscauthors    Name,\textit{$^{*a}$} Name,\textit{$^{b\ddag}$} and Name...
+%   \rscfootnotes  \footnotetext{\textit{$^{*}$~<contact>}} for each contact,
+%                  then each affiliation (a, b, ...), then each note.
+% Contacts are marked *, **, ..., and notes \ddag, \S, \P, \ddag\ddag, ...;
+% the template keeps \dag for the electronic supplementary information. Authors
+% with the same footnote text share its symbol. With one affiliation, no letter
+% is needed.
+
+% The authors as {<name>}{<marks>}, the footnotes as {<mark>}{<text>}, and the
+% symbols of the footnote texts.
+\seq_new:N \l__cfflatex_rsc_authors_seq
+\seq_new:N \l__cfflatex_rsc_contacts_seq
+\seq_new:N \l__cfflatex_rsc_affiliations_seq
+\seq_new:N \l__cfflatex_rsc_notes_seq
+\prop_new:N \l__cfflatex_rsc_symbols_prop
+\int_new:N \l__cfflatex_rsc_contact_count_int
+\int_new:N \l__cfflatex_rsc_note_count_int
+% The marks of the current author by kind, its footnotes so far, and how many
+% of its footnotes are contacts.
+\seq_new:N \l__cfflatex_rsc_letters_seq
+\tl_new:N \l__cfflatex_rsc_contact_marks_tl
+\tl_new:N \l__cfflatex_rsc_note_marks_tl
+\int_new:N \l__cfflatex_rsc_thanks_int
+\int_new:N \l__cfflatex_rsc_contacts_int
+\tl_new:N \l__cfflatex_rsc_text_tl
+\tl_new:N \l__cfflatex_rsc_symbol_tl
+\tl_new:N \l__cfflatex_rsc_authors_tl
+\tl_new:N \l__cfflatex_rsc_footnotes_tl
+\cs_generate_variant:Nn \prop_put:Nnn { NVV }
+
+\cs_new_protected:Npn \__cfflatex_rsc_begin:
+  {
+    \seq_clear:N \l__cfflatex_rsc_authors_seq
+    \seq_clear:N \l__cfflatex_rsc_contacts_seq
+    \seq_clear:N \l__cfflatex_rsc_affiliations_seq
+    \seq_clear:N \l__cfflatex_rsc_notes_seq
+    \prop_clear:N \l__cfflatex_rsc_symbols_prop
+    \int_zero:N \l__cfflatex_rsc_contact_count_int
+    \int_zero:N \l__cfflatex_rsc_note_count_int
+  }
+
+% The marks of author #1 are the letters of its affiliations, then the
+% footnotes of its contacts, then those of its notes. Footnotes are
+% \__cfflatex_thanks:n, which only \maketitle sets, so they become symbols
+% with footnotes of their own. The notes of the author tell how many of its
+% footnotes are contacts.
+\cs_new_protected:Npn \__cfflatex_rsc_prepare:n #1
+  {
+    \int_zero:N \l__cfflatex_rsc_contacts_int
+    \seq_map_inline:Nn \l__cfflatex_marks_seq
+      {
+        \tl_if_head_eq_meaning:nNT {##1} \__cfflatex_thanks:n
+          { \int_incr:N \l__cfflatex_rsc_contacts_int }
+      }
+    \seq_map_inline:Nn \l__cfflatex_notes_seq
+      { \__cfflatex_rsc_count_note:nnn {#1} ##1 }
+    \seq_clear:N \l__cfflatex_rsc_letters_seq
+    \tl_clear:N \l__cfflatex_rsc_contact_marks_tl
+    \tl_clear:N \l__cfflatex_rsc_note_marks_tl
+    \int_zero:N \l__cfflatex_rsc_thanks_int
+    \seq_map_inline:Nn \l__cfflatex_marks_seq
+      {
+        \tl_if_head_eq_meaning:nNTF {##1} \__cfflatex_thanks:n
+          {
+            \int_incr:N \l__cfflatex_rsc_thanks_int
+            \tl_set:No \l__cfflatex_rsc_text_tl { \use_ii:nn ##1 }
+            \int_compare:nNnTF { \l__cfflatex_rsc_thanks_int }
+              > { \l__cfflatex_rsc_contacts_int }
+              { \__cfflatex_rsc_note: }
+              { \__cfflatex_rsc_contact: }
+          }
+          {
+            \int_compare:nNnT { \cffaffiliationcount } > { 1 }
+              { \seq_put_right:Nn \l__cfflatex_rsc_letters_seq {##1} }
+          }
+      }
+    \tl_set:Ne \l__cfflatex_marks_tl
+      {
+        \exp_not:V \l__cfflatex_rsc_contact_marks_tl
+        \seq_use:NV \l__cfflatex_rsc_letters_seq \l__cfflatex_separator_tl
+        \exp_not:V \l__cfflatex_rsc_note_marks_tl
+      }
+  }
+\cs_new_protected:Npn \__cfflatex_rsc_count_note:nnn #1#2#3
+  {
+    \int_compare:nNnT {#1} = {#2}
+      { \int_decr:N \l__cfflatex_rsc_contacts_int }
+  }
+% Contacts are marked *, **, and so on.
+\cs_new_protected:Npn \__cfflatex_rsc_contact:
+  {
+    \prop_get:NVNF \l__cfflatex_rsc_symbols_prop \l__cfflatex_rsc_text_tl
+      \l__cfflatex_rsc_symbol_tl
+      {
+        \int_incr:N \l__cfflatex_rsc_contact_count_int
+        \tl_set:Ne \l__cfflatex_rsc_symbol_tl
+          {
+            \prg_replicate:nn { \l__cfflatex_rsc_contact_count_int }
+              { \exp_not:N \ast }
+          }
+        \__cfflatex_rsc_add_footnote:N \l__cfflatex_rsc_contacts_seq
+      }
+    \tl_put_right:NV \l__cfflatex_rsc_contact_marks_tl
+      \l__cfflatex_rsc_symbol_tl
+  }
+% Notes are marked \ddag, \S, \P, \ddag\ddag, \S\S, and so on.
+\cs_new_protected:Npn \__cfflatex_rsc_note:
+  {
+    \prop_get:NVNF \l__cfflatex_rsc_symbols_prop \l__cfflatex_rsc_text_tl
+      \l__cfflatex_rsc_symbol_tl
+      {
+        \int_incr:N \l__cfflatex_rsc_note_count_int
+        \tl_set:Ne \l__cfflatex_rsc_symbol_tl
+          {
+            \prg_replicate:nn
+              {
+                \int_div_truncate:nn
+                  { \l__cfflatex_rsc_note_count_int - 1 } { 3 } + 1
+              }
+              {
+                \int_case:nn
+                  { \int_mod:nn { \l__cfflatex_rsc_note_count_int - 1 } { 3 } }
+                  {
+                    { 0 } { \exp_not:N \ddag }
+                    { 1 } { \exp_not:N \S }
+                    { 2 } { \exp_not:N \P }
+                  }
+              }
+          }
+        \__cfflatex_rsc_add_footnote:N \l__cfflatex_rsc_notes_seq
+      }
+    \tl_put_right:NV \l__cfflatex_rsc_note_marks_tl \l__cfflatex_rsc_symbol_tl
+  }
+\cs_new_protected:Npn \__cfflatex_rsc_add_footnote:N #1
+  {
+    \prop_put:NVV \l__cfflatex_rsc_symbols_prop \l__cfflatex_rsc_text_tl
+      \l__cfflatex_rsc_symbol_tl
+    \seq_put_right:Ne #1
+      {
+        { \exp_not:V \l__cfflatex_rsc_symbol_tl }
+        { \exp_not:V \l__cfflatex_rsc_text_tl }
+      }
+  }
+
+\cs_new_protected:Npn \__cfflatex_rsc_author:nn #1#2
+  { \seq_put_right:Nn \l__cfflatex_rsc_authors_seq { {#2} {#1} } }
+\cs_new_protected:Npn \__cfflatex_rsc_affiliation:nn #1#2
+  {
+    \int_compare:nNnTF { \cffaffiliationcount } > { 1 }
+      { \seq_put_right:Nn \l__cfflatex_rsc_affiliations_seq { {#1} {#2} } }
+      { \seq_put_right:Nn \l__cfflatex_rsc_affiliations_seq { { } {#2} } }
+  }
+
+% Like the template: a comma after every name but the last when there are more
+% than two, and "and" before the last.
+\cs_new_protected:Npn \__cfflatex_rsc_end:
+  {
+    \tl_clear:N \l__cfflatex_rsc_authors_tl
+    \seq_map_indexed_inline:Nn \l__cfflatex_rsc_authors_seq
+      { \__cfflatex_rsc_put_author:nnn {##1} ##2 }
+    \tl_clear:N \l__cfflatex_rsc_footnotes_tl
+    \seq_map_inline:Nn \l__cfflatex_rsc_contacts_seq
+      { \__cfflatex_rsc_put_footnote:nn ##1 }
+    \seq_map_inline:Nn \l__cfflatex_rsc_affiliations_seq
+      { \__cfflatex_rsc_put_footnote:nn ##1 }
+    \seq_map_inline:Nn \l__cfflatex_rsc_notes_seq
+      { \__cfflatex_rsc_put_footnote:nn ##1 }
+    \exp_args:Ne \cffemit
+      {
+        \exp_not:N \newcommand \exp_not:N \rscauthors
+          { \exp_not:V \l__cfflatex_rsc_authors_tl }
+      }
+    \exp_args:Ne \cffemit
+      {
+        \exp_not:N \newcommand \exp_not:N \rscfootnotes
+          { \exp_not:V \l__cfflatex_rsc_footnotes_tl }
+      }
+  }
+\cs_new_protected:Npn \__cfflatex_rsc_put_author:nnn #1#2#3
+  {
+    \int_compare:nNnT {#1} > { 1 }
+      {
+        \int_compare:nNnTF {#1} = { \seq_count:N \l__cfflatex_rsc_authors_seq }
+          { \tl_put_right:Nn \l__cfflatex_rsc_authors_tl { ~and~ } }
+          { \tl_put_right:Nn \l__cfflatex_rsc_authors_tl { ~ } }
+      }
+    \tl_put_right:Nn \l__cfflatex_rsc_authors_tl {#2}
+    \bool_lazy_and:nnT
+      {
+        \int_compare_p:nNn {#1}
+          < { \seq_count:N \l__cfflatex_rsc_authors_seq }
+      }
+      {
+        \int_compare_p:nNn { \seq_count:N \l__cfflatex_rsc_authors_seq }
+          > { 2 }
+      }
+      { \tl_put_right:Nn \l__cfflatex_rsc_authors_tl { , } }
+    \tl_if_empty:nF {#3}
+      {
+        \tl_put_right:Nn \l__cfflatex_rsc_authors_tl
+          { \textit { $ ^ {#3} $ } }
+      }
+  }
+\cs_new_protected:Npn \__cfflatex_rsc_put_footnote:nn #1#2
+  {
+    \tl_if_empty:nTF {#1}
+      {
+        \tl_put_right:Nn \l__cfflatex_rsc_footnotes_tl
+          { \footnotetext { \textit {#2} } }
+      }
+      {
+        \tl_put_right:Nn \l__cfflatex_rsc_footnotes_tl
+          { \footnotetext { \textit { $ ^ {#1} $ \nobreakspace #2 } } }
+      }
+  }
+
+\cffdeclareauthorstyle { rsc }
+  {
+    contact = { Corresponding~author.~E-mail:~#1 { email } },
+    separator = { },
+    begin = { \__cfflatex_rsc_begin: },
+    prepare-author = { \__cfflatex_rsc_prepare:n {#1} },
+    author-code = { \__cfflatex_rsc_author:nn {#1} {#2} },
+    affiliation-code = { \__cfflatex_rsc_affiliation:nn {#1} {#2} },
+    end = { \__cfflatex_rsc_end: },
+    check-fields = { title, authors, abstract },
+    check-region =
+      {
+        hooks = { env/@twocolumnfalse/begin } { env/@twocolumnfalse/end },
+        document,
+      },
+  }
+
+\ExplSyntaxOff
+\endinput

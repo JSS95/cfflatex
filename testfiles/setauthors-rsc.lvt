@@ -1,0 +1,39 @@
+% style=rsc defines \rscauthors and \rscfootnotes for the title block of the
+% RSC template, which has no \maketitle, and checks the title, the authors, and
+% the abstract in the block.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[style=rsc]{cfflatex}
+\includecff{rsc.cff}
+\cffsetauthors[
+  note = {1}{Equal contribution.},
+  note = {2}{Equal contribution.},
+  note = {2}{Present address.},
+]
+\newcommand\showrsc{%
+  \TYPE{\detokenize\expandafter{\rscauthors}}%
+  \TYPE{\detokenize\expandafter{\rscfootnotes}}%
+}
+
+\begin{document}
+% The marks are superscripts; load those fonts here, because TeX Live 2025
+% logs them and 2026 does not.
+\sbox0{$x^{x^{x}}$}
+\START
+\TEST{contacts, letters, and shared notes}{\showrsc}
+\TEST{the block lacks the abstract}{
+  \sbox0{
+    \begin{@twocolumnfalse}\cff{title} \rscauthors\end{@twocolumnfalse}
+  }
+}
+\TEST{two authors with one address need no letter}{
+  \let\rscauthors\relax
+  \let\rscfootnotes\relax
+  \OMIT
+  \includecff[source=preferred-citation]{rsc.cff}
+  \TIMO
+  \cffsetauthors
+  \showrsc
+}
+\END

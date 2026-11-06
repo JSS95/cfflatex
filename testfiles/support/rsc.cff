@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: m
+title: Title block
+abstract: The abstract.
+authors:
+  - family-names: One
+    given-names: Ann
+    affiliation: Univ A
+  - family-names: Two
+    given-names: Ben
+    affiliation: "Univ B; Univ A"
+  - family-names: Three
+    given-names: Cy
+    affiliation: Univ B
+contact:
+  - family-names: Three
+    given-names: Cy
+    email: cy@example.org
+  - family-names: One
+    given-names: Ann
+    email: ann@example.org
+preferred-citation:
+  type: article
+  title: One address
+  authors:
+    - family-names: Four
+      given-names: Di
+      affiliation: Univ C
+    - family-names: Five
+      given-names: Ed
+      affiliation: Univ C

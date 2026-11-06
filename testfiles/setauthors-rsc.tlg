@@ -1,0 +1,19 @@
+This is a generated file for the l3build validation system.
+Don't change this file in any respect.
+============================================================
+TEST 1: contacts, letters, and shared notes
+============================================================
+\protect \cffauthor {1}{given-names}\nobreakspace \protect \cffauthor {1}{family-names},\textit {$^{\ast a\ddag }$} \protect \cffauthor {2}{given-names}\nobreakspace \protect \cffauthor {2}{family-names},\textit {$^{ba\ddag \S }$} and \protect \cffauthor {3}{given-names}\nobreakspace \protect \cffauthor {3}{family-names}\textit {$^{\ast \ast b}$}
+\footnotetext {\textit {$^{\ast }$\nobreakspace Corresponding author. E-mail: \cffcontact {2}{email}}}\footnotetext {\textit {$^{\ast \ast }$\nobreakspace Corresponding author. E-mail: \cffcontact {1}{email}}}\footnotetext {\textit {$^{a}$\nobreakspace \cffaffiliation {1}}}\footnotetext {\textit {$^{b}$\nobreakspace \cffaffiliation {2}}}\footnotetext {\textit {$^{\ddag }$\nobreakspace Equal contribution.}}\footnotetext {\textit {$^{\S }$\nobreakspace Present address.}}
+============================================================
+============================================================
+TEST 2: the block lacks the abstract
+============================================================
+Package cfflatex Warning: The title page does not use 'abstract' of the citation. Load cfflatex with check=false to skip this check.
+============================================================
+============================================================
+TEST 3: two authors with one address need no letter
+============================================================
+\protect \cffauthor {1}{given-names}\nobreakspace \protect \cffauthor {1}{family-names} and \protect \cffauthor {2}{given-names}\nobreakspace \protect \cffauthor {2}{family-names}
+\footnotetext {\textit {\cffaffiliation {1}}}
+============================================================
