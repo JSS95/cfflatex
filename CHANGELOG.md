@@ -12,5 +12,5 @@ First release.
 ### Added
 
 - `\includecff[source=root|preferred-citation]{file}` reads a CFF file.
-- `\cfftitle` and `\cffauthor{index}{field}` expand to the title and author
-  fields of the selected citation.
+- `\cfftitle` and `\cffabstract` expand to the title and abstract of the selected citation.
+- `\cffauthor{index}{field}` expands to the author fields of the selected citation.

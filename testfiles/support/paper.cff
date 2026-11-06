@@ -2,6 +2,7 @@ cff-version: 1.2.0
 message: Please cite this software.
 type: software
 title: Code archive
+abstract: The code that accompanies the manuscript.
 authors:
   - family-names: Developer
     given-names: Ada
@@ -9,6 +10,7 @@ authors:
 preferred-citation:
   type: article
   title: A research manuscript
+  abstract: We describe a method.
   authors:
     - family-names: Müller
       given-names: Jörg

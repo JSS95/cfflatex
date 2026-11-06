@@ -20,12 +20,11 @@ checkconfigs = {"build", "config-noshell"}
 
 -- Documentation -------------------------------------------------------------
 
--- The manual reads its title and author from CITATION.cff with cfflatex.
+-- The manual reads its metadata from CITATION.cff with cfflatex.
 -- LuaLaTeX runs cfflatex.lua without shell escape.
 typesetfiles = {"cfflatex.tex"}
 typesetexe = "lualatex"
 docfiles = {"CITATION.cff"}
-demofiles = {"example.tex", "example.cff"}
 textfiles = {"README.md", "CHANGELOG.md", "LICENSE"}
 
 -- Release -------------------------------------------------------------------
@@ -64,11 +63,9 @@ uploadconfig = {
   license = "mit",
   summary = "Import Citation File Format metadata into LaTeX",
   description = [[
-    The package reads the title and authors of a citation from a Citation
-    File Format (CFF) file, such as the CITATION.cff file of a research
-    software repository, into a LaTeX document, so that the metadata is
-    written only once. It works with LuaLaTeX, and with pdfLaTeX when shell
-    escape is enabled.
+    The package reads metadata from a Citation File Format (CFF) file of a
+    research software repository, into a LaTeX document.
+    It works with LuaLaTeX, and with pdfLaTeX when shell escape is enabled.
   ]],
   ctanPath = "/macros/latex/contrib/cfflatex",
   topic = {"metadata", "data-import"},

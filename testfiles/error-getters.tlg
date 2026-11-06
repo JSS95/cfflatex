@@ -14,12 +14,12 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 2: \cffauthor before \includecff 
+TEST 2: \cffabstract before \includecff 
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
                  ! Package cfflatex Error: Call \includecff first.
-l. ......decff}{\TYPE{[\cffauthor{1}{given-names}]}}
+l. ...... before \includecff}{\TYPE{[\cffabstract]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
 made up of letters only. The macro here has not been
@@ -27,7 +27,20 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 3: author index 0
+TEST 3: \cffauthor before \includecff 
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Call \includecff first.
+l. ......ecff}{\TYPE{[\cffauthor{1}{given-names}]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 4: author index 0
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -40,7 +53,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 4: author index past the last author
+TEST 5: author index past the last author
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  

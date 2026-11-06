@@ -28,6 +28,7 @@ authors:
 preferred-citation:
   type: article
   title: My Paper
+  abstract: My paper abstract.
   authors:
     - family-names: Doe
       given-names: Jane
@@ -54,6 +55,9 @@ Write:
 
 \begin{document}
 \maketitle
+\begin{abstract}
+  \cffabstract
+\end{abstract}
 \end{document}
 ```
 

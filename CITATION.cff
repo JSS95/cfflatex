@@ -3,15 +3,14 @@ message: If you use cffLaTeX, please cite it using these metadata.
 type: software
 title: "cffLaTeX: Import Citation File Format metadata into LaTeX"
 abstract: >-
-  cffLaTeX reads the title and authors of a citation from a CITATION.cff file
-  into a LaTeX document, so that the metadata is written only once.
+  cffLaTeX reads the title, abstract, and authors of a citation from a Citation
+  File Format (CFF) file, such as the CITATION.cff file of a research software
+  repository, into a LaTeX document, so that the metadata is written only once.
 authors:
   - family-names: Song
     given-names: Jisoo
 repository-code: https://github.com/JSS95/cfflatex
 license: MIT
-version: 0.1.0
-date-released: 2026-11-06
 keywords:
   - LaTeX
   - Citation File Format

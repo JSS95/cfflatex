@@ -20,7 +20,6 @@
     Compile~with~--shell-escape,~or~use~LuaLaTeX.
   }
 
-% Keys are "title" and "authors/<index>/<field>".
 \prop_new:N \g__cfflatex_values_prop
 \int_new:N \g__cfflatex_author_count_int
 \bool_new:N \g__cfflatex_loaded_bool
@@ -99,13 +98,20 @@
     \group_end:
   }
 
-% \cfftitle expands to the title of the loaded citation.
-\NewExpandableDocumentCommand \cfftitle {}
+% Expands to the value stored under the key #1, or to nothing if it is absent.
+\cs_new:Npn \__cfflatex_value:n #1
   {
     \bool_if:NTF \g__cfflatex_loaded_bool
-      { \prop_item:Nn \g__cfflatex_values_prop { title } }
+      { \prop_item:Nn \g__cfflatex_values_prop {#1} }
       { \msg_expandable_error:nn { cfflatex } { not-loaded } }
   }
+
+% \cfftitle expands to the title of the loaded citation.
+\NewExpandableDocumentCommand \cfftitle {} { \__cfflatex_value:n { title } }
+
+% \cffabstract expands to the abstract of the loaded citation, or to nothing if
+% it has none.
+\NewExpandableDocumentCommand \cffabstract {} { \__cfflatex_value:n { abstract } }
 
 % \cffauthor{<index>}{<field>} expands to a field of the <index>-th author,
 % counting from 1. An absent field expands to nothing.

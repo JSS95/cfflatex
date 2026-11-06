@@ -6,6 +6,7 @@
 \begin{document}
 \START
 \TEST{\cfftitle before \includecff}{\TYPE{[\cfftitle]}}
+\TEST{\cffabstract before \includecff}{\TYPE{[\cffabstract]}}
 \TEST{\cffauthor before \includecff}{\TYPE{[\cffauthor{1}{given-names}]}}
 \OMIT
 \includecff{paper.cff}

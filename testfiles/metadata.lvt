@@ -69,4 +69,36 @@
   \TIMO
   \TYPE{\cfftitle}
 }
+\TEST{abstract of the selected citation}{
+  \OMIT
+  \includecff{paper.cff}
+  \TIMO
+  \TYPE{\cffabstract}
+  \OMIT
+  \includecff[source=root]{paper.cff}
+  \TIMO
+  \TYPE{\cffabstract}
+}
+\TEST{absent abstract is empty}{
+  \OMIT
+  \includecff{mixed-authors.cff}
+  \TIMO
+  \TYPE{[\cffabstract]}
+}
+\TEST{abstract is cleared by the next include}{
+  \OMIT
+  \includecff[source=root]{paper.cff}
+  \TIMO
+  \TYPE{[\cffabstract]}
+  \OMIT
+  \includecff{mixed-authors.cff}
+  \TIMO
+  \TYPE{[\cffabstract]}
+}
+\TEST{line breaks in a literal-block abstract become spaces}{
+  \OMIT
+  \includecff[source=root]{multiline.cff}
+  \TIMO
+  \TYPE{[\cffabstract]}
+}
 \END

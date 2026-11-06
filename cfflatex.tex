@@ -10,7 +10,7 @@
 % are "% "; this file is plain LaTeX.
 \fvset{gobble=0}
 
-% The manual is its own example: its title and author come from the
+% The manual is its own example: its title, abstract, and author come from the
 % CITATION.cff file of this package.
 \includecff[source=root]{CITATION.cff}
 \GetFileInfo{cfflatex.sty}
@@ -22,10 +22,7 @@
 \maketitle
 
 \begin{abstract}
-  The \pkg{cfflatex} package reads the title and authors of a citation from a
-  Citation File Format (CFF) file, such as the |CITATION.cff| file of a research
-  software repository, into a \LaTeX{} document. The metadata is then written
-  only once.
+  \cffabstract
 \end{abstract}
 
 \tableofcontents
@@ -34,11 +31,12 @@
 
 A |CITATION.cff| file tells people how to cite a piece of research software. Its
 \texttt{preferred-citation} section often describes the paper about the
-software, whose manuscript is written in \LaTeX{} and repeats the same title and
-authors. With \pkg{cfflatex}, the manuscript reads them from the CFF file
+software, whose manuscript is written in \LaTeX{} and repeats the same title,
+abstract, and authors. With \pkg{cfflatex}, the manuscript reads them from the CFF file
 instead.
 
-The title and author of this manual are themselves read from the |CITATION.cff|
+The title, abstract, and author of this manual are themselves read from the
+|CITATION.cff|
 file of \pkg{cfflatex}.
 
 \section{Requirements}
@@ -66,13 +64,14 @@ authors:
 preferred-citation:
   type: article
   title: My Paper
+  abstract: We describe a method.
   authors:
     - family-names: Doe
       given-names: Jane
     - family-names: Doe
       given-names: John
 \end{Verbatim}
-the following document typesets the title and authors of the paper:
+the following document typesets the title, authors, and abstract of the paper:
 \begin{Verbatim}
 \documentclass{article}
 \usepackage[T1]{fontenc}
@@ -88,6 +87,9 @@ the following document typesets the title and authors of the paper:
 
 \begin{document}
 \maketitle
+\begin{abstract}
+  \cffabstract
+\end{abstract}
 \end{document}
 \end{Verbatim}
 Compile it with either of
@@ -124,6 +126,14 @@ pdflatex --shell-escape manuscript.tex
   Expands to the \texttt{title} of the citation.
 \end{function}
 
+\begin{function}[EXP]{\cffabstract}
+  \begin{syntax}
+    \cs{cffabstract}
+  \end{syntax}
+  Expands to the \texttt{abstract} of the citation, or to nothing if it has
+  none.
+\end{function}
+
 \begin{function}[EXP]{\cffauthor}
   \begin{syntax}
     \cs{cffauthor} \marg{index} \marg{field}
@@ -136,15 +146,18 @@ pdflatex --shell-escape manuscript.tex
   author does not have expands to nothing.
 \end{function}
 
-Both \cs{cfftitle} and \cs{cffauthor} are expandable, so they also work where
-\LaTeX{} expands its argument, for example in the \texttt{pdftitle} and
-\texttt{pdfauthor} options of \pkg{hyperref}.
+\cs{cfftitle}, \cs{cffabstract}, and \cs{cffauthor} are expandable, so they
+also work where \LaTeX{} expands its argument, for example in the
+\texttt{pdftitle}, \texttt{pdfsubject}, and \texttt{pdfauthor} options of
+\pkg{hyperref}.
 
 \section{Text in the metadata}
 
 Values are inserted as text. The \TeX{} special characters
 \verb+\ { } % # $ & _ ~ ^+ are printed as themselves, so \LaTeX{} markup in the
-CFF file is not interpreted. Line breaks inside a value become spaces. Non-ASCII
+CFF file is not interpreted. Line breaks inside a value become spaces, so the
+paragraphs of a multi-paragraph abstract run together, and spaces at either end
+are dropped. Non-ASCII
 characters are kept; with pdf\LaTeX{}, use a font encoding that has them, such
 as \texttt{T1}.
 
@@ -159,12 +172,13 @@ The following errors stop compilation.
   \item[Cannot read CFF file: \meta{reason}.] The file cannot be used. For
         example, it has no \texttt{preferred-citation} section while
         \texttt{source=preferred-citation} is selected, or the selected citation
-        has no \texttt{title} or \texttt{authors}.
+        has no \texttt{title} or \texttt{authors}, or its \texttt{abstract} is
+        not text.
   \item[Install cfflatex.lua alongside cfflatex.sty.] \pkg{cfflatex} is
         incompletely installed.
 \end{description}
-The following errors are reported while expanding \cs{cfftitle} or
-\cs{cffauthor}.
+The following errors are reported while expanding \cs{cfftitle},
+\cs{cffabstract}, or \cs{cffauthor}.
 \begin{description}
   \item[Call \cs{includecff} first.] No CFF file has been read yet.
   \item[Author index `\meta{index}' is out of range.] The citation has fewer
@@ -173,8 +187,8 @@ The following errors are reported while expanding \cs{cfftitle} or
 
 \section{Limitations}
 
-\pkg{cfflatex} reads only the \texttt{title} and the fields of the
-\texttt{authors} of the selected citation. The YAML parser, \pkg{lua-tinyyaml},
+\pkg{cfflatex} reads only the \texttt{title}, the \texttt{abstract}, and the
+fields of the \texttt{authors} of the selected citation. The YAML parser, \pkg{lua-tinyyaml},
 supports a subset of YAML that covers usual CFF files.
 
 \section{License}

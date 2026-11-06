@@ -19,11 +19,14 @@ local escapes = {
 }
 
 -- Each returned line is tokenized by TeX, so line breaks become spaces and
--- TeX special characters are printed literally.
+-- TeX special characters are printed literally. Surrounding whitespace, such
+-- as the final line break of a YAML literal block, is dropped.
 local function tex_text(value)
   return (tostring(value)
     :gsub("\r\n", "\n")
     :gsub("[\r\n\t]", " ")
+    :gsub("^ +", "")
+    :gsub(" +$", "")
     :gsub("[\\{}%%#$&_~%^]", escapes))
 end
 
@@ -90,6 +93,14 @@ local function read(filename, source)
     error("'" .. prefix .. "/title' must be a string", 0)
   end
   output[#output + 1] = store("title", selected.title)
+
+  -- The abstract is optional; when absent, \cffabstract expands to nothing.
+  if selected.abstract ~= nil then
+    if not is_scalar(selected.abstract) then
+      error("'" .. prefix .. "/abstract' must be a string", 0)
+    end
+    output[#output + 1] = store("abstract", selected.abstract)
+  end
 
   local authors = selected.authors
   if kind(authors) ~= "seq" or #authors == 0 then
