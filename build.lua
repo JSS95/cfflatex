@@ -90,6 +90,9 @@ local function package_version()
   return content:match("\\ProvidesExplPackage{cfflatex}{[^}]*}{([^}]*)}")
 end
 
+local version = assert(package_version(), "Missing package version in cfflatex.sty")
+ctanzip = module .. "-" .. version
+
 tagfiles = {"cfflatex.sty", "CITATION.cff"}
 
 function update_tag(file, content, tagname, tagdate)
@@ -109,7 +112,7 @@ end
 -- --file with the CHANGELOG entry shared with GitHub as the CTAN announcement.
 uploadconfig = {
   pkg = "cfflatex",
-  version = package_version(),
+  version = version,
   author = "Jisoo Song",
   uploader = "Jisoo Song",
   license = "mit",

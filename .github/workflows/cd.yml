@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cfflatex-ctan
-          path: cfflatex-ctan.zip
+          path: cfflatex-*.zip
           if-no-files-found: error
 
       # Both release jobs use the exact same changelog entry.
@@ -112,7 +112,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
         run: >-
-          gh release upload "$TAG" cfflatex-ctan.zip
+          gh release upload "$TAG" "cfflatex-${TAG#v}.zip"
           --repo "$GITHUB_REPOSITORY" --clobber
 
   ctan:

@@ -112,7 +112,7 @@ python3 .ci/check_versions.py
 ```sh
 l3build check   # tests with pdfLaTeX and LuaLaTeX
 l3build doc     # cfflatex.pdf
-l3build ctan    # cfflatex-ctan.zip
+l3build ctan    # cfflatex-<version>.zip
 ```
 
 ## License

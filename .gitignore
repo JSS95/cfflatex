@@ -344,7 +344,7 @@ TSWLatexianTemp*
 *.pdf
 # l3build test and build output, and the CTAN archives from `l3build ctan`.
 build/
-*-ctan.zip
+cfflatex-*.zip
 *.tds.zip
 
 # Byte-compiled / optimized / DLL files
