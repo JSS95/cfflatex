@@ -96,6 +96,10 @@ Compile it with either of
 lualatex manuscript.tex
 pdflatex --shell-escape manuscript.tex
 \end{Verbatim}
+\cs{includecff} records the CFF file as an input in the |.fls| file that the
+|-recorder| option writes. Build tools that read it, such as latexmk and the
+LaTeX Workshop extension of Visual Studio Code, therefore rebuild the document
+when the CFF file changes.
 
 \section{Reference}
 

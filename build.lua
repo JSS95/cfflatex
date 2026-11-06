@@ -12,11 +12,40 @@ installfiles = sourcefiles
 -- Tests ---------------------------------------------------------------------
 
 -- pdfLaTeX runs cfflatex.lua through the shell; LuaLaTeX runs it directly.
+-- -recorder writes the .fls file that the .fvt tests below compare.
 checkengines = {"pdftex", "luatex"}
-checkopts = "-interaction=nonstopmode --shell-escape"
+checkopts = "-interaction=nonstopmode --shell-escape -recorder"
 
 -- config-noshell.lua runs testfiles-noshell/ without shell escape.
 checkconfigs = {"build", "config-noshell"}
+
+-- Besides the usual .lvt tests, .fvt tests check that the CFF files a
+-- document reads are listed in the .fls file, which latexmk and LaTeX
+-- Workshop use to rebuild when a dependency changes. The .fls file, reduced
+-- to its sorted, distinct CFF inputs, is compared with the .tfl reference.
+local function rewrite_fls(source, result)
+  local inputs, seen = {}, {}
+  for line in io.lines(source) do
+    local file = line:gsub("\r$", ""):match("^INPUT (.+%.cff)$")
+    if file then
+      file = file:gsub("^%./", "")
+      if not seen[file] then
+        seen[file] = true
+        inputs[#inputs + 1] = "INPUT " .. file
+      end
+    end
+  end
+  table.sort(inputs)
+  local output = assert(io.open(result, "w"))
+  output:write(table.concat(inputs, "\n"), "\n")
+  output:close()
+end
+
+test_types = {
+  fls = {test = ".fvt", generated = ".fls", reference = ".tfl",
+    rewrite = rewrite_fls},
+}
+test_order = {"log", "pdf", "fls"}
 
 -- Documentation -------------------------------------------------------------
 

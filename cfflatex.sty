@@ -28,6 +28,8 @@
 \tl_new:N \g__cfflatex_helper_tl
 \str_new:N \l__cfflatex_file_lua_str
 \str_new:N \l__cfflatex_helper_lua_str
+\ior_new:N \g__cfflatex_dependency_ior
+\cs_generate_variant:Nn \ior_open:Nn { NV }
 
 % Prefer the helper next to this package so both files share a version.
 \file_get_full_name:nNF { \@currpath cfflatex.lua } \g__cfflatex_helper_tl
@@ -80,6 +82,13 @@
         \sys_if_shell_unrestricted:F
           { \msg_fatal:nn { cfflatex } { shell-escape } }
       }
+    % cfflatex.lua reads the file outside TeX. Opening it once through TeX
+    % lists it in the .fls file of the -recorder option, which latexmk and
+    % LaTeX Workshop use to rebuild when a dependency changes. Finding the file
+    % above does not always do so: LuaLaTeX with shell escape does not record
+    % it.
+    \ior_open:NV \g__cfflatex_dependency_ior \l__cfflatex_filename_tl
+    \ior_close:N \g__cfflatex_dependency_ior
     \bool_gset_false:N \g__cfflatex_loaded_bool
     \int_gzero:N \g__cfflatex_author_count_int
     \prop_gclear:N \g__cfflatex_values_prop

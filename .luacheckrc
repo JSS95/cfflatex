@@ -8,5 +8,6 @@ local l3build_config = {allow_defined_top = true, ignore = {"131"}}
 files["build.lua"] = l3build_config
 files["config-*.lua"] = l3build_config
 
--- l3build output, including lt3luabridge's generated scripts.
-exclude_files = {"build/**"}
+-- l3build output, and the scripts lt3luabridge generates when pdfLaTeX
+-- compiles a document (also listed in .gitignore).
+exclude_files = {"build/**", "**/*.luabridge.lua"}
