@@ -1,4 +1,4 @@
-# cffLaTeX: Import CFF file into your LaTeX document
+# cffLaTeX: Import your CFF file into your LaTeX document
 
 With cffLaTeX, you don't need to write your paper metadata twice.
 
@@ -10,8 +10,8 @@ With cffLaTeX, you don't need to write your paper metadata twice.
 
 ## Installation
 
-Install `cfflatex.sty` and `cfflatex.lua` in a local TeX tree such as
-`~/texmf/tex/latex/cfflatex/`, or put them next to your document.
+Install `cfflatex.sty` and `cfflatex.lua` in a local TeX tree such as `~/texmf/tex/latex/cfflatex/`.
+Alternatively, you can put them next to your document.
 
 ## Quick start
 
@@ -66,14 +66,19 @@ lualatex manuscript.tex
 
 ## Documentation
 
-The manual, `cfflatex.pdf`, describes every command, the errors, and the
-limitations. Open it with `texdoc cfflatex` when the package is installed from
-CTAN, or build it with `l3build doc`.
+The manual is `cfflatex.pdf`.
+
+### Building the document
+
+Run:
+
+```sh
+l3build doc
+```
 
 ## Development
 
-[l3build](https://ctan.org/pkg/l3build) runs the tests and builds the manual
-and the CTAN archive:
+[l3build](https://ctan.org/pkg/l3build) runs the tests and builds the manual and the CTAN archive:
 
 ```sh
 l3build check   # tests with pdfLaTeX and LuaLaTeX
@@ -83,5 +88,5 @@ l3build ctan    # cfflatex-ctan.zip
 
 ## License
 
-cffLaTeX is distributed under the MIT License; see `LICENSE`. Report bugs at
-<https://github.com/JSS95/cfflatex/issues>.
+cffLaTeX is distributed under the MIT License.
+Report bugs at <https://github.com/JSS95/cfflatex/issues>.
