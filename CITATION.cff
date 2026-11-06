@@ -12,7 +12,13 @@ abstract: >-
 authors:
   - family-names: Song
     given-names: Jisoo
-    affiliation: "Institute of Chemical Process, Seoul National University, Republic of Korea; Department of Chemical and Biological Engineering, Seoul National University, Republic of Korea"
+    affiliation: >-
+      Institute of Chemical Process,
+      Seoul National University,
+      Republic of Korea;
+      Department of Chemical and Biological Engineering,
+      Seoul National University,
+      Republic of Korea
     email: "jeesoo9595@snu.ac.kr"
 repository-code: https://github.com/JSS95/cfflatex
 license: MIT
