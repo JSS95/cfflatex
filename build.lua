@@ -106,7 +106,7 @@ function update_tag(file, content, tagname, tagdate)
 end
 
 -- l3build asks for the uploader's email, or takes it from --email. CD passes
--- --file with the GitHub Release notes as the CTAN announcement.
+-- --file with the CHANGELOG entry shared with GitHub as the CTAN announcement.
 uploadconfig = {
   pkg = "cfflatex",
   version = package_version(),

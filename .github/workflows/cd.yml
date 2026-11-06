@@ -21,6 +21,12 @@ jobs:
       - name: Check release versions
         run: python3 .ci/check_versions.py
 
+      - name: Extract release notes from the changelog
+        if: github.event_name == 'release'
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: python3 .ci/release_notes.py --tag "$TAG" > "$RUNNER_TEMP/release-notes.md"
+
       # l3build ctan runs the tests and typesets the manual before packaging.
       # This is the union of the test and manual dependencies in ci.yml.
       - name: Install TeX Live
@@ -56,6 +62,15 @@ jobs:
           path: cfflatex-ctan.zip
           if-no-files-found: error
 
+      # Both release jobs use the exact same changelog entry.
+      - name: Upload release notes
+        if: github.event_name == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfflatex-release-notes
+          path: ${{ runner.temp }}/release-notes.md
+          if-no-files-found: error
+
       - name: Upload build logs
         if: failure()
         uses: actions/upload-artifact@v4
@@ -78,6 +93,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: cfflatex-ctan
+
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: cfflatex-release-notes
+
+      - name: Set release notes from the changelog
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY"
+          --notes-file release-notes.md
 
       - name: Upload the release asset
         env:
@@ -114,6 +142,11 @@ jobs:
         with:
           name: cfflatex-ctan
 
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: cfflatex-release-notes
+
       # Set update explicitly so l3build also handles the first submission
       # without an interactive prompt or a retry of a failed validation.
       - name: Determine whether the package is already on CTAN
@@ -131,8 +164,5 @@ jobs:
       - name: Submit to CTAN
         env:
           CTAN_EMAIL: ${{ secrets.CTAN_EMAIL }}
-          RELEASE_NOTES: ${{ github.event.release.body }}
           CFFLATEX_CTAN_UPLOAD: 'true'
-        run: |
-          printf '%s\n' "$RELEASE_NOTES" > "$RUNNER_TEMP/ctan-announcement.txt"
-          l3build upload --email "$CTAN_EMAIL" --file "$RUNNER_TEMP/ctan-announcement.txt"
+        run: l3build upload --email "$CTAN_EMAIL" --file release-notes.md

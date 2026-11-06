@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Test the version check
+      - name: Test release tooling
         run: python3 -m unittest discover -s .ci -p 'test_*.py' -v
 
       # Only a dated stable release at the top of CHANGELOG.md is checked.

@@ -11,19 +11,8 @@ CHANGELOG_HEADING = re.compile(r"^##[ \t]+([^\n]+)$", re.MULTILINE)
 RELEASE_HEADING = re.compile(r"\[(" + SEMVER + r")\] - (\d{4}-\d{2}-\d{2})")
 
 
-def check(root: Path) -> bool:
-    """Check a dated stable release; skip development without reading metadata."""
-    changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
-    heading = CHANGELOG_HEADING.search(changelog)
-    entry = RELEASE_HEADING.fullmatch(heading[1].strip()) if heading else None
-    if entry is None:
-        print(
-            "Skipping version check: the first CHANGELOG.md section "
-            "is not a dated stable release."
-        )
-        return False
-
-    version, date = entry.groups()
+def check_metadata(root: Path, version: str, date: str) -> None:
+    """Require package and citation metadata to match a dated release."""
     datetime.date.fromisoformat(date)
     package = (root / "cfflatex.sty").read_text(encoding="utf-8")
     declaration = re.search(
@@ -62,6 +51,21 @@ def check(root: Path) -> bool:
                 f"expected {expected}, found {values[0]}"
             )
 
+
+def check(root: Path) -> bool:
+    """Check a dated stable release; skip development without reading metadata."""
+    changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
+    heading = CHANGELOG_HEADING.search(changelog)
+    entry = RELEASE_HEADING.fullmatch(heading[1].strip()) if heading else None
+    if entry is None:
+        print(
+            "Skipping version check: the first CHANGELOG.md section "
+            "is not a dated stable release."
+        )
+        return False
+
+    version, date = entry.groups()
+    check_metadata(root, version, date)
     print(f"Release versions and dates match CHANGELOG.md: {version} ({date})")
     return True
 
