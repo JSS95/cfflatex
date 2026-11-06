@@ -212,6 +212,46 @@ The package has one option, |check|, which is |true| by default
   Expands to the \texttt{abstract} of the citation.
 \end{function}
 
+\begin{function}{\cffsetauthors, \cffauthornames}
+  \begin{syntax}
+    \cs{cffsetauthors} \oarg{keys}
+    \cs{cffauthornames}
+  \end{syntax}
+  \cs{cffsetauthors} declares the authors of the citation for \cs{maketitle}, as
+  Section~\ref{sec:setauthors} describes. Call this function once after
+  \cs{includecff}. \cs{cffauthornames} expands to the names of the authors,
+  separated by commas and made by the \texttt{name} template. The \meta{keys}
+  are
+  \begin{description}
+    \item[\texttt{style=standard}] collects the authors in one \cs{author},
+          separated by \cs{and}, without the affiliations. This is the default.
+    \item[\texttt{style=authblk}] declares each author with \cs{author} and each
+          affiliation with \cs{affil} of the \pkg{authblk} package.
+    \item[\texttt{name=}\textmd{\meta{template}}] makes the name of an author.
+          |#1| takes a field of the author. The default is
+          |#1{given-names}~#1{family-names}|.
+    \item[\texttt{affiliation-mark=}\textmd{\meta{style}}] numbers the
+          affiliations with |alph| (the default), |Alph|, |arabic|, |roman|, or
+          |Roman|.
+    \item[\texttt{separator=}\textmd{\meta{text}}] separates the marks of an
+          author. The default is a comma.
+    \item[\texttt{contact=}\textmd{\meta{template}}] is the footnote of an
+          author who is a contact. |#1| takes a field of the contact. The
+          default is |E-mail: #1{email}|, and an empty template gives no
+          footnotes.
+    \item[\texttt{note=}\textmd{\marg{index}\marg{text}}] adds a footnote with
+          \meta{text} to the \meta{index}-th author, such as a current
+          affiliation. \meta{index} is an integer expression, such as
+          |\cffauthorcount| for the last author. The key can be given several
+          times. The footnotes follow those of the contacts, in order.
+    \item[\texttt{author=}\textmd{\meta{template}}] declares an author, with the
+          marks |#1| and the name |#2|.
+    \item[\texttt{affiliation=}\textmd{\meta{template}}] declares an
+          affiliation, with the mark |#1| and the name |#2|. An empty template
+          gives no affiliations.
+  \end{description}
+\end{function}
+
 \begin{function}[EXP]{\cffauthorcount, \cffauthor}
   \begin{syntax}
     \cs{cffauthorcount}
@@ -299,46 +339,6 @@ The package has one option, |check|, which is |true| by default
   \cs{cffforeachcontact} runs \meta{code} once for each contact of the citation,
   in order, and \cs{cffcontactindex} expands to the index of the current
   contact, counting from~1.
-\end{function}
-
-\begin{function}{\cffsetauthors, \cffauthornames}
-  \begin{syntax}
-    \cs{cffsetauthors} \oarg{keys}
-    \cs{cffauthornames}
-  \end{syntax}
-  \cs{cffsetauthors} declares the authors of the citation for \cs{maketitle}, as
-  Section~\ref{sec:setauthors} describes. Call this function once after
-  \cs{includecff}. \cs{cffauthornames} expands to the names of the authors,
-  separated by commas and made by the \texttt{name} template. The \meta{keys}
-  are
-  \begin{description}
-    \item[\texttt{style=standard}] collects the authors in one \cs{author},
-          separated by \cs{and}, without the affiliations. This is the default.
-    \item[\texttt{style=authblk}] declares each author with \cs{author} and each
-          affiliation with \cs{affil} of the \pkg{authblk} package.
-    \item[\texttt{name=}\textmd{\meta{template}}] makes the name of an author.
-          |#1| takes a field of the author. The default is
-          |#1{given-names}~#1{family-names}|.
-    \item[\texttt{affiliation-mark=}\textmd{\meta{style}}] numbers the
-          affiliations with |alph| (the default), |Alph|, |arabic|, |roman|, or
-          |Roman|.
-    \item[\texttt{separator=}\textmd{\meta{text}}] separates the marks of an
-          author. The default is a comma.
-    \item[\texttt{contact=}\textmd{\meta{template}}] is the footnote of an
-          author who is a contact. |#1| takes a field of the contact. The
-          default is |E-mail: #1{email}|, and an empty template gives no
-          footnotes.
-    \item[\texttt{note=}\textmd{\marg{index}\marg{text}}] adds a footnote with
-          \meta{text} to the \meta{index}-th author, such as a current
-          affiliation. \meta{index} is an integer expression, such as
-          |\cffauthorcount| for the last author. The key can be given several
-          times. The footnotes follow those of the contacts, in order.
-    \item[\texttt{author=}\textmd{\meta{template}}] declares an author, with the
-          marks |#1| and the name |#2|.
-    \item[\texttt{affiliation=}\textmd{\meta{template}}] declares an
-          affiliation, with the mark |#1| and the name |#2|. An empty template
-          gives no affiliations.
-  \end{description}
 \end{function}
 
 \section{Errors and warnings}
