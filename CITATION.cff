@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: If you use cffLaTeX, please cite it using these metadata.
 type: software
-title: "cffLaTeX: Import Citation File Format metadata into LaTeX"
+title: "cffLaTeX: Import CFF metadata into LaTeX"
 abstract: >-
   cffLaTeX reads the title, abstract, and authors of a citation from a Citation
   File Format (CFF) file, such as the CITATION.cff file of a research software
