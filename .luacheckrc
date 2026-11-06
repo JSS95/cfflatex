@@ -8,6 +8,10 @@ local l3build_config = {allow_defined_top = true, ignore = {"131"}}
 files["build.lua"] = l3build_config
 files["config-*.lua"] = l3build_config
 
+-- The CLI tests use texlua's environment setter to isolate the TeX cache.
+files["tests/test_cfflatexpand.lua"] = {read_globals = {"os.setenv"}}
+files["cfflatexpand-authors.lua"] = {read_globals = {"os.setenv"}}
+
 -- l3build output, and the scripts lt3luabridge generates when pdfLaTeX
 -- compiles a document (also listed in .gitignore).
 exclude_files = {"build/**", "**/*.luabridge.lua"}

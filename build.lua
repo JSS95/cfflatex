@@ -6,8 +6,16 @@
 --   l3build upload       submit the CTAN archive (asks for your email)
 module = "cfflatex"
 
-sourcefiles = {"cfflatex.sty", "cfflatex.lua"}
+sourcefiles = {
+  "cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+  "cfflatexpand", "cfflatexpand.lua", "cfflatexpand-authors.lua",
+}
+-- l3build separates scriptfiles from the TeX runtime files during installation.
 installfiles = sourcefiles
+scriptfiles = {"cfflatexpand"}
+-- Preserve the command's executable bit in both CTAN and TDS archives.
+exefiles = scriptfiles
+packtdszip = true
 
 -- Tests ---------------------------------------------------------------------
 

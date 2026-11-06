@@ -10,8 +10,33 @@ With cffLaTeX, you don't need to write your paper metadata twice.
 
 ## Installation
 
-Install `cfflatex.sty` and `cfflatex.lua` in a local TeX tree such as `~/texmf/tex/latex/cfflatex/`.
+Install `cfflatex.sty`, `cfflatex.lua`, and `cfflatex-data.lua` in a local TeX tree such as `~/texmf/tex/latex/cfflatex/`.
 Alternatively, you can put them next to your document.
+
+To install both the package and the `cfflatexpand` command from a source checkout:
+
+```sh
+l3build install --texmfhome "$HOME/texmf"
+```
+
+The CTAN archive also includes `cfflatex.tds.zip`.
+As an alternative to installing from source, extract that archive into your local TeX tree:
+
+```sh
+mkdir -p "$HOME/texmf"
+unzip cfflatex.tds.zip -d "$HOME/texmf"
+```
+
+Both methods place the package and Lua modules in `tex/latex/cfflatex/` and the command in `scripts/cfflatex/`.
+To make the command available in a POSIX shell:
+
+```sh
+export PATH="$HOME/texmf/scripts/cfflatex:$PATH"
+cfflatexpand --help
+```
+
+Add the `export` line to your shell configuration to keep it for future sessions.
+You can also run the script with `texlua` and its full path, without changing `PATH`.
 
 ## Quick start
 
@@ -68,6 +93,12 @@ pdflatex --shell-escape manuscript.tex
 lualatex manuscript.tex
 ```
 
+To expand CFF variables:
+
+```sh
+cfflatexpand manuscript.tex > submission.tex
+```
+
 ## Documentation
 
 The latest document can be found at:
@@ -99,20 +130,36 @@ Requires:
 badness format .
 badness lint .
 explcheck --warnings-are-errors cfflatex.sty
-luacheck .
+luacheck . cfflatexpand
 ruff format .
 ruff check .
 python3 .ci/check_versions.py
 ```
 
-### Build
+### Test
 
-[l3build](https://ctan.org/pkg/l3build) runs the tests and builds the manual and the CTAN archive:
+Run the LaTeX regression tests and the standalone export CLI tests:
 
 ```sh
 l3build check   # tests with pdfLaTeX and LuaLaTeX
+texlua tests/test_cfflatexpand.lua  # export CLI tests
+texlua tests/test_cfflatexpand.lua --installed  # temporary TeX-tree installation
+```
+
+### Build
+
+[l3build](https://ctan.org/pkg/l3build) builds the manual and the CTAN archive:
+
+```sh
 l3build doc     # cfflatex.pdf
 l3build ctan    # cfflatex-<version>.zip
+```
+
+The CTAN archive includes the ready-to-install `cfflatex.tds.zip`, which is also
+written beside it. Test that archive with:
+
+```sh
+texlua tests/test_cfflatexpand.lua --tds cfflatex.tds.zip
 ```
 
 ## License

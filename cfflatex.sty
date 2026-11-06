@@ -162,7 +162,8 @@
       {
         local~kpse = require("kpse");
         local~helper = \exp_not:V \l__cfflatex_helper_lua_str;
-        local~cfflatex = dofile(kpse.find_file(helper,~"tex")~or~helper);
+        local~cfflatex = assert(loadfile(
+        kpse.find_file(helper,~"tex")~or~helper))(helper);
         print(cfflatex.read(
         \exp_not:V \l__cfflatex_file_lua_str,
         \exp_not:V \l__cfflatex_source_lua_str
@@ -636,8 +637,17 @@
 \cs_new:Npn \__cfflatex_contact:n #1 {}
 \cs_new:Npn \__cfflatex_affiliation_mark:n #1 {}
 \cs_new_protected:Npn \__cfflatex_put_author:nn #1#2 {}
-\cs_generate_variant:Nn \__cfflatex_put_author:nn { VV }
 \cs_new_protected:Npn \__cfflatex_put_affiliation:nn #1#2 {}
+% Styles produce declarations before applying them. Normal compilation runs
+% each declaration immediately; the exporter collects the same token lists.
+\cs_new_protected:Npn \__cfflatex_emit:n #1 {#1}
+\cs_new_protected:Npn \__cfflatex_emit_author:nn #1#2
+  { \exp_args:No \__cfflatex_emit:n { \__cfflatex_put_author:nn {#1} {#2} } }
+\cs_generate_variant:Nn \__cfflatex_emit_author:nn { VV }
+\cs_new_protected:Npn \__cfflatex_emit_affiliation:nn #1#2
+  {
+    \exp_args:No \__cfflatex_emit:n { \__cfflatex_put_affiliation:nn {#1} {#2} }
+  }
 \tl_new:N \l__cfflatex_separator_tl
 \bool_new:N \l__cfflatex_affiliations_bool
 \bool_new:N \l__cfflatex_contacts_bool
@@ -795,16 +805,25 @@
     \int_step_inline:nn { \g__cfflatex_author_count_int }
       { \__cfflatex_set_author:n {##1} }
     \bool_if:NT \l__cfflatex_standard_bool
-      { \exp_args:NV \author \l__cfflatex_standard_authors_tl }
+      {
+        \exp_args:Ne \__cfflatex_emit:n
+          { \exp_not:N \author { \exp_not:V \l__cfflatex_standard_authors_tl } }
+      }
     \bool_if:NT \l__cfflatex_affiliations_bool
       {
         \int_step_inline:nn { \__cfflatex_count:n { affiliation-count } }
           {
-            \exp_args:Nee \__cfflatex_put_affiliation:nn
+            \exp_args:Nee \__cfflatex_emit_affiliation:nn
               { \__cfflatex_affiliation_mark:n {##1} }
               { \exp_not:N \cffaffiliation {##1} }
           }
       }
+    \__cfflatex_store_author_names:
+  }
+% Kept separate so export can preserve class-defined formatting commands
+% while resolving CFF fields, rather than expanding arbitrary class code.
+\cs_new_protected:Npn \__cfflatex_store_author_names:
+  {
     \tl_gset:Ne \g__cfflatex_author_names_tl
       { \seq_use:Nn \l__cfflatex_names_seq { ,~ } }
   }
@@ -851,11 +870,18 @@
       { \__cfflatex_add_note_mark:nnn {#1} ##1 }
     \tl_set:Ne \l__cfflatex_marks_tl
       { \seq_use:NV \l__cfflatex_marks_seq \l__cfflatex_separator_tl }
+    % authblk tests its optional argument with \if, expanding the first mark.
+    % An empty group keeps a leading footnote from running in the preamble.
+    \bool_if:NT \l__cfflatex_authblk_bool
+      {
+        \exp_args:NV \tl_if_head_eq_meaning:nNT \l__cfflatex_marks_tl
+        \__cfflatex_thanks:n { \tl_put_left:Nn \l__cfflatex_marks_tl { {} } }
+      }
     % \protect keeps \cffauthor for \maketitle, where the check sees it, when
     % the template expands the name, as the \author of authblk does.
     \tl_set:No \l__cfflatex_name_tl
       { \__cfflatex_name:n { \protect \cffauthor {#1} } }
-    \__cfflatex_put_author:VV \l__cfflatex_marks_tl \l__cfflatex_name_tl
+    \__cfflatex_emit_author:VV \l__cfflatex_marks_tl \l__cfflatex_name_tl
     \tl_set:No \l__cfflatex_name_tl { \__cfflatex_name:n { \cffauthor {#1} } }
     \seq_put_right:NV \l__cfflatex_names_seq \l__cfflatex_name_tl
   }

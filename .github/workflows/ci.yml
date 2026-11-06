@@ -71,7 +71,7 @@ jobs:
 
       # Settings are in .luacheckrc.
       - name: Lint
-        run: luacheck .
+        run: luacheck . cfflatexpand
 
   ruff:
     name: Lint Python (Ruff)
@@ -121,6 +121,12 @@ jobs:
       # with pdfLaTeX without shell escape (see build.lua).
       - name: Run tests
         run: l3build check
+
+      - name: Test the export CLI
+        run: texlua tests/test_cfflatexpand.lua
+
+      - name: Test the installed export CLI
+        run: texlua tests/test_cfflatexpand.lua --installed
 
       - name: Show differences from the expected logs
         if: failure()

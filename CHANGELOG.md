@@ -5,6 +5,31 @@ All notable changes to cffLaTeX are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- The Lua `cfflatexpand` CLI expands CFF fields, counts, author, affiliation,
+  and contact accessors, and metadata loops, and removes CFF loading commands.
+  It supports stdout and `--output`/`-o` output, source-location diagnostics,
+  decimal integer expressions, nested loop indices, and preservation of
+  ordinary source, numeric conditionals, comments, and verbatim.
+- A shared CFF data module supplies the same validation, affiliation
+  normalization, and TeX character escaping to the package and export tool.
+- The exporter converts `\cffsetauthors` and `\cffauthornames` using the
+  package's author renderer, including standard and authblk styles, custom
+  templates, affiliation marks, contact footnotes, and repeated notes.
+  Author conversion runs LuaLaTeX with shell escape disabled. The exported
+  declarations compile without cfflatex or the CFF file.
+- CTAN and TDS archives include the executable `cfflatexpand` command and all
+  required Lua modules. `l3build install` installs them into a local TeX tree.
+  CI tests the installed command, and CD tests the built TDS archive before release.
+
+### Fixed
+
+- With authblk, authors with footnotes and no affiliations no longer execute
+  their first footnote while the author list is being declared.
+
 ## [0.1.0] - 2026-11-06
 
 First release.
