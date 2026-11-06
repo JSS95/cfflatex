@@ -20,9 +20,14 @@ end
 
 local help = [[Usage: cfflatexpand [OPTIONS] manuscript.tex
 
-Replace \cff{title} with the CFF title and remove cfflatex loading commands.
+Expand CFF fields, counts, author/affiliation/contact accessors, and metadata
+loops, and remove cfflatex loading commands. Author styling (\cffsetauthors
+and \cffauthornames) is not yet supported.
 The current version supports one literal \includecff in a single TeX file.
 CFF filenames are relative to the input TeX file. No TeX engine is executed.
+For multiple TeX files, first flatten the document with latexpand.
+Indices accept decimal arithmetic and CFF accessors. Numeric \ifnum/\ifodd
+conditionals are preserved; both branches must contain supported input.
 
   -o, --output FILE  Write to FILE instead of stdout; '-' also means stdout
   -h, --help         Show this help

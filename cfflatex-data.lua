@@ -101,6 +101,34 @@ local function check_cycles(value, active)
   end
 end
 
+-- These are the exact string keys and escaped values installed in TeX's
+-- property lists. Keeping them here also gives the exporter the same lookup
+-- rules for missing paths, collections, and normalized author fields.
+local function tex_key(value)
+  return (data.tex_text(value):gsub(" +", " "))
+end
+
+local function flatten(value, path, fields, kinds)
+  local kind = data.kind(value)
+  if kind == "map" or kind == "seq" then
+    kinds[path] = kind == "seq" and #value or "map"
+    for key, item in pairs(value) do
+      local name = tex_key(key)
+      flatten(item, path == "" and name or path .. "/" .. name, fields, kinds)
+    end
+  elseif data.is_scalar(value) then
+    fields[path] = data.tex_text(value)
+  end
+end
+
+local function person_fields(person, prefix, values)
+  for key, value in pairs(person) do
+    if type(key) == "string" and data.is_scalar(value) then
+      values[prefix .. tex_key(key)] = data.tex_text(value)
+    end
+  end
+end
+
 -- Returns data, not TeX commands. Both callers use the same validation and
 -- numbering, and decide independently how to present the result or errors.
 function data.load(filename, source)
@@ -134,6 +162,7 @@ function data.load(filename, source)
     affiliations = {},
     author_affiliations = {},
     contact_count = 0,
+    fields = {}, kinds = {}, values = {},
   }
   local numbers = {}
   for index, author in ipairs(selected.authors) do
@@ -165,6 +194,28 @@ function data.load(filename, source)
     end
     model.contact_count = #selected.contact
   end
+  flatten(selected, "", model.fields, model.kinds)
+  for index, author in ipairs(selected.authors) do
+    local author_path = "authors/" .. index .. "/"
+    person_fields(author, author_path, model.values)
+    local affiliation = model.author_affiliations[index]
+    if affiliation then
+      for position, name in ipairs(affiliation.names) do
+        model.values[author_path .. "affiliation-names/" .. position] = data.tex_text(name)
+        model.values[author_path .. "affiliation-indices/" .. position] =
+          tostring(affiliation.indices[position])
+      end
+      model.values[author_path .. "affiliation-count"] = tostring(#affiliation.names)
+    end
+  end
+  for index, name in ipairs(model.affiliations) do
+    model.values["affiliations/" .. index] = data.tex_text(name)
+  end
+  model.values["affiliation-count"] = tostring(#model.affiliations)
+  for index, contact in ipairs(selected.contact or {}) do
+    person_fields(contact, "contact/" .. index .. "/", model.values)
+  end
+  model.values["contact-count"] = tostring(model.contact_count)
   return model
 end
 

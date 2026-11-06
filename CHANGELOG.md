@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- The initial Lua `cfflatexpand` CLI replaces `\cff{title}` and removes CFF
-  loading commands, with stdout and `--output`/`-o` output, source-location
-  diagnostics, and preservation of ordinary source, comments, and verbatim.
+- The Lua `cfflatexpand` CLI expands CFF fields, counts, author, affiliation,
+  and contact accessors, and metadata loops, and removes CFF loading commands.
+  It supports stdout and `--output`/`-o` output, source-location diagnostics,
+  decimal integer expressions, nested loop indices, and preservation of
+  ordinary source, numeric conditionals, comments, and verbatim.
 - A shared CFF data module supplies the same validation, affiliation
   normalization, and TeX character escaping to the package and export tool.
 
