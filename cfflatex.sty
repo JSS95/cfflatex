@@ -242,7 +242,8 @@
         \clist_map_inline:Nn \g__cfflatex_check_open_clist
           {
             \prop_gput:Nen \g__cfflatex_used_prop
-              { ##1 / \g__cfflatex_part_tl / #1 } {}
+              { ##1 / \g__cfflatex_part_tl / #1 }
+              {}
             \prop_gput:Nnn \g__cfflatex_used_prop { ##1 / * / #1 } {}
           }
       }
@@ -295,8 +296,7 @@
   {
     \prop_if_in:NnT \g__cfflatex_fields_prop {#2}
       {
-        \bool_lazy_and:nnTF
-          { \str_if_eq_p:nn {#1} { maketitle } }
+        \bool_lazy_and:nnTF { \str_if_eq_p:nn {#1} { maketitle } }
           { \str_if_eq_p:nn {#2} { title } }
           {
             \prop_if_in:NeF \g__cfflatex_used_prop
@@ -1209,10 +1209,10 @@
         \seq_gset_from_clist:Nn \g__cfflatex_check_regions_seq { maketitle }
         \bool_gset_false:N \g__cfflatex_check_document_bool
         \prop_get:NVNT \g__cfflatex_author_styles_prop
-          \g__cfflatex_check_style_tl \l__cfflatex_style_keys_tl
+        \g__cfflatex_check_style_tl \l__cfflatex_style_keys_tl
           {
             \exp_args:NnV \keys_set_known:nn { cfflatex / check }
-              \l__cfflatex_style_keys_tl
+            \l__cfflatex_style_keys_tl
           }
         % Fields other than the authors are numbered -1, -2, and so on.
         \prop_gclear:N \g__cfflatex_check_ids_prop
@@ -1234,7 +1234,7 @@
 \tl_if_empty:NF \g__cfflatex_document_style_tl
   {
     \exp_args:NV \__cfflatex_if_style_name:nTF \g__cfflatex_document_style_tl
-      { }
+      {}
       {
         \msg_error:nne { cfflatex } { style-name }
           { \tl_use:N \g__cfflatex_document_style_tl }

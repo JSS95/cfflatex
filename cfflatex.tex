@@ -206,8 +206,8 @@ author style of the document, and also makes it the default style of
 \usepackage[style=authblk]{cfflatex}
 \end{Verbatim}
 The check uses this style even if \cs{cffsetauthors} selects another one.
-Without the option, the check uses the style of the last
-\cs{cffsetauthors} in the preamble, or else |standard|.
+Without the option, the check uses the style of the last \cs{cffsetauthors} in
+the preamble, or else |standard|.
 
 When the check does not fit the document, load the package with the
 |check=false| option:
@@ -249,16 +249,17 @@ cfflatexpand manuscript-flat.tex --output submission.tex
 
 An author style plugin is a definition file that registers a style for the
 |style| key of \cs{cffsetauthors} and the |style| option of the package. The
-style declares the authors, and also tells the check of
-Section~\ref{sec:check} what to look for. The built-in |standard| and |authblk|
-styles are plugins written with the same interface.
+style declares the authors, and also tells the check of Section~\ref{sec:check}
+what to look for. The built-in |standard| and |authblk| styles are plugins
+written with the same interface.
 
 \subsection{Writing a definition file}
 
 A style named \meta{name} lives in the file \texttt{cfflatex-style-}\meta{name}%
 \texttt{.def}, beside the manuscript or in a TeX tree, and registers itself with
-\cs{cffdeclareauthorstyle}. For example, the following style uses the \cs{author}
-and \cs{affil} commands of \pkg{authblk} with numeric affiliation marks:
+\cs{cffdeclareauthorstyle}. For example, the following style uses the
+\cs{author} and \cs{affil} commands of \pkg{authblk} with numeric affiliation
+marks:
 \begin{Verbatim}
 % cfflatex-style-authblk-arabic.def
 \cffdeclareauthorstyle{authblk-arabic}{
@@ -278,19 +279,19 @@ The manuscript selects it by name:
 
 \cs{cffsetauthors}, or the |style| option of the package at
 \verb+\begin{document}+, reads the definition file the first time the style is
-used, and the file must register the requested name. Names are case-sensitive, start
-with an ASCII letter or digit, and contain only ASCII letters, digits, hyphens,
-and underscores. Registration is global, and registering a name twice is an
-error. Define helper commands that are used outside the file globally.
+used, and the file must register the requested name. Names are case-sensitive,
+start with an ASCII letter or digit, and contain only ASCII letters, digits,
+hyphens, and underscores. Registration is global, and registering a name twice
+is an error. Define helper commands that are used outside the file globally.
 Definition files are read with normal document catcodes. Put \cs{ExplSyntaxOn}
 and \cs{ExplSyntaxOff} around expl3 code.
 
 \subsection{Plugin keys}
 
 A style definition accepts the keys of \cs{cffsetauthors}, except |style|, as
-its defaults. Each call of \cs{cffsetauthors} resets every key, then applies
-the style definition, then the user's options. User options therefore override
-the style even when they appear before |style| in the option list.
+its defaults. Each call of \cs{cffsetauthors} resets every key, then applies the
+style definition, then the user's options. User options therefore override the
+style even when they appear before |style| in the option list.
 
 The following keys are only useful in a style definition.
 \begin{description}
@@ -299,8 +300,8 @@ The following keys are only useful in a style definition.
   \item[\texttt{validate}] code that checks the document, such as the class or
         the fields the style needs.
   \item[\texttt{begin}, \texttt{end}] code run before and after the
-        declarations. For example, the |standard| style collects the names
-        and declares one \cs{author} in its |end| code.
+        declarations. For example, the |standard| style collects the names and
+        declares one \cs{author} in its |end| code.
   \item[\texttt{prepare-author}] code run before each author is declared, with
         |#1| equal to the index of the author. Use the public accessors of
         Section~\ref{sec:reference} to inspect that author.
@@ -309,8 +310,8 @@ The following keys are only useful in a style definition.
   \item[\texttt{render}] code that replaces the default order of declarations.
         An empty value selects the default.
   \item[\texttt{check-fields}, \texttt{check-region}] what the check looks for
-        (Section~\ref{sec:check-styles}). These keys are only allowed in a
-        style definition.
+        (Section~\ref{sec:check-styles}). These keys are only allowed in a style
+        definition.
 \end{description}
 
 The |author| and |affiliation| templates are declarations: \cs{cffsetauthors}
@@ -354,12 +355,12 @@ render = {
 When a style is the author style of the document (Section~\ref{sec:check}), the
 check reads two keys of its definition.
 \begin{description}
-  \item[\texttt{check-fields}] the fields that the title page must use, given
-        as paths of \cs{cff}, such as |title| and |abstract|, where |authors|
+  \item[\texttt{check-fields}] the fields that the title page must use, given as
+        paths of \cs{cff}, such as |title| and |abstract|, where |authors|
         stands for every author. The default is |{title, authors}|. A field that
         the citation does not have is not checked.
-  \item[\texttt{check-region}] the regions of the document where the fields
-        must be used, one or more of
+  \item[\texttt{check-region}] the regions of the document where the fields must
+        be used, one or more of
         \begin{description}
           \item[\texttt{maketitle}] \cs{maketitle}, where \cs{title} must use
                 the title and \cs{author} every author. This is the default.
@@ -374,10 +375,10 @@ the log says so. A use counts when \cs{cff}, \cs{cffauthor}, or
 \cs{cffauthornames} is typeset inside the region, also through macros of the
 document.
 
-For example, the template of the Royal Society of Chemistry typesets the
-title, the authors, and the abstract in a table without \cs{maketitle}, inside
-a |@twocolumnfalse| environment. Every environment has hooks, so a style can
-check this block:
+For example, the template of the Royal Society of Chemistry typesets the title,
+the authors, and the abstract in a table without \cs{maketitle}, inside a
+|@twocolumnfalse| environment. Every environment has hooks, so a style can check
+this block:
 \begin{Verbatim}
 % cfflatex-style-rsc.def
 \cffdeclareauthorstyle{rsc}{
@@ -388,10 +389,10 @@ check this block:
   },
 }
 \end{Verbatim}
-With |\usepackage[style=rsc]{cfflatex}|, the block must then use
-|\cff{title}|, every author, and |\cff{abstract}|. A document without the block
-is checked as a whole. The check does not run during export, so these keys do
-not affect \texttt{cfflatexpand}.
+With |\usepackage[style=rsc]{cfflatex}|, the block must then use |\cff{title}|,
+every author, and |\cff{abstract}|. A document without the block is checked as a
+whole. The check does not run during export, so these keys do not affect
+\texttt{cfflatexpand}.
 
 \subsection{Supporting \texttt{cfflatexpand}}
 \label{sec:export-styles}
@@ -400,17 +401,17 @@ not affect \texttt{cfflatexpand}.
 reading it. It
 \begin{enumerate}
   \item starts a separate Lua\LaTeX{} run of an empty \texttt{article} document
-        that loads \pkg{cfflatex} and the metadata, but none of the
-        manuscript's preamble;
+        that loads \pkg{cfflatex} and the metadata, but none of the manuscript's
+        preamble;
   \item calls \cs{cffsetauthors} there with the options of the manuscript, and
-        the |style| option of the package as the default, loading the
-        definition file from the directory of the manuscript or
-        the TeX search path, and skipping |requires| and |validate|;
+        the |style| option of the package as the default, loading the definition
+        file from the directory of the manuscript or the TeX search path, and
+        skipping |requires| and |validate|;
   \item records the argument of every \cs{cffemit} as it is, without executing
         it;
   \item replaces \cs{cffsetauthors} in the output with the recorded
-        declarations, in which the metadata commands become their values and
-        the footnotes of contacts and notes use a self-contained definition.
+        declarations, in which the metadata commands become their values and the
+        footnotes of contacts and notes use a self-contained definition.
 \end{enumerate}
 
 A style therefore works with \texttt{cfflatexpand} if it follows these rules.
@@ -426,12 +427,13 @@ A style therefore works with \texttt{cfflatexpand} if it follows these rules.
         also runs in the isolated document, where the class and the packages of
         the manuscript, including those in |requires|, are not loaded.
   \item Use only commands of the final class and its packages in the
-        declarations. The output is compiled without \pkg{cfflatex} and without the
-        definition file, so helper commands of the style are undefined there.
+        declarations. The output is compiled without \pkg{cfflatex} and without
+        the definition file, so helper commands of the style are undefined
+        there.
   \item Keep the marks and the names unexpanded. They contain the footnotes and
-        the metadata commands, which must run when the title page is typeset.
-        To accumulate declarations, append the arguments with
-        \cs{tl_put_right:Nn} and insert the result with \cs{exp_not:V}, as
+        the metadata commands, which must run when the title page is typeset. To
+        accumulate declarations, append the arguments with \cs{tl_put_right:Nn}
+        and insert the result with \cs{exp_not:V}, as
         \texttt{cfflatex-style-standard.def} does, rather than expanding the
         whole declaration with \cs{edef}.
 \end{itemize}
@@ -493,8 +495,8 @@ The package has two options (Section~\ref{sec:check}).
           style, loading its definition file if needed
           (Section~\ref{sec:author-styles}).
     \item[\texttt{style=standard}] collects the authors in one \cs{author},
-          separated by \cs{and}, without the affiliations. This is the
-          default, unless the package has the |style| option.
+          separated by \cs{and}, without the affiliations. This is the default,
+          unless the package has the |style| option.
     \item[\texttt{style=authblk}] declares each author with \cs{author} and each
           affiliation with \cs{affil} of the \pkg{authblk} package.
     \item[\texttt{name=}\textmd{\meta{template}}] makes the name of an author.
@@ -652,19 +654,19 @@ The following errors are reported while using the commands of
 Section~\ref{sec:reference}.
 \begin{description}
   \item[Call \cs{includecff} first.] No CFF file has been read yet.
-  \item[style=\textmd{\meta{name}} needs the \textmd{\meta{package}} package.]
-        Load \meta{package}, which the |requires| key of the style lists, before
+  \item[style=\textmd{\meta{name}} needs the \textmd{\meta{package}} package.] Load
+        \meta{package}, which the |requires| key of the style lists, before
         \cs{cffsetauthors}.
   \item[Invalid author style name `\textmd{\meta{name}}'.] The name breaks the
         rules of Section~\ref{sec:author-styles}.
   \item[Author style `\textmd{\meta{name}}' is not registered \ldots] The
         definition file of the style was not found.
-  \item[Author style `\textmd{\meta{name}}' was not registered by its file.]
-        The definition file registers another name.
+  \item[Author style `\textmd{\meta{name}}' was not registered by its file.] The
+        definition file registers another name.
   \item[Author style `\textmd{\meta{name}}' is already registered.] Each name
         can be registered once.
-  \item[The key `\textmd{\meta{key}}' is only allowed in an author style
-        definition.] The check keys are given to \cs{cffsetauthors}.
+  \item[The key `\textmd{\meta{key}}' is only allowed in an author style definition.] The
+        check keys are given to \cs{cffsetauthors}.
   \item[Invalid check region `\textmd{\meta{region}}'.] The |check-region| key
         of the author style of the document lists an unknown region, or hooks
         without exactly two arguments.
@@ -688,17 +690,17 @@ Section~\ref{sec:reference}.
         author is used outside the loop over the affiliations of the author.
 \end{description}
 
-The following warnings are issued by the check of Section~\ref{sec:check},
-after the region it checks, such as \cs{maketitle}.
+The following warnings are issued by the check of Section~\ref{sec:check}, after
+the region it checks, such as \cs{maketitle}.
 \begin{description}
   \item[\cs{title} does not use the title of the citation.] The title page does
         not show the title of the citation.
   \item[\cs{author} does not use author(s) \textmd{\meta{indices}} of the citation.] The
         title page does not show these authors.
-  \item[The title page does not use `\textmd{\meta{field}}' of the citation.]
-        The region does not show this field.
-  \item[The title page does not use author(s) \ldots] The region does not
-        show these authors.
+  \item[The title page does not use `\textmd{\meta{field}}' of the citation.] The
+        region does not show this field.
+  \item[The title page does not use author(s) \ldots] The region does not show
+        these authors.
 \end{description}
 
 \section{License}
