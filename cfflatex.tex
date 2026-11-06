@@ -121,18 +121,15 @@ when the CFF file changes.
   \begin{syntax}
     \cs{includecff} \oarg{options} \marg{file}
   \end{syntax}
-  Reads the citation metadata in \meta{file}, which is found like any other
-  input file. The command can be used in the preamble or in the document. Each
-  call replaces the metadata read by the previous one.
+  Reads the citation metadata in \meta{file}. The command can be used in the
+  preamble or in the document. Each call replaces the metadata read by the
+  previous one.
 
-  Without options, the citation is the top level of the file, which describes
-  the software itself. The only option is
   \begin{description}
-    \item[\texttt{source=}\meta{key}] reads the mapping under the top-level
-          \meta{key} instead, such as \texttt{preferred-citation}.
+    \item[\texttt{source=}\textmd{\meta{key}}] reads the mapping under the
+          top-level \meta{key} instead. Without this option, the citation is the
+          top level of the file.
   \end{description}
-  The selected citation must have a \texttt{title} and a nonempty list of
-  \texttt{authors}.
 \end{function}
 
 \begin{function}[EXP]{\cfftitle}
@@ -146,8 +143,7 @@ when the CFF file changes.
   \begin{syntax}
     \cs{cffabstract}
   \end{syntax}
-  Expands to the \texttt{abstract} of the citation, or to nothing if it has
-  none.
+  Expands to the \texttt{abstract} of the citation.
 \end{function}
 
 \begin{function}[EXP]{\cffauthor}
@@ -156,27 +152,21 @@ when the CFF file changes.
   \end{syntax}
   Expands to the \meta{field} of the \meta{index}-th author, counting from~1.
   \meta{field} is a key of the author entry in the CFF file, such as
-  \texttt{given-names}, \texttt{family-names}, \texttt{name-particle},
-  \texttt{name-suffix}, \texttt{name} (for an organization),
-  \texttt{affiliation}, \texttt{email}, or \texttt{orcid}. A field that the
+  \texttt{given-names} or \texttt{family-names}. A field that the
   author does not have expands to nothing.
 \end{function}
-
-\cs{cfftitle}, \cs{cffabstract}, and \cs{cffauthor} are expandable, so they also
-work where \LaTeX{} expands its argument, for example in the \texttt{pdftitle},
-\texttt{pdfsubject}, and \texttt{pdfauthor} options of \pkg{hyperref}.
 
 \section{Errors}
 
 The following errors stop compilation.
 \begin{description}
-  \item[CFF file `\meta{file}' was not found.] \meta{file} is not in the current
-        directory or the \TeX{} search path.
+  \item[CFF file `\textmd{\meta{file}}' was not found.] \meta{file} is not in
+        the current directory or the \TeX{} search path.
   \item[pdfLaTeX requires unrestricted shell escape \ldots] Use Lua\LaTeX{}, or
         run pdf\LaTeX{} with |--shell-escape|.
-  \item[Cannot read CFF file: \meta{reason}.] The file cannot be used. For
-        example, it has no top-level key given by \texttt{source}, or that key
-        does not hold a mapping, or the selected citation has incorrect
+  \item[Cannot read CFF file: \textmd{\meta{reason}}.] The file cannot be used.
+        For example, it has no top-level key given by \texttt{source}, or that
+        key does not hold a mapping, or the selected citation has incorrect
         structure.
   \item[Install cfflatex.lua alongside cfflatex.sty.] \pkg{cfflatex} is
         incompletely installed.
@@ -185,8 +175,8 @@ The following errors stop compilation.
 The following errors are reported while expanding CFF macros.
 \begin{description}
   \item[Call \cs{includecff} first.] No CFF file has been read yet.
-  \item[Author index `\meta{index}' is out of range.] The citation has fewer
-        than \meta{index} authors.
+  \item[Author index `\textmd{\meta{index}}' is out of range.] The citation has
+        fewer than \meta{index} authors.
 \end{description}
 
 \section{License}
