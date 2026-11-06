@@ -215,8 +215,8 @@ function Scanner:package(position, after)
       if options then
         -- The check does not affect the output; the style is the default of
         -- \cffsetauthors, which the author renderer must receive.
-        for entry in (self:literal(options) .. ","):gmatch("([^,]*),") do
-          local value = entry:match("^%s*(.-)%s*$")
+        for option in (self:literal(options) .. ","):gmatch("([^,]*),") do
+          local value = option:match("^%s*(.-)%s*$")
           local style = value:match("^style%s*=%s*(.-)$")
           if style then
             if not style:match("^[A-Za-z0-9][-A-Za-z0-9_]*$") then

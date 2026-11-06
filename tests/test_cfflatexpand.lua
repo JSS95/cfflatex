@@ -917,9 +917,9 @@ end={\cffemit{\journalEnd}},
       {"style=titleblock,unknown", "style=NAME options are supported"},
       {"style={titleblock}", "without TeX commands"}}) do
       write_file(f.input, replace(preamble, "{cfflatex}", "[" .. pair[1] .. "]{cfflatex}"))
-      local failed = f:cli(f.input)
-      failure(failed, pair[2])
-      contains(failed.stderr, f.input .. ":2:")
+      local rejected = f:cli(f.input)
+      failure(rejected, pair[2])
+      contains(rejected.stderr, f.input .. ":2:")
     end
   end)
 
