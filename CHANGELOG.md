@@ -29,6 +29,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CTAN and TDS archives include the executable `cfflatexpand` command and all
   required Lua modules. `l3build install` installs them into a local TeX tree.
   CI tests the installed command, and CD tests the built TDS archive before release.
+- The `style` package option sets the author style of the document, which
+  `\cffsetauthors` selects by default and the title page check follows. Author
+  styles can choose the checked fields with `check-fields`, such as `abstract`,
+  and the checked regions with `check-region`: `\maketitle`, the code between
+  two LaTeX hooks, or the whole document as a fallback. This checks title
+  blocks typeset without `\maketitle`. `cfflatexpand` accepts the option.
+
+### Changed
+
+- The check checks only the first `\maketitle`, or the first region of the
+  author style that closes, instead of every `\maketitle`.
 
 ### Fixed
 

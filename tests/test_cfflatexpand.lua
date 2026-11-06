@@ -891,6 +891,38 @@ end={\cffemit{\journalEnd}},
     contains(result.stdout, [[\journalAuthor {Doe}]])
   end)
 
+  test("the style option of the package is the default author style", function(f)
+    write_file(f.cff, rich_citation)
+    -- Check keys are part of the style but do not affect the export.
+    write_file(f.directory .. "/cfflatex-style-titleblock.def", [[
+\cffdeclareauthorstyle{titleblock}{
+  contact={},name={#1{family-names}},author={\journalAuthor{#2}},
+  check-fields={title,authors,abstract},
+  check-region={hooks={env/@twocolumnfalse/begin}{env/@twocolumnfalse/end},document},
+}
+]])
+    local header = replace(preamble, "{cfflatex}", "[check, style=titleblock]{cfflatex}")
+    write_file(f.input, header .. "\\cffsetauthors\n")
+    local result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, [[\journalAuthor {One}]])
+    contains(result.stdout, [[\journalAuthor {Two}]])
+    assert(not result.stdout:find("titleblock", 1, true), "export retained the package option")
+    -- style= of \cffsetauthors overrides the option of the package.
+    write_file(f.input, header .. "\\cffsetauthors[style=standard]\n")
+    result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, [[\author {Ann\nobreakspace One\and Ben\nobreakspace Two]])
+    for _, pair in ipairs({{"style=../titleblock", "invalid author style name"},
+      {"style=titleblock,unknown", "style=NAME options are supported"},
+      {"style={titleblock}", "without TeX commands"}}) do
+      write_file(f.input, replace(preamble, "{cfflatex}", "[" .. pair[1] .. "]{cfflatex}"))
+      local failed = f:cli(f.input)
+      failure(failed, pair[2])
+      contains(failed.stderr, f.input .. ":2:")
+    end
+  end)
+
   test("plugin loading errors and inline definitions keep source diagnostics", function(f)
     write_file(f.directory .. "/cfflatex-style-empty.def", "\\endinput\n")
     for _, pair in ipairs({

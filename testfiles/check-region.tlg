@@ -1,0 +1,16 @@
+This is a generated file for the l3build validation system.
+Don't change this file in any respect.
+============================================================
+TEST 1: use before the region
+============================================================
+============================================================
+============================================================
+TEST 2: region without the second author and the abstract
+============================================================
+Package cfflatex Warning: The title page does not use author(s) 2 of the citation. Load cfflatex with check=false to skip this check.
+Package cfflatex Warning: The title page does not use 'abstract' of the citation. Load cfflatex with check=false to skip this check.
+============================================================
+============================================================
+TEST 3: later regions and the end of the document are not checked
+============================================================
+============================================================

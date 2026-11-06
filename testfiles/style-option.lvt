@@ -1,0 +1,25 @@
+% The style option of the package is the default style of \cffsetauthors.
+% Check keys are only allowed in style definitions, and invalid regions are
+% reported when the check is set up at \begin{document}.
+\input{regression-test}
+\documentclass{article}
+\usepackage[style=badregion]{cfflatex}
+\includecff{authors-contacts.cff}
+\cffdeclareauthorstyle{badregion}{
+  name = {#1{family-names}},
+  contact = {},
+  author = {\TYPE{badregion/#2}},
+  check-region = {maketitle, hooks = {cmd/maketitle/before}, nowhere, document},
+}
+% Omit what \begin{document} logs before the check is set up, which depends on
+% the TeX Live version.
+\AddToHook{begindocument}[regression]{\TIMO}
+\DeclareHookRule{begindocument}{regression}{before}{cfflatex}
+\START
+\TEST{default style from the package}{\cffsetauthors}
+\TEST{explicit style overrides the package}{\cffsetauthors[style=regression]}
+\TEST{check keys outside a style definition}{
+  \cffsetauthors[check-fields = {title}, check-region = {document}]
+}
+\TEST{invalid regions}{\OMIT\begin{document}}
+\END

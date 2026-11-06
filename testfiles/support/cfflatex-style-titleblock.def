@@ -1,0 +1,11 @@
+\ProvidesFile{cfflatex-style-titleblock.def}[Regression test title block style]
+% Like the title block of the RSC template: no \maketitle, but the title, the
+% authors, and the abstract typeset in a @twocolumnfalse environment.
+\cffdeclareauthorstyle{titleblock}{
+  check-fields = {title, authors, abstract},
+  check-region = {
+    hooks = {env/@twocolumnfalse/begin}{env/@twocolumnfalse/end},
+    document,
+  },
+}
+\endinput

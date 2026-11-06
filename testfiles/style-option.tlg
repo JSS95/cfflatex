@@ -1,0 +1,61 @@
+This is a generated file for the l3build validation system.
+Don't change this file in any respect.
+============================================================
+TEST 1: default style from the package
+============================================================
+badregion/\protect One
+badregion/\protect Two
+============================================================
+============================================================
+TEST 2: explicit style overrides the package
+============================================================
+(cfflatex-style-regression.def
+File: cfflatex-style-regression.def Regression test author style
+)
+begin
+prepare/1
+author/I/\protect One
+prepare/2
+author/II,I/\protect Two
+affiliation/I/Univ A
+affiliation/II/Univ B
+end/One, Two
+============================================================
+============================================================
+TEST 3: check keys outside a style definition
+============================================================
+! Package cfflatex Error: The key 'check-fields' is only allowed in an author style definition.
+Type <return> to continue.
+ ...                                              
+l. ...}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+! Package cfflatex Error: The key 'check-region' is only allowed in an author style definition.
+Type <return> to continue.
+ ...                                              
+l. ...}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+badregion/\protect One
+badregion/\protect Two
+============================================================
+============================================================
+TEST 4: invalid regions
+============================================================
+! Package cfflatex Error: Invalid check region 'hooks = cmd/maketitle/before'.
+Type <return> to continue.
+ ...                                              
+l. ...\TEST{invalid regions}{\OMIT\begin{document}}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+! Package cfflatex Error: Invalid check region 'nowhere'.
+Type <return> to continue.
+ ...                                              
+l. ...\TEST{invalid regions}{\OMIT\begin{document}}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+============================================================

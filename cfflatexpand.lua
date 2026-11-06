@@ -213,10 +213,21 @@ function Scanner:package(position, after)
         self:fail(position, "cfflatex must be loaded once at the top level of the preamble")
       end
       if options then
-        local value = self:literal(options):match("^%s*(.-)%s*$")
-        if value ~= "" and value ~= "check" and value ~= "check=true"
-          and value ~= "check=false" then
-          self:fail(options.first, "only literal check, check=true or check=false options are supported")
+        -- The check does not affect the output; the style is the default of
+        -- \cffsetauthors, which the author renderer must receive.
+        for entry in (self:literal(options) .. ","):gmatch("([^,]*),") do
+          local value = entry:match("^%s*(.-)%s*$")
+          local style = value:match("^style%s*=%s*(.-)$")
+          if style then
+            if not style:match("^[A-Za-z0-9][-A-Za-z0-9_]*$") then
+              self:fail(options.first, "invalid author style name '" .. style .. "'")
+            end
+            self.document_style = style
+          elseif value ~= "" and value ~= "check" and value ~= "check=true"
+            and value ~= "check=false" then
+            self:fail(options.first,
+              "only literal check, check=true, check=false and style=NAME options are supported")
+          end
         end
       end
       self.package_loaded = true
@@ -559,6 +570,10 @@ function Scanner:set_authors(position, after)
   end
   local argument, ending = self:optional(after)
   local options = argument and self:author_options(argument) or ""
+  if self.document_style then
+    -- A style= in the options of \cffsetauthors comes later and wins.
+    options = "style=" .. self.document_style .. "," .. options
+  end
   if not argument then
     ending = self:word_end(after)
   end

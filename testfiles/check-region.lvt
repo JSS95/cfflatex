@@ -1,0 +1,26 @@
+% A style checks its fields between two hooks, here in a title block like that
+% of the RSC template. The check takes the style of \cffsetauthors when the
+% package has none. Uses outside the region do not count, and only the first
+% region that closes is checked.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+\includecff[source=preferred-citation]{paper.cff}
+\cffsetauthors[style=titleblock]
+
+\begin{document}
+\START
+\TEST{use before the region}{\sbox0{\cffauthor{2}{family-names}}}
+\TEST{region without the second author and the abstract}{
+  \sbox0{
+    \begin{@twocolumnfalse}
+      \MakeUppercase{\cff{title}} \cffauthor{1}{family-names}
+    \end{@twocolumnfalse}
+  }
+}
+\TEST{later regions and the end of the document are not checked}{
+  \sbox0{\begin{@twocolumnfalse}\cff{abstract}\end{@twocolumnfalse}}
+  \UseHook{enddocument}
+}
+\END

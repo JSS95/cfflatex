@@ -8,13 +8,19 @@
 \RequirePackage{lt3luabridge}
 \tl_const:Ne \c__cfflatex_package_path_tl { \@currpath }
 
-% check (default true): after \maketitle, warn unless \title used the title and
-% \author used every author of the citation. See "Checking the title page".
+% check (default true): warn unless the title page uses the fields of the
+% citation that the author style of the document checks, by default the title
+% and every author in \maketitle. See "Checking the title page".
+% style: the author style of the document. \cffsetauthors uses it by default,
+% and the check uses its check-fields and check-region keys.
 \bool_new:N \g__cfflatex_check_bool
+\tl_new:N \g__cfflatex_document_style_tl
 \keys_define:nn { cfflatex }
   {
     check .bool_gset:N = \g__cfflatex_check_bool,
     check .initial:n = true,
+    style .tl_gset:N = \g__cfflatex_document_style_tl,
+    style .value_required:n = true,
   }
 \ProcessKeyOptions [cfflatex]
 
@@ -48,6 +54,24 @@
     \iow_char:N\\author~does~not~use~author(s)~#1~of~the~citation.~
     Load~cfflatex~with~check=false~to~skip~this~check.
   }
+\msg_new:nnn { cfflatex } { field-unused }
+  {
+    The~title~page~does~not~use~'#1'~of~the~citation.~
+    Load~cfflatex~with~check=false~to~skip~this~check.
+  }
+\msg_new:nnn { cfflatex } { region-authors-unused }
+  {
+    The~title~page~does~not~use~author(s)~#1~of~the~citation.~
+    Load~cfflatex~with~check=false~to~skip~this~check.
+  }
+\msg_new:nnn { cfflatex } { check-fallback }
+  {
+    No~check~region~of~author~style~'#1'~was~found;~
+    the~whole~document~was~checked.
+  }
+\msg_new:nnn { cfflatex } { check-region } { Invalid~check~region~'#1'. }
+\msg_new:nnn { cfflatex } { style-only-key }
+  { The~key~'#1'~is~only~allowed~in~an~author~style~definition. }
 \msg_new:nnn { cfflatex } { style-package-missing }
   { style=#1~needs~the~#2~package. }
 \msg_new:nnn { cfflatex } { style-name } { Invalid~author~style~name~'#1'. }
@@ -86,13 +110,25 @@
 \str_new:N \l__cfflatex_helper_lua_str
 \str_new:N \l__cfflatex_source_lua_str
 \ior_new:N \g__cfflatex_dependency_ior
-% For the check: whether \maketitle is running, the part of the title page
+% For the check: whether a check region is open, the part of the title page
 % being typeset (1: \title, 2: \author, 0: neither), the uses recorded as
-% "<part>/<use>" (use 0: the title, <i>: author <i>), and missing authors.
+% "<region>/<part>/<use>" and "<region>/*/<use>", and missing authors. <use>
+% is <i> for author <i>, and the negative number of another checked field.
 \bool_new:N \g__cfflatex_recording_bool
 \tl_new:N \g__cfflatex_part_tl
 \prop_new:N \g__cfflatex_used_prop
 \clist_new:N \l__cfflatex_missing_clist
+% The check of the document: the author style that gives it, the fields it
+% checks and their numbers, its regions (maketitle and hooks<n>) and whether
+% the whole document is the fallback region, the open regions, and whether a
+% region has been checked.
+\tl_new:N \g__cfflatex_check_style_tl
+\clist_new:N \g__cfflatex_check_fields_clist
+\prop_new:N \g__cfflatex_check_ids_prop
+\seq_new:N \g__cfflatex_check_regions_seq
+\bool_new:N \g__cfflatex_check_document_bool
+\clist_new:N \g__cfflatex_check_open_clist
+\bool_new:N \g__cfflatex_check_done_bool
 \cs_generate_variant:Nn \ior_open:Nn { NV }
 
 % Prefer the helper next to this package so both files share a version.
@@ -182,20 +218,34 @@
 
 % Checking the title page ----------------------------------------------------
 %
-% While \maketitle runs, \cff{title} and \cffauthor leave a record marker before
-% their values, and markers around the contents of \@title and \@author tell
-% which part of the title page is being typeset. The markers record when they
-% are executed, which is when the title page is typeset; this sees uses in
-% loops such as \cffforeachauthor and \foreach, whose indices are known only
-% then. The markers carry only digits, so case changes such as \MakeUppercase
-% keep them intact, and their names contain no "_" or ":", so they stay
-% readable if a class writes the title page to a file.
+% The author style of the document gives the fields to check and the regions
+% of the document to check them in (see "Author styles" below). While a region
+% is open, \cff and \cffauthor leave a record marker before the values of these
+% fields. In the maketitle region, markers around the contents of \@title and
+% \@author also tell which part of the title page is being typeset. The
+% markers record when they are executed, which is when the title page is
+% typeset; this sees uses in loops such as \cffforeachauthor and \foreach, whose
+% indices are known only then, and in macros of the document. The markers carry
+% only digits and "-", so case changes such as \MakeUppercase keep them intact,
+% and their names contain no "_" or ":", so they stay readable if a class
+% writes the title page to a file.
+%
+% The first region that closes is checked, and no region is checked after it.
+% If the whole document is the fallback region, it is checked at its end when
+% no other region has closed.
 
-% <use> is 0 for \cff{title} and <i> for author <i>.
+% <use> is <i> for author <i>, and the number of another checked field.
 \cs_new_protected:cpn { cfflatex@mark } #1
   {
     \bool_if:NT \g__cfflatex_recording_bool
-      { \prop_gput:Nen \g__cfflatex_used_prop { \g__cfflatex_part_tl / #1 } {} }
+      {
+        \clist_map_inline:Nn \g__cfflatex_check_open_clist
+          {
+            \prop_gput:Nen \g__cfflatex_used_prop
+              { ##1 / \g__cfflatex_part_tl / #1 } {}
+            \prop_gput:Nnn \g__cfflatex_used_prop { ##1 / * / #1 } {}
+          }
+      }
   }
 % <part> is 1 for \title, 2 for \author, and 0 after them.
 \cs_new_protected:cpn { cfflatex@part } #1
@@ -208,16 +258,95 @@
   }
 \cs_generate_variant:Nn \__cfflatex_mark:n { e }
 \cs_generate_variant:Nn \prop_gput:Nnn { Nen }
+\prg_generate_conditional_variant:Nnn \prop_if_in:Nn { Ne } { F }
+
+% Opens the region #1, unless a region has already been checked.
+\cs_new_protected:Npn \__cfflatex_region_begin:n #1
+  {
+    \bool_if:NF \g__cfflatex_check_done_bool
+      {
+        \clist_if_in:NnF \g__cfflatex_check_open_clist {#1}
+          { \clist_gput_right:Nn \g__cfflatex_check_open_clist {#1} }
+        \bool_gset_true:N \g__cfflatex_recording_bool
+      }
+  }
+% Closes the region #1 if it is open, and checks it.
+\cs_new_protected:Npn \__cfflatex_region_end:n #1
+  {
+    \clist_if_in:NnT \g__cfflatex_check_open_clist {#1}
+      {
+        \bool_gset_true:N \g__cfflatex_check_done_bool
+        \bool_gset_false:N \g__cfflatex_recording_bool
+        \clist_gclear:N \g__cfflatex_check_open_clist
+        \bool_if:NT \g__cfflatex_loaded_bool
+          {
+            \clist_map_inline:Nn \g__cfflatex_check_fields_clist
+              {
+                \str_if_eq:nnTF {##1} { authors }
+                  { \__cfflatex_check_authors:n {#1} }
+                  { \__cfflatex_check_field:nn {#1} {##1} }
+              }
+          }
+      }
+  }
+% Warns unless the region #1 uses the field #2. A field that the citation does
+% not have cannot be used. In \maketitle, \title must use the title.
+\cs_new_protected:Npn \__cfflatex_check_field:nn #1#2
+  {
+    \prop_if_in:NnT \g__cfflatex_fields_prop {#2}
+      {
+        \bool_lazy_and:nnTF
+          { \str_if_eq_p:nn {#1} { maketitle } }
+          { \str_if_eq_p:nn {#2} { title } }
+          {
+            \prop_if_in:NeF \g__cfflatex_used_prop
+              { #1 / 1 / \prop_item:Nn \g__cfflatex_check_ids_prop {#2} }
+              { \msg_warning:nn { cfflatex } { title-unused } }
+          }
+          {
+            \prop_if_in:NeF \g__cfflatex_used_prop
+              { #1 / * / \prop_item:Nn \g__cfflatex_check_ids_prop {#2} }
+              { \msg_warning:nnn { cfflatex } { field-unused } {#2} }
+          }
+      }
+  }
+% Warns unless the region #1 uses every author. In \maketitle, \author must
+% use them.
+\cs_new_protected:Npn \__cfflatex_check_authors:n #1
+  {
+    \clist_clear:N \l__cfflatex_missing_clist
+    \int_step_inline:nn { \g__cfflatex_author_count_int }
+      {
+        \prop_if_in:NeF \g__cfflatex_used_prop
+          { #1 / \str_if_eq:nnTF {#1} { maketitle } { 2 } { * } / ##1 }
+          { \clist_put_right:Nn \l__cfflatex_missing_clist {##1} }
+      }
+    \clist_if_empty:NF \l__cfflatex_missing_clist
+      {
+        \str_if_eq:nnTF {#1} { maketitle }
+          {
+            \msg_warning:nne { cfflatex } { authors-unused }
+              { \clist_use:Nn \l__cfflatex_missing_clist { ,~ } }
+          }
+          {
+            \msg_warning:nne { cfflatex } { region-authors-unused }
+              { \clist_use:Nn \l__cfflatex_missing_clist { ,~ } }
+          }
+      }
+  }
 
 \cs_new_protected:Npn \__cfflatex_check_begin:
   {
-    \bool_lazy_and:nnT { \g__cfflatex_check_bool } { \g__cfflatex_loaded_bool }
+    \seq_if_in:NnT \g__cfflatex_check_regions_seq { maketitle }
       {
-        \prop_gclear:N \g__cfflatex_used_prop
-        \tl_gset:Nn \g__cfflatex_part_tl { 0 }
-        \__cfflatex_wrap_part:Nn \@title { 1 }
-        \__cfflatex_wrap_part:Nn \@author { 2 }
-        \bool_gset_true:N \g__cfflatex_recording_bool
+        \bool_lazy_and:nnT { \g__cfflatex_loaded_bool }
+          { ! \g__cfflatex_check_done_bool }
+          {
+            \tl_gset:Nn \g__cfflatex_part_tl { 0 }
+            \__cfflatex_wrap_part:Nn \@title { 1 }
+            \__cfflatex_wrap_part:Nn \@author { 2 }
+            \__cfflatex_region_begin:n { maketitle }
+          }
       }
   }
 \cs_new_protected:Npn \__cfflatex_wrap_part:Nn #1#2
@@ -229,28 +358,25 @@
         \exp_not:c { cfflatex@part } { 0 }
       }
   }
-\cs_new_protected:Npn \__cfflatex_check_end:
+\AddToHook {cmd/maketitle/before} [cfflatex] {\__cfflatex_check_begin:}
+\AddToHook {cmd/maketitle/after} [cfflatex]
+  {\__cfflatex_region_end:n { maketitle }}
+% The whole document is checked at its end, if no other region was checked.
+\cs_new_protected:Npn \__cfflatex_check_fallback:
   {
-    \bool_if:NT \g__cfflatex_recording_bool
+    \bool_lazy_and:nnT { \g__cfflatex_check_document_bool }
+      { ! \g__cfflatex_check_done_bool }
       {
-        \bool_gset_false:N \g__cfflatex_recording_bool
-        \prop_if_in:NnF \g__cfflatex_used_prop { 1 / 0 }
-          { \msg_warning:nn { cfflatex } { title-unused } }
-        \clist_clear:N \l__cfflatex_missing_clist
-        \int_step_inline:nn { \g__cfflatex_author_count_int }
+        \bool_lazy_and:nnT { \g__cfflatex_loaded_bool }
+          { ! \seq_if_empty_p:N \g__cfflatex_check_regions_seq }
           {
-            \prop_if_in:NnF \g__cfflatex_used_prop { 2 / ##1 }
-              { \clist_put_right:Nn \l__cfflatex_missing_clist {##1} }
+            \msg_info:nne { cfflatex } { check-fallback }
+              { \tl_use:N \g__cfflatex_check_style_tl }
           }
-        \clist_if_empty:NF \l__cfflatex_missing_clist
-          {
-            \msg_warning:nne { cfflatex } { authors-unused }
-              { \clist_use:Nn \l__cfflatex_missing_clist { ,~ } }
-          }
+        \__cfflatex_region_end:n { document }
       }
   }
-\AddToHook {cmd/maketitle/before} [cfflatex] {\__cfflatex_check_begin:}
-\AddToHook {cmd/maketitle/after} [cfflatex] {\__cfflatex_check_end:}
+\AddToHook {enddocument} [cfflatex] {\__cfflatex_check_fallback:}
 % hyperref drops the markers from PDF strings, such as bookmarks.
 \AddToHook {begindocument} [cfflatex]
   {
@@ -307,9 +433,9 @@
 % to it from the citation, separated by slashes, such as authors/1/name. A
 % missing path expands to nothing, and a mapping or a sequence is an error.
 % \cffcount{<path>} expands to the length of the sequence at <path>, 0 if it
-% is missing; a value or a mapping is an error. \cff{title} and
-% \cff{authors/<i>/<field>} count for the check as uses of the title and of
-% author <i>, like \cffauthor.
+% is missing; a value or a mapping is an error. \cff{<path>} counts for the
+% check as a use of <path>, such as title, and \cff{authors/<i>/<field>} as a
+% use of author <i>, like \cffauthor.
 % The path is expanded first, so that it may contain \cffauthorindex.
 \NewExpandableDocumentCommand \cff {m} {\exp_args:Ne \__cfflatex_cff:n {#1}}
 \NewExpandableDocumentCommand \cffcount {m}
@@ -320,7 +446,7 @@
       {
         \prop_if_in:NnTF \g__cfflatex_fields_prop {#1}
           {
-            \__cfflatex_path_mark:w #1 / / \s__cfflatex_stop
+            \__cfflatex_path_mark:n {#1}
             \prop_item:Nn \g__cfflatex_fields_prop {#1}
           }
           {
@@ -349,22 +475,22 @@
       }
       { \msg_expandable_error:nn { cfflatex } { not-loaded } }
   }
-% Marks the use of the value at the path #1/#2/#3 for the check: title, and a
-% field of an author, whose index #2 is a number since the value exists.
-\scan_new:N \s__cfflatex_stop
-\cs_new:Npn \__cfflatex_path_mark:w #1 / #2 / #3 \s__cfflatex_stop
+% Marks the use of the value at the path #1 for the check: a checked field,
+% such as title, or a field of an author.
+\cs_new:Npn \__cfflatex_path_mark:n #1
   {
-    \str_if_eq:nnTF {#1} { title }
+    \prop_if_in:NnTF \g__cfflatex_check_ids_prop {#1}
+      { \__cfflatex_mark:e { \prop_item:Nn \g__cfflatex_check_ids_prop {#1} } }
+      { \__cfflatex_author_mark:w #1 / / \s__cfflatex_stop }
+  }
+% The index #2 of an author is a number since the value at #1/#2/#3 exists.
+\scan_new:N \s__cfflatex_stop
+\cs_new:Npn \__cfflatex_author_mark:w #1 / #2 / #3 \s__cfflatex_stop
+  {
+    \str_if_eq:nnT {#1} { authors }
       {
-        \tl_if_blank:nT {#2}
-          { \__cfflatex_mark:n { 0 } }
-      }
-      {
-        \str_if_eq:nnT {#1} { authors }
-          {
-            \tl_if_blank:nF {#3}
-              { \__cfflatex_mark:e { \int_eval:n {#2} } }
-          }
+        \tl_if_blank:nF {#3}
+          { \__cfflatex_mark:e { \int_eval:n {#2} } }
       }
   }
 
@@ -666,6 +792,10 @@
 \tl_new:N \l__cfflatex_style_end_tl
 \tl_new:N \l__cfflatex_style_render_tl
 \int_new:N \l__cfflatex_style_match_int
+% Whether the keys being set come from a style definition, and the style that
+% the last \cffsetauthors used.
+\bool_new:N \l__cfflatex_style_keys_bool
+\tl_new:N \g__cfflatex_last_style_tl
 \regex_const:Nn \c__cfflatex_style_regex { \A [A-Za-z0-9] [-A-Za-z0-9_]* \Z }
 \cs_new_protected:Npn \__cfflatex_prepare_author:n #1 {}
 
@@ -732,8 +862,16 @@
     style .tl_set:N = \l__cfflatex_style_tl,
     style .value_required:n = true,
   }
+\cs_new_protected:Npn \__cfflatex_style_only:n #1
+  {
+    \bool_if:NF \l__cfflatex_style_keys_bool
+      { \msg_error:nnn { cfflatex } { style-only-key } {#1} }
+  }
 \keys_define:nn { cfflatex / authors }
   {
+    % The check reads these keys from the style definition by itself.
+    check-fields .code:n = { \__cfflatex_style_only:n { check-fields } },
+    check-region .code:n = { \__cfflatex_style_only:n { check-region } },
     requires .clist_set:N = \l__cfflatex_style_requires_clist,
     validate .tl_set:N = \l__cfflatex_style_validate_tl,
     begin .tl_set:N = \l__cfflatex_style_begin_tl,
@@ -854,7 +992,10 @@
   {
     \seq_clear:N \l__cfflatex_notes_seq
     \keys_set:nV { cfflatex / authors } \c__cfflatex_author_defaults_tl
-    \tl_set:Nn \l__cfflatex_style_tl { standard }
+    % The style of the document is the default, or else standard.
+    \tl_if_empty:NTF \g__cfflatex_document_style_tl
+      { \tl_set:Nn \l__cfflatex_style_tl { standard } }
+      { \tl_set_eq:NN \l__cfflatex_style_tl \g__cfflatex_document_style_tl }
     % Select the style first, regardless of where style= occurs in the list.
     \keys_set_known:nnN { cfflatex / author-style } {#1}
     \l__cfflatex_author_options_tl
@@ -862,7 +1003,10 @@
     \prop_get:NVNT \g__cfflatex_author_styles_prop \l__cfflatex_style_tl
     \l__cfflatex_style_keys_tl
       {
+        \tl_gset_eq:NN \g__cfflatex_last_style_tl \l__cfflatex_style_tl
+        \bool_set_true:N \l__cfflatex_style_keys_bool
         \keys_set:nV { cfflatex / authors } \l__cfflatex_style_keys_tl
+        \bool_set_false:N \l__cfflatex_style_keys_bool
         \keys_set:nV { cfflatex / authors } \l__cfflatex_author_options_tl
         \bool_set_true:N \l__cfflatex_style_valid_bool
         \bool_if:NF \g__cfflatex_export_bool
@@ -996,5 +1140,106 @@
 % Built-ins use the same registration API as external definition files.
 \__cfflatex_load_style:n { standard }
 \__cfflatex_load_style:n { authblk }
+
+% The check of the document --------------------------------------------------
+%
+% At \begin{document}, the check takes its fields and regions from the style
+% option of the package, or else from the style of the last \cffsetauthors in
+% the preamble, or else from standard. A style definition can give
+% check-fields, a list of fields of the citation, where authors stands for
+% every author, and check-region, a list of regions: maketitle, hooks =
+% {<begin hook>}{<end hook>}, and document as the fallback.
+\int_new:N \l__cfflatex_check_id_int
+\tl_new:N \l__cfflatex_region_tl
+\cs_generate_variant:Nn \hook_gput_code:nnn { nne }
+\keys_define:nn { cfflatex / check }
+  {
+    check-fields .clist_gset:N = \g__cfflatex_check_fields_clist,
+    check-region .code:n =
+      {
+        \seq_gclear:N \g__cfflatex_check_regions_seq
+        \bool_gset_false:N \g__cfflatex_check_document_bool
+        \keys_set:nn { cfflatex / check-region } {#1}
+      },
+  }
+\keys_define:nn { cfflatex / check-region }
+  {
+    maketitle .code:n =
+      { \seq_gput_right:Nn \g__cfflatex_check_regions_seq { maketitle } },
+    maketitle .value_forbidden:n = true,
+    document .code:n = { \bool_gset_true:N \g__cfflatex_check_document_bool },
+    document .value_forbidden:n = true,
+    hooks .code:n =
+      {
+        \int_compare:nNnTF { \tl_count:n {#1} } = { 2 }
+          { \__cfflatex_check_hooks:nn #1 }
+          { \msg_error:nnn { cfflatex } { check-region } { hooks~=~#1 } }
+      },
+    hooks .value_required:n = true,
+    unknown .code:n =
+      { \msg_error:nne { cfflatex } { check-region } { \l_keys_key_str } },
+  }
+% The region hooks<n> opens at the hook #1 and closes at the hook #2.
+\cs_new_protected:Npn \__cfflatex_check_hooks:nn #1#2
+  {
+    \tl_set:Ne \l__cfflatex_region_tl
+      { hooks \int_eval:n { \seq_count:N \g__cfflatex_check_regions_seq + 1 } }
+    \seq_gput_right:NV \g__cfflatex_check_regions_seq \l__cfflatex_region_tl
+    \hook_gput_code:nne {#1} { cfflatex }
+      { \__cfflatex_region_begin:n { \l__cfflatex_region_tl } }
+    \hook_gput_code:nne {#2} { cfflatex }
+      { \__cfflatex_region_end:n { \l__cfflatex_region_tl } }
+  }
+\cs_new_protected:Npn \__cfflatex_check_setup:
+  {
+    \tl_if_empty:NF \g__cfflatex_document_style_tl
+      { \exp_args:NV \__cfflatex_load_style:n \g__cfflatex_document_style_tl }
+    \bool_if:NT \g__cfflatex_check_bool
+      {
+        \tl_gset:Ne \g__cfflatex_check_style_tl
+          {
+            \tl_if_empty:NTF \g__cfflatex_document_style_tl
+              {
+                \tl_if_empty:NTF \g__cfflatex_last_style_tl
+                  { standard } { \exp_not:V \g__cfflatex_last_style_tl }
+              }
+              { \exp_not:V \g__cfflatex_document_style_tl }
+          }
+        \clist_gset:Nn \g__cfflatex_check_fields_clist { title, authors }
+        \seq_gset_from_clist:Nn \g__cfflatex_check_regions_seq { maketitle }
+        \bool_gset_false:N \g__cfflatex_check_document_bool
+        \prop_get:NVNT \g__cfflatex_author_styles_prop
+          \g__cfflatex_check_style_tl \l__cfflatex_style_keys_tl
+          {
+            \exp_args:NnV \keys_set_known:nn { cfflatex / check }
+              \l__cfflatex_style_keys_tl
+          }
+        % Fields other than the authors are numbered -1, -2, and so on.
+        \prop_gclear:N \g__cfflatex_check_ids_prop
+        \int_zero:N \l__cfflatex_check_id_int
+        \clist_map_inline:Nn \g__cfflatex_check_fields_clist
+          {
+            \str_if_eq:nnF {##1} { authors }
+              {
+                \int_decr:N \l__cfflatex_check_id_int
+                \prop_gput:Nne \g__cfflatex_check_ids_prop {##1}
+                  { \int_use:N \l__cfflatex_check_id_int }
+              }
+          }
+        \bool_if:NT \g__cfflatex_check_document_bool
+          { \__cfflatex_region_begin:n { document } }
+      }
+  }
+\AddToHook {begindocument} [cfflatex] {\__cfflatex_check_setup:}
+\tl_if_empty:NF \g__cfflatex_document_style_tl
+  {
+    \exp_args:NV \__cfflatex_if_style_name:nTF \g__cfflatex_document_style_tl
+      { }
+      {
+        \msg_error:nne { cfflatex } { style-name }
+          { \tl_use:N \g__cfflatex_document_style_tl }
+        \tl_gclear:N \g__cfflatex_document_style_tl
+      }
+  }
 
 \endinput
