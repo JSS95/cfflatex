@@ -7,6 +7,16 @@
   {Import Citation File Format metadata into LaTeX}
 \RequirePackage{lt3luabridge}
 
+% check (default true): after \maketitle, warn unless \title used \cfftitle and
+% \author used every author of the citation. See "Checking the title page".
+\bool_new:N \g__cfflatex_check_bool
+\keys_define:nn { cfflatex }
+  {
+    check .bool_gset:N = \g__cfflatex_check_bool,
+    check .initial:n = true,
+  }
+\ProcessKeyOptions [cfflatex]
+
 \msg_new:nnn { cfflatex } { missing-file } { CFF~file~'#1'~was~not~found. }
 \msg_new:nnn { cfflatex } { missing-helper }
   { Install~cfflatex.lua~alongside~cfflatex.sty. }
@@ -14,6 +24,18 @@
 \msg_new:nnn { cfflatex } { not-loaded } { Call~\iow_char:N\\includecff~first. }
 \msg_new:nnn { cfflatex } { author-index }
   { Author~index~'#1'~is~out~of~range. }
+\msg_new:nnn { cfflatex } { not-in-loop }
+  { Not~inside~\iow_char:N\\cffforeachauthor. }
+\msg_new:nnn { cfflatex } { title-unused }
+  {
+    \iow_char:N\\title~does~not~use~\iow_char:N\\cfftitle.~
+    Load~cfflatex~with~check=false~to~skip~this~check.
+  }
+\msg_new:nnn { cfflatex } { authors-unused }
+  {
+    \iow_char:N\\author~does~not~use~author(s)~#1~of~the~citation.~
+    Load~cfflatex~with~check=false~to~skip~this~check.
+  }
 \msg_new:nnn { cfflatex } { shell-escape }
   {
     pdfLaTeX~requires~unrestricted~shell~escape~to~read~CFF~files.~
@@ -22,6 +44,8 @@
 
 \prop_new:N \g__cfflatex_values_prop
 \int_new:N \g__cfflatex_author_count_int
+% The index of the current author in \cffforeachauthor; 0 outside the loop.
+\int_new:N \g__cfflatex_author_index_int
 \bool_new:N \g__cfflatex_loaded_bool
 \tl_new:N \l__cfflatex_source_tl
 \tl_new:N \l__cfflatex_filename_tl
@@ -30,6 +54,13 @@
 \str_new:N \l__cfflatex_helper_lua_str
 \str_new:N \l__cfflatex_source_lua_str
 \ior_new:N \g__cfflatex_dependency_ior
+% For the check: whether \maketitle is running, the part of the title page
+% being typeset (1: \title, 2: \author, 0: neither), the uses recorded as
+% "<part>/<use>" (use 0: \cfftitle, <i>: author <i>), and missing authors.
+\bool_new:N \g__cfflatex_recording_bool
+\tl_new:N \g__cfflatex_part_tl
+\prop_new:N \g__cfflatex_used_prop
+\clist_new:N \l__cfflatex_missing_clist
 \cs_generate_variant:Nn \ior_open:Nn { NV }
 
 % Prefer the helper next to this package so both files share a version.
@@ -110,6 +141,92 @@
     \group_end:
   }
 
+% Checking the title page ----------------------------------------------------
+%
+% While \maketitle runs, \cfftitle and \cffauthor leave a record marker before
+% their values, and markers around the contents of \@title and \@author tell
+% which part of the title page is being typeset. The markers record when they
+% are executed, which is when the title page is typeset; this sees uses in
+% loops such as \cffforeachauthor and \foreach, whose indices are known only
+% then. The markers carry only digits, so case changes such as \MakeUppercase
+% keep them intact, and their names contain no "_" or ":", so they stay
+% readable if a class writes the title page to a file.
+
+% <use> is 0 for \cfftitle and <i> for author <i>.
+\cs_new_protected:cpn { cfflatex@mark } #1
+  {
+    \bool_if:NT \g__cfflatex_recording_bool
+      { \prop_gput:Nen \g__cfflatex_used_prop { \g__cfflatex_part_tl / #1 } {} }
+  }
+% <part> is 1 for \title, 2 for \author, and 0 after them.
+\cs_new_protected:cpn { cfflatex@part } #1
+  { \tl_gset:Nn \g__cfflatex_part_tl {#1} }
+\cs_new:Npn \__cfflatex_mark:n #1
+  {
+    % The marker is protected, so it stays a marker in expansion contexts.
+    \bool_if:NT \g__cfflatex_recording_bool
+      { \use:c { cfflatex@mark } {#1} }
+  }
+\cs_generate_variant:Nn \__cfflatex_mark:n { e }
+\cs_generate_variant:Nn \prop_gput:Nnn { Nen }
+
+\cs_new_protected:Npn \__cfflatex_check_begin:
+  {
+    \bool_lazy_and:nnT { \g__cfflatex_check_bool } { \g__cfflatex_loaded_bool }
+      {
+        \prop_gclear:N \g__cfflatex_used_prop
+        \tl_gset:Nn \g__cfflatex_part_tl { 0 }
+        \__cfflatex_wrap_part:Nn \@title { 1 }
+        \__cfflatex_wrap_part:Nn \@author { 2 }
+        \bool_gset_true:N \g__cfflatex_recording_bool
+      }
+  }
+\cs_new_protected:Npn \__cfflatex_wrap_part:Nn #1#2
+  {
+    \cs_gset:Npe #1
+      {
+        \exp_not:c { cfflatex@part } {#2}
+        \exp_not:o {#1}
+        \exp_not:c { cfflatex@part } { 0 }
+      }
+  }
+\cs_new_protected:Npn \__cfflatex_check_end:
+  {
+    \bool_if:NT \g__cfflatex_recording_bool
+      {
+        \bool_gset_false:N \g__cfflatex_recording_bool
+        \prop_if_in:NnF \g__cfflatex_used_prop { 1 / 0 }
+          { \msg_warning:nn { cfflatex } { title-unused } }
+        \clist_clear:N \l__cfflatex_missing_clist
+        \int_step_inline:nn { \g__cfflatex_author_count_int }
+          {
+            \prop_if_in:NnF \g__cfflatex_used_prop { 2 / ##1 }
+              { \clist_put_right:Nn \l__cfflatex_missing_clist {##1} }
+          }
+        \clist_if_empty:NF \l__cfflatex_missing_clist
+          {
+            \msg_warning:nne { cfflatex } { authors-unused }
+              { \clist_use:Nn \l__cfflatex_missing_clist { ,~ } }
+          }
+      }
+  }
+\AddToHook {cmd/maketitle/before} [cfflatex] {\__cfflatex_check_begin:}
+\AddToHook {cmd/maketitle/after} [cfflatex] {\__cfflatex_check_end:}
+% hyperref drops the markers from PDF strings, such as bookmarks.
+\AddToHook {begindocument} [cfflatex]
+  {
+    \cs_if_exist:NT \pdfstringdefDisableCommands
+      {
+        \pdfstringdefDisableCommands
+          {
+            \cs_set_eq:cN { cfflatex@mark } \use_none:n
+            \cs_set_eq:cN { cfflatex@part } \use_none:n
+          }
+      }
+  }
+
+% Getters --------------------------------------------------------------------
+
 % Expands to the value stored under the key #1, or to nothing if it is absent.
 \cs_new:Npn \__cfflatex_value:n #1
   {
@@ -119,11 +236,24 @@
   }
 
 % \cfftitle expands to the title of the loaded citation.
-\NewExpandableDocumentCommand \cfftitle {} {\__cfflatex_value:n { title }}
+\NewExpandableDocumentCommand \cfftitle {}
+  {
+    \__cfflatex_mark:n { 0 }
+    \__cfflatex_value:n { title }
+  }
 
 % \cffabstract expands to the abstract of the loaded citation, or to nothing if
 % it has none.
 \NewExpandableDocumentCommand \cffabstract {} {\__cfflatex_value:n { abstract }}
+
+% \cffauthorcount expands to the number of authors of the loaded citation, so
+% that it can be typeset or used in integer expressions.
+\NewExpandableDocumentCommand \cffauthorcount {}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      { \int_use:N \g__cfflatex_author_count_int }
+      { \msg_expandable_error:nn { cfflatex } { not-loaded } }
+  }
 
 % \cffauthor{<index>}{<field>} expands to a field of the <index>-th author,
 % counting from 1. An absent field expands to nothing.
@@ -136,11 +266,49 @@
           { \int_compare_p:nNn {#1} > { \g__cfflatex_author_count_int } }
           { \msg_expandable_error:nnn { cfflatex } { author-index } {#1} }
           {
+            \__cfflatex_mark:e { \int_eval:n {#1} }
             \prop_item:Ne \g__cfflatex_values_prop
               { authors / \int_eval:n {#1} / \tl_to_str:n {#2} }
           }
       }
       { \msg_expandable_error:nn { cfflatex } { not-loaded } }
+  }
+
+% \cffforeachauthor{<code>} runs <code> once for each author, in order, with
+% \cffauthorindex expanding to the index of the author. It adds no group and
+% keeps its state in global variables and in its arguments, so <code> may close
+% and reopen groups, as \and does between the authors in \author.
+\NewDocumentCommand \cffforeachauthor {+m}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \exp_args:Nnno \__cfflatex_foreach_author:nnn { 1 } {#1}
+          { \int_use:N \g__cfflatex_author_index_int }
+      }
+      { \msg_error:nn { cfflatex } { not-loaded } }
+  }
+% #1 is the index of the next author, #2 the code, and #3 the index to restore
+% at the end, which is that of an enclosing loop or 0.
+\cs_new_protected:Npn \__cfflatex_foreach_author:nnn #1#2#3
+  {
+    \int_compare:nNnTF {#1} > { \g__cfflatex_author_count_int }
+      { \int_gset:Nn \g__cfflatex_author_index_int {#3} }
+      {
+        \int_gset:Nn \g__cfflatex_author_index_int {#1}
+        #2
+        \exp_args:Nf \__cfflatex_foreach_author:nnn { \int_eval:n { #1 + 1 } }
+          {#2}
+          {#3}
+      }
+  }
+
+% \cffauthorindex expands to the index of the current author in
+% \cffforeachauthor.
+\NewExpandableDocumentCommand \cffauthorindex {}
+  {
+    \int_compare:nNnTF { \g__cfflatex_author_index_int } = { 0 }
+      { \msg_expandable_error:nn { cfflatex } { not-in-loop } }
+      { \int_use:N \g__cfflatex_author_index_int }
   }
 
 \endinput

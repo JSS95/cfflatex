@@ -1,0 +1,18 @@
+% check=false skips the check.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[check=false]{cfflatex}
+
+\includecff[source=preferred-citation]{paper.cff}
+\title{A fixed title}
+\author{Someone}
+\date{}
+
+\begin{document}
+% \maketitle sets math in \large; load those fonts here, because TeX Live 2025
+% logs them and 2026 does not.
+\sbox0{\large $x$}
+\START
+\maketitle
+\END

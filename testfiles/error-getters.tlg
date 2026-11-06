@@ -40,7 +40,44 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 4: author index 0
+TEST 4: \cffauthorcount before \includecff 
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Call \includecff first.
+l. ......ore \includecff}{\TYPE{[\cffauthorcount]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 5: \cffforeachauthor before \includecff 
+============================================================
+! Package cfflatex Error: Call \includecff first.
+Type <return> to continue.
+ ...                                              
+l. ......cludecff}{\cffforeachauthor{\TYPE{never}}}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+============================================================
+============================================================
+TEST 6: \cffauthorindex outside \cffforeachauthor 
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not inside \cffforeachauthor.
+l. ......ffforeachauthor}{\TYPE{[\cffauthorindex]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 7: author index 0
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -53,7 +90,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 5: author index past the last author
+TEST 8: author index past the last author
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  

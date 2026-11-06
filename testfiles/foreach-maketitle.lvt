@@ -1,0 +1,23 @@
+% \cffforeachauthor builds the author list of \maketitle, where \and closes and
+% reopens a group between the authors.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+
+\includecff[source=preferred-citation]{mixed-authors.cff}
+\title{\cfftitle}
+\author{\cffforeachauthor{%
+    \ifnum\cffauthorindex>1 \and\fi
+    \cffauthor{\cffauthorindex}{given-names}~%
+    \cffauthor{\cffauthorindex}{family-names}%
+    \cffauthor{\cffauthorindex}{name}}}
+\date{}
+
+\begin{document}
+% \maketitle sets math in \large; load those fonts here, because TeX Live 2025
+% logs them and 2026 does not.
+\sbox0{\large $x$}
+\START
+\maketitle
+\END

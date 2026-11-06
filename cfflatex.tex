@@ -99,6 +99,19 @@ in the same way. Note that CFF~1.2.0 defines \texttt{preferred-citation} as the
 only such key and allows no others, so a file with another key fails CFF
 validation.
 
+\subsection{Iterating over authors}
+
+\cs{cffforeachauthor} runs its argument once for each author of the citation,
+and \cs{cffauthorindex} gives the index of the current author. A document can
+thus list the authors without knowing how many there are. The following sets the
+author list of \cs{maketitle}, with \cs{and} between the authors:
+\begin{Verbatim}
+\author{\cffforeachauthor{%
+  \ifnum\cffauthorindex>1 \and\fi
+  \cffauthor{\cffauthorindex}{given-names}~%
+  \cffauthor{\cffauthorindex}{family-names}}}
+\end{Verbatim}
+
 \subsection{Text in the metadata}
 
 Values are inserted as text. The \TeX{} special characters
@@ -115,7 +128,24 @@ encoding that has them, such as \texttt{T1}.
 LaTeX Workshop extension of Visual Studio Code, therefore rebuild the document
 when the CFF file changes.
 
+\subsection{Checking the title page}
+\label{sec:check}
+
+By default, \pkg{cfflatex} checks that \cs{maketitle} typesets the metadata of
+the citation. The \cs{title} command should use \cs{cfftitle}, and the
+\cs{author} command should use \cs{cffauthor} for every author of the citation.
+The check cannot see metadata that is expanded before \cs{maketitle}, such as an
+author list built with \cs{xdef} in the preamble, and it needs a class that
+keeps the title and the authors in \cs{@title} and \cs{@author}, as the standard
+classes do. In such cases, load the package with the |check=false| option:
+\begin{Verbatim}
+\usepackage[check=false]{cfflatex}
+\end{Verbatim}
+
 \section{Reference}
+
+The package has one option, |check|, which is |true| by default
+(Section~\ref{sec:check}).
 
 \begin{function}{\includecff}
   \begin{syntax}
@@ -156,7 +186,29 @@ when the CFF file changes.
   not have expands to nothing.
 \end{function}
 
-\section{Errors}
+\begin{function}[EXP]{\cffauthorcount}
+  \begin{syntax}
+    \cs{cffauthorcount}
+  \end{syntax}
+  Expands to the number of authors of the citation.
+\end{function}
+
+\begin{function}{\cffforeachauthor}
+  \begin{syntax}
+    \cs{cffforeachauthor} \marg{code}
+  \end{syntax}
+  Runs \meta{code} once for each author of the citation, in order.
+\end{function}
+
+\begin{function}[EXP]{\cffauthorindex}
+  \begin{syntax}
+    \cs{cffauthorindex}
+  \end{syntax}
+  Expands to the index of the current author in \cs{cffforeachauthor}, counting
+  from~1.
+\end{function}
+
+\section{Errors and warnings}
 
 The following errors stop compilation.
 \begin{description}
@@ -177,6 +229,17 @@ The following errors are reported while expanding CFF macros.
   \item[Call \cs{includecff} first.] No CFF file has been read yet.
   \item[Author index `\textmd{\meta{index}}' is out of range.] The citation has
         fewer than \meta{index} authors.
+  \item[Not inside \cs{cffforeachauthor}.] \cs{cffauthorindex} is used outside
+        the loop.
+\end{description}
+
+The following warnings are issued after \cs{maketitle} by the check of
+Section~\ref{sec:check}.
+\begin{description}
+  \item[\cs{title} does not use \cs{cfftitle}.] The title page does not show the
+        title of the citation.
+  \item[\cs{author} does not use author(s) \textmd{\meta{indices}} of the citation.] The
+        title page does not show these authors.
 \end{description}
 
 \section{License}

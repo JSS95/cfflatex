@@ -1,0 +1,18 @@
+% The check sees uses in loops such as \foreach, and in case changes.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+\usepackage{pgffor}
+\includecff[source=preferred-citation]{paper.cff}
+\title{\MakeUppercase{\cfftitle}}
+\author{\foreach \i in {1,...,\cffauthorcount}{\cffauthor{\i}{family-names}, }}
+\date{}
+
+\begin{document}
+% \maketitle sets math in \large; load those fonts here, because TeX Live 2025
+% logs them and 2026 does not.
+\sbox0{\large $x$}
+\START
+\maketitle
+\END
