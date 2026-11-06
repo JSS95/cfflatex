@@ -14,6 +14,7 @@ local accessors = {
   cffconvertaffiliationindex = 2, cffaffiliationcount = 0, cffaffiliation = 1,
   cffauthorindex = 0, cffaffiliationindex = 0,
   cffauthoraffiliationindex = 0, cffcontactindex = 0,
+  cffauthornames = 0,
 }
 local loops = {
   cffforeachauthor = "author", cffforeachaffiliation = "affiliation",
@@ -89,7 +90,8 @@ function Scanner:skip(position)
 end
 
 function Scanner:command(position)
-  local name = self.text:match("^\\([A-Za-z]+)", position)
+  local pattern = self.author_render and "^\\([A-Za-z@_:]+)" or "^\\([A-Za-z]+)"
+  local name = self.text:match(pattern, position)
   if name then
     return name, position + #name + 1
   end
@@ -435,6 +437,12 @@ function Scanner:index(argument, maximum, label, position)
 end
 
 function Scanner:access(name, position, after)
+  if name == "cffauthornames" then
+    if self.author_names == nil then
+      self:fail(position, "call \\cffsetauthors before \\cffauthornames")
+    end
+    return self:word_value(self.author_names, after)
+  end
   if indices[name] then
     local value = self.indices[name]
     if not value then
@@ -490,6 +498,96 @@ function Scanner:access(name, position, after)
     return self:word_value(value, ending)
   end
   return value, ending
+end
+
+-- Keep the protected footnote operation used by both native author styles.
+-- Inlining its body would expand it too early in authblk's author collection.
+local thanks_definition = [[\protected\long\def\@cfflatexpand@thanks#1{%
+\stepcounter{footnote}%
+\protected@xdef\@thefnmark{\thefootnote}%
+\@thefnmark
+\protected@xdef\@thanks{%
+\@thanks\protect\footnotetext[\number\value{footnote}]{#1}}}
+]]
+
+function Scanner:author_fragment(text, names)
+  local child = setmetatable({
+    text = text, filename = "[author template]", depth = 0, loop_depth = 0,
+    indices = {}, model = self.model, author_render = true, author_names = names,
+  }, Scanner)
+  local result = child:scan(1, #text)
+  return result, child.needs_thanks
+end
+
+-- Templates are TeX, not Lua expressions. Check the same lexical restrictions
+-- before passing them to the existing renderer; getters may be partial (#1).
+function Scanner:author_options(argument)
+  local position = argument.first
+  while position <= argument.last do
+    local char = self.text:sub(position, position)
+    if char == "%" then
+      position = self:comment(position)
+    elseif char == "\\" then
+      local name, after = self:command(position)
+      if unsupported[name] or (name:match("^[iI]f") and name ~= "ifnum" and name ~= "ifodd")
+        or name == "cffsetauthors" or name == "includecff"
+        or name == "usepackage" or name == "RequirePackage"
+        or name == "begin" or name == "end"
+        or (name:match("^cff") and not accessors[name] and not loops[name]) then
+        self:fail(position, "unsupported TeX construct in author options: \\" .. name)
+      end
+      position = after
+    elseif self.text:sub(position, position + 1) == "^^" then
+      self:fail(position, "TeX ^^ character notation is not supported")
+    else
+      position = position + 1
+    end
+  end
+  return self.text:sub(argument.first, argument.last)
+end
+
+function Scanner:set_authors(position, after)
+  if not self.model then
+    self:fail(position, "call \\includecff before \\cffsetauthors")
+  end
+  if self.author_render or self.depth > 0 or self.body
+    or self.loop_depth > 0 or #self.conditions > 0 then
+    self:fail(position, "\\cffsetauthors must be at the top level of the preamble")
+  end
+  if self.author_names ~= nil then
+    self:fail(position, "only one \\cffsetauthors is supported")
+  end
+  local argument, ending = self:optional(after)
+  local options = argument and self:author_options(argument) or ""
+  if not argument then
+    ending = self:word_end(after)
+  end
+  local ok, declarations = pcall(function()
+    if not self.render_authors then
+      error("a TeX author renderer is required for \\cffsetauthors", 0)
+    end
+    local rendered = self.render_authors(self.model, options)
+    self.author_names = self:author_fragment(rendered.names, "")
+    local result, needs_thanks = self:author_fragment(rendered.declarations, self.author_names)
+    if needs_thanks or result:find("\\[A-Za-z]*@") then
+      result = "\\makeatletter\n" .. (needs_thanks and thanks_definition or "")
+        .. result .. "\\makeatother\n"
+    end
+    return result
+  end)
+  if not ok then
+    self:fail(position, tostring(declarations))
+  end
+  self:edit(position, ending - 1, declarations)
+  return ending
+end
+
+function Scanner:author_thanks(position, after)
+  local argument, ending = self:argument(after, "{", "}")
+  local contents = self:scan(argument.first, argument.last)
+  self.needs_thanks = true
+  self:edit(position, ending - 1, "\\@cfflatexpand@thanks{" .. contents .. "}")
+  return ending
 end
 
 function Scanner:loop(name, position, after)
@@ -659,13 +757,24 @@ function Scanner:scan(first, last)
         position = self:package(position, after)
       elseif name == "includecff" then
         position = self:include(position, after)
+      elseif name == "cffsetauthors" then
+        position = self:set_authors(position, after)
+      elseif self.author_render and name == "__cfflatex_thanks:n" then
+        position = self:author_thanks(position, after)
+      elseif self.author_render and name == "protect" then
+        local following = self:skip(after)
+        local next_name = self:command(following)
+        if accessors[next_name] or loops[next_name] then
+          self:edit(position, following - 1)
+        end
+        position = after
       elseif accessors[name] then
         local value, ending = self:access(name, position, after)
         self:edit(position, ending - 1, value)
         position = ending
       elseif loops[name] then
         position = self:loop(name, position, after)
-      elseif name:match("^cff") then
+      elseif name:match("^cff") or (self.author_render and name:match("^__cfflatex")) then
         self:fail(position, "unsupported cfflatex command: \\" .. name)
       elseif name == "ifnum" or name == "ifodd" or name == "else" or name == "fi" then
         self:condition(name, position)
@@ -694,10 +803,11 @@ function Scanner:scan(first, last)
   return result
 end
 
-function expand.transform(text, filename)
+function expand.transform(text, filename, render_authors)
   local scanner = setmetatable({
     text = text, filename = filename, depth = 0, loop_depth = 0, indices = {},
     directory = filename:match("^(.*[/\\])") or "./",
+    render_authors = render_authors,
   }, Scanner)
   return scanner:scan(1, #text)
 end

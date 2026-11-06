@@ -10,8 +10,9 @@ local data_file = require("kpse").find_file(directory .. "cfflatex-data.lua", "t
 local data = data_file and dofile(data_file) or require("cfflatex-data")
 local cfflatex = {}
 
-local function read(filename, source)
-  local model = data.load(filename, source)
+-- Export helpers inject the same property lists without reading a CFF file
+-- through TeX, so author rendering also works with shell escape disabled.
+function cfflatex.serialize(model)
   local output = {}
   for _, entry in ipairs({
     {model.fields, "__cfflatex_store_field:nn"},
@@ -29,7 +30,9 @@ local function read(filename, source)
 end
 
 function cfflatex.read(filename, source)
-  local success, result = pcall(read, filename, source)
+  local success, result = pcall(function()
+    return cfflatex.serialize(data.load(filename, source))
+  end)
   if success then
     return result
   end

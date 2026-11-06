@@ -10,6 +10,7 @@ files["config-*.lua"] = l3build_config
 
 -- The CLI tests use texlua's environment setter to isolate the TeX cache.
 files["tests/test_cfflatexpand.lua"] = {read_globals = {"os.setenv"}}
+files["cfflatexpand-authors.lua"] = {read_globals = {"os.setenv"}}
 
 -- l3build output, and the scripts lt3luabridge generates when pdfLaTeX
 -- compiles a document (also listed in .gitignore).

@@ -387,7 +387,7 @@ local ok, message = xpcall(function()
     local expected = replace(source, "\\usepackage{cfflatex}", "")
     expected = replace(expected, "\\includecff{CITATION.cff}", "")
     equal(result.stdout, replace(expected, "\\cff{title}", "Example Paper"))
-    write_file(f.input, replace(preamble .. "한글 \\cffsetauthors", "\n", "\r\n"))
+    write_file(f.input, replace(preamble .. "한글 \\cffunknown", "\n", "\r\n"))
     failure(f:cli(f.input), f.input .. ":4:4:")
   end)
 
@@ -422,7 +422,7 @@ local ok, message = xpcall(function()
   end)
 
   test("unsupported constructs fail without partial output", function(f)
-    for _, construct in ipairs({[[\cffsetauthors]], [[\cffauthornames]], [[\input{other}]],
+    for _, construct in ipairs({[[\cffunknown]], [[\cffauthornames]], [[\input{other}]],
       [[\include{other}]], [[\newcommand{\foo}{\cff{title}}]], [[\def\foo{\cff{title}}]],
       [[\iffalse\cff{title}\fi]], [[\catcode1=2]], [[\csname cff\endcsname{title}]],
       [[\ExplSyntaxOn]], [[\uppercase{\cff{title}}]], [[^^5ccff{title}]]}) do
@@ -454,7 +454,7 @@ local ok, message = xpcall(function()
   end)
 
   test("failed conversion preserves the destination", function(f)
-    write_file(f.input, replace(document, "\\maketitle", "\\cffsetauthors"))
+    write_file(f.input, replace(document, "\\maketitle", "\\cffunknown"))
     local output = f.directory .. "/submission.tex"
     failure(f:cli(f.input, "--output", output), "unsupported")
     assert(not lfs.attributes(output))
@@ -718,6 +718,209 @@ local ok, message = xpcall(function()
       failure(f:cli(f.input), "first flatten the document with latexpand")
     end
   end)
+
+  test("standard authors and author names use literal metadata", function(f)
+    write_file(f.cff, rich_citation)
+    write_file(f.input, preamble .. [[\cffsetauthors
+\title{\cff{title}}
+\begin{document}\cffauthornames\end{document}
+]])
+    local result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, [[\author {Ann\nobreakspace One\and Ben\nobreakspace Two]])
+    contains(result.stdout, [[\@cfflatexpand@thanks{E-mail: ben@example.org}]])
+    contains(result.stdout, [[Ann\nobreakspace One, Ben\nobreakspace Two, \nobreakspace]])
+    assert(not result.stdout:find("\\affil", 1, true))
+    assert(not result.stdout:find("\\cffsetauthors", 1, true))
+    assert(not result.stdout:find("\\cffauthornames", 1, true))
+    equal(names(f.directory), "CITATION.cff,manuscript.tex")
+  end)
+
+  test("authblk affiliations, mark formats, and separators", function(f)
+    write_file(f.cff, rich_citation)
+    for _, marks in ipairs({{"alph", "a", "b"}, {"Alph", "A", "B"},
+      {"arabic", "1", "2"}, {"roman", "i", "ii"}, {"Roman", "I", "II"}}) do
+      write_file(f.input, preamble .. "\\cffsetauthors[style=authblk,contact={},"
+        .. "affiliation-mark=" .. marks[1] .. ",separator={/}]")
+      local result = f:cli(f.input)
+      success(result)
+      contains(result.stdout, "\\author [{" .. marks[3] .. "/" .. marks[2]
+        .. "}]{Ben\\nobreakspace Two}")
+      contains(result.stdout, "\\affil [" .. marks[2] .. "]{Univ A}")
+      contains(result.stdout, "\\affil [" .. marks[3] .. "]{Univ B}")
+      assert(not result.stdout:find("thanks", 1, true))
+    end
+  end)
+
+  test("class templates, contact matches, and repeated notes", function(f)
+    write_file(f.cff, rich_citation)
+    write_file(f.input, preamble .. [=[\cffsetauthors[
+style=authblk,name={\textsc{#1{given-names}#1{family-names}#1{name}}},
+author={\journalAuthor{#1}{#2}},affiliation={\journalAffil{#1}{#2}},
+contact={Contact: \texttt{#1{email}}},
+note={1+1}{First \cff{title}},note={\cffcount{authors}-1}{Second},
+note={3}{Team note}]
+\hypersetup{pdfauthor={\cffauthornames}}
+]=])
+    local result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, [[\journalAuthor {a}{\textsc {AnnOne}}]])
+    contains(result.stdout, [[\journalAuthor {b,a,\@cfflatexpand@thanks{Contact: \texttt {ben@example.org}},]])
+    contains(result.stdout, [[\@cfflatexpand@thanks{First Research Paper},\@cfflatexpand@thanks{Second}]])
+    contains(result.stdout, [[\journalAffil {b}{Univ B}]])
+    contains(result.stdout, [[\textsc {Team \& Co}]])
+    assert(not result.stdout:find("help", 1, true), "non-author contact was rendered")
+    assert(not result.stdout:find("__cfflatex", 1, true))
+    assert(not result.stdout:find("\\protect \\cff", 1, true))
+  end)
+
+  test("entity contacts and disabled affiliations", function(f)
+    write_file(f.cff, "title: Test\nauthors:\n  - name: Team\n    affiliation: Lab\n"
+      .. "contact:\n  - name: Team\n    email: one@example.org\n"
+      .. "  - name: Team\n    email: two@example.org\n")
+    write_file(f.input, preamble .. [=[\cffsetauthors[style=authblk,affiliation={},name={#1{name}}]]=])
+    local result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, [[\author [{{}\@cfflatexpand@thanks{E-mail: one@example.org},]])
+    contains(result.stdout, [[\@cfflatexpand@thanks{E-mail: two@example.org}}]{Team}]])
+    assert(not result.stdout:find("\\affil", 1, true))
+  end)
+
+  test("author declarations require one preamble call after loading", function(f)
+    for _, pair in ipairs({
+      {"\\cffsetauthors\n" .. preamble, "call \\includecff"},
+      {preamble .. "{\\cffsetauthors}", "top level"},
+      {preamble .. "\\begin{document}\\cffsetauthors", "top level"},
+      {preamble .. "\\cffforeachauthor{\\cffsetauthors}", "top level"},
+      {preamble .. "\\ifnum1=1 \\cffsetauthors\\fi", "top level"},
+      {preamble .. "\\cffsetauthors\\cffsetauthors", "only one"},
+      {preamble .. "\\cffauthornames\\cffsetauthors", "call \\cffsetauthors"},
+    }) do
+      write_file(f.input, pair[1])
+      failure(f:cli(f.input), pair[2])
+    end
+  end)
+
+  test("invalid author options and fields preserve the destination", function(f)
+    local output = f.directory .. "/submission.tex"
+    for _, options in ipairs({"unknown=value", "style=absent", "note={99}{Bad}",
+      "name={\\cffauthor{99}{name}}", "note={1}{\\cff{authors}}"}) do
+      write_file(f.input, preamble .. "\\cffsetauthors[" .. options .. "]")
+      write_file(output, "old output")
+      failure(f:cli(f.input, "-o", output), f.input .. ":4:1:")
+      equal(read_file(output), "old output")
+      equal(names(f.directory), "CITATION.cff,manuscript.tex,submission.tex")
+    end
+  end)
+
+  test("only author declarations invoke the isolated TeX engine", function(f)
+    local bin = mkdir(f.directory .. "/bin")
+    local marker = f.directory .. "/engine-call"
+    write_file(bin .. "/lualatex", [[#!/bin/sh
+printf '%s\n' "$PWD" "$@" > "$CFFLATEXPAND_TEST_ENGINE_CALL"
+printf 'engine failure\n'
+exit 1
+]])
+    success(run_command({"chmod", "+x", bin .. "/lualatex"}, f.directory))
+    local old_path = os.getenv("PATH")
+    os.setenv("PATH", bin .. ":" .. old_path)
+    os.setenv("CFFLATEXPAND_TEST_ENGINE_CALL", marker)
+    local worked, detail = pcall(function()
+      success(f:cli(f.input))
+      assert(not lfs.attributes(marker), "data-only expansion started TeX")
+      for _, command in ipairs({[[\input{unseen}]], [[\directlua{error('bad')}]],
+        [[\def\hidden{bad}]], [[\cffsetauthors]], [[^^5ccff{title}]]}) do
+        write_file(f.input, preamble .. "\\cffsetauthors[note={1}{" .. command .. "}]")
+        failure(f:cli(f.input), "supported")
+        assert(not lfs.attributes(marker), "invalid template started TeX")
+      end
+      write_file(f.input, preamble .. "\\cffsetauthors")
+      failure(f:cli(f.input), "LuaLaTeX author rendering failed: engine failure")
+      local call = read_file(marker)
+      contains(call, "\n--no-shell-escape\n")
+      contains(call, "\n-halt-on-error\ndriver.tex\n")
+      local directory = assert(call:match("^[^\n]+"))
+      assert(not lfs.attributes(directory), "helper directory was not removed")
+    end)
+    os.setenv("PATH", old_path)
+    os.setenv("CFFLATEXPAND_TEST_ENGINE_CALL", nil)
+    assert(worked, detail)
+  end, windows and "POSIX engine stub" or nil)
+
+  for _, style in ipairs({"standard", "authblk"}) do
+    test(style .. " author export matches native rendering and footnotes", function(f)
+      write_file(f.cff, rich_citation)
+      for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua"}) do
+        write_file(f.directory .. "/" .. filename, read_file(root .. "/" .. filename))
+      end
+      -- Observe shipped glyphs and executed footnotes, including authblk's
+      -- protected expansion when collecting its authors.
+      local observer = [[\ProvidesPackage{observer}
+\makeatletter
+\let\export@footnotetext\footnotetext
+\renewcommand\footnotetext[2][]{%
+\typeout{EXPORT:footnote=#1/#2}%
+\export@footnotetext[#1]{#2}}
+\makeatother
+\directlua{dofile('observer.lua')}
+]]
+      local observation = [[
+local output = assert(io.open('glyphs.txt', 'w'))
+local glyph, hlist, vlist = node.id('glyph'), node.id('hlist'), node.id('vlist')
+local function collect(head)
+  for item in node.traverse(head) do
+    if item.id == glyph then
+      output:write(utf8.char(item.char))
+    elseif item.id == hlist or item.id == vlist then
+      collect(item.head)
+    end
+  end
+end
+luatexbase.add_to_callback('pre_shipout_filter', function(head)
+  collect(head)
+  output:flush()
+  return true
+end, 'cfflatexpand-test')
+]]
+      write_file(f.directory .. "/observer.sty", observer)
+      write_file(f.directory .. "/observer.lua", observation)
+      local header = replace(preamble, "{cfflatex}", "[check=false]{cfflatex}")
+      header = replace(header, "\\usepackage[check=false]",
+        "\\usepackage{authblk}\n\\usepackage[check=false]")
+      write_file(f.input, header .. "\\usepackage{observer}\n\\cffsetauthors[style=" .. style .. [=[,
+name={#1{given-names}\nobreakspace#1{family-names}#1{name}},
+affiliation-mark=Roman,separator={/},
+contact={Contact: \texttt{#1{email}}},
+note={1}{First \cff{title}},note={1}{Second},note={\cffcount{authors}}{Team note}]
+\title{\cff{title}}\date{}
+\begin{document}
+\maketitle
+\typeout{EXPORT:names=\cffauthornames}
+\cffauthornames
+\end{document}
+]=])
+      compile(f.directory, "manuscript.tex")
+      local output = mkdir(f.directory .. "/submission")
+      success(f:cli(f.input, "-o", output .. "/paper.tex"))
+      write_file(output .. "/observer.sty", observer)
+      write_file(output .. "/observer.lua", observation)
+      write_file(output .. "/cfflatex.sty", "\\errmessage{Unexpected cfflatex load}\\endinput\n")
+      assert(os.remove(f.input))
+      assert(os.remove(f.cff))
+      compile(output, "paper.tex")
+      local function records(log)
+        local lines = {}
+        for line in log:gmatch("EXPORT:[^\r\n]*") do
+          lines[#lines + 1] = line
+        end
+        equal(#lines, 5)
+        return table.concat(lines, "\n")
+      end
+      equal(records(read_file(output .. "/paper.log")),
+        records(read_file(f.directory .. "/manuscript.log")))
+      equal(read_file(output .. "/glyphs.txt"), read_file(f.directory .. "/glyphs.txt"))
+    end, not executable("lualatex") and "lualatex is required" or nil)
+  end
 
   test("metadata export agrees with native TeX and compiles independently", function(f)
     write_file(f.cff, rich_citation)

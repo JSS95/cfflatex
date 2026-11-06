@@ -16,6 +16,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ordinary source, numeric conditionals, comments, and verbatim.
 - A shared CFF data module supplies the same validation, affiliation
   normalization, and TeX character escaping to the package and export tool.
+- The exporter converts `\cffsetauthors` and `\cffauthornames` using the
+  package's author renderer, including standard and authblk styles, custom
+  templates, affiliation marks, contact footnotes, and repeated notes.
+  Author conversion runs LuaLaTeX with shell escape disabled. The exported
+  declarations compile without cfflatex or the CFF file.
+
+### Fixed
+
+- With authblk, authors with footnotes and no affiliations no longer execute
+  their first footnote while the author list is being declared.
 
 ## [0.1.0] - 2026-11-06
 

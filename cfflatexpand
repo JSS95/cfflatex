@@ -20,11 +20,14 @@ end
 
 local help = [[Usage: cfflatexpand [OPTIONS] manuscript.tex
 
-Expand CFF fields, counts, author/affiliation/contact accessors, and metadata
-loops, and remove cfflatex loading commands. Author styling (\cffsetauthors
-and \cffauthornames) is not yet supported.
+Expand CFF fields, counts, author/affiliation/contact accessors, metadata
+loops, \cffsetauthors, and \cffauthornames, and remove cfflatex loading commands.
+Author declarations support standard/authblk styles and custom templates.
 The current version supports one literal \includecff in a single TeX file.
-CFF filenames are relative to the input TeX file. No TeX engine is executed.
+CFF filenames are relative to the input TeX file. \cffsetauthors requires
+LuaLaTeX and runs the shared author renderer with --no-shell-escape.
+Use one \cffsetauthors in the preamble, after \includecff and before
+\cffauthornames. Data-only expansion does not execute a TeX engine.
 For multiple TeX files, first flatten the document with latexpand.
 Indices accept decimal arithmetic and CFF accessors. Numeric \ifnum/\ifodd
 conditionals are preserved; both branches must contain supported input.
@@ -183,7 +186,11 @@ local function main()
   end
   load_module("cfflatex-data")
   local expand = load_module("cfflatexpand")
-  local result = expand.transform(read_file(selected.input), selected.input)
+  local function render_authors(model, author_options)
+    load_module("cfflatex")
+    return load_module("cfflatexpand-authors").render(model, author_options, script_directory)
+  end
+  local result = expand.transform(read_file(selected.input), selected.input, render_authors)
   if selected.output and selected.output ~= "-" then
     write_output(selected.output, result)
   else
