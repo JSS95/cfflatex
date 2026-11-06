@@ -225,13 +225,20 @@ The package has one option, |check|, which is |true| by default
   counting from~1.
 \end{function}
 
-\begin{function}[EXP]{\cffauthoraffiliationcount, \cffauthoraffiliation}
+\begin{function}[EXP]
+  {
+    \cffauthoraffiliationcount, \cffauthoraffiliation,
+    \cffconvertaffiliationindex
+  }
   \begin{syntax}
     \cs{cffauthoraffiliationcount} \marg{index}
     \cs{cffauthoraffiliation} \marg{index} \marg{k}
+    \cs{cffconvertaffiliationindex} \marg{index} \marg{k}
   \end{syntax}
   Expand to the number of affiliations of the \meta{index}-th author, which is 0
-  if the author has none, and to the \meta{k}-th of them.
+  if the author has none, to the \meta{k}-th of them, and to its number among
+  the distinct affiliations of the citation, which \cs{cffaffiliation} and
+  \cs{cffforeachaffiliation} use.
 \end{function}
 
 \begin{function}{\cffforeachauthoraffiliation, \cffauthoraffiliationindex}

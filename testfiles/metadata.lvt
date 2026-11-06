@@ -176,6 +176,9 @@
   \TYPE{[\cffauthoraffiliation{2}{1}] [\cffauthoraffiliation{2}{2}]
     [\cffauthoraffiliation{2}{3}]}
   \TYPE{[\cffauthor{2}{affiliation}]}
+  \TYPE{\cffconvertaffiliationindex{1}{1};
+    \cffconvertaffiliationindex{2}{1},\cffconvertaffiliationindex{2}{2},%
+    \cffconvertaffiliationindex{2}{3}}
 }
 \TEST{affiliations are cleared by the next include}{
   \OMIT
@@ -245,6 +248,19 @@
   \cffforeachaffiliation{%
     \cffforeachauthoraffiliation{1}{}%
     \xdef\x{\x\cffaffiliationindex;}}
+  \TYPE{\x}
+}
+\TEST{convert affiliation index in loops}{
+  \OMIT
+  \includecff{affiliations.cff}
+  \TIMO
+  \gdef\x{}
+  \cffforeachauthor{%
+    \xdef\x{\x\cffauthorindex(}%
+    \cffforeachauthoraffiliation{\cffauthorindex}{%
+      \xdef\x{\x\ifnum\cffauthoraffiliationindex>1 ,\fi
+        \cffconvertaffiliationindex{\cffauthorindex}{\cffauthoraffiliationindex}}}%
+    \xdef\x{\x)}}
   \TYPE{\x}
 }
 \END

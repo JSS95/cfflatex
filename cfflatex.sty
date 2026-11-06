@@ -346,6 +346,12 @@
 \NewExpandableDocumentCommand \cffauthoraffiliation {m m}
   {\__cfflatex_author_affiliation:nnn {#1} {#2} { names }}
 
+% \cffconvertaffiliationindex{<i>}{<k>} expands to the number of the <k>-th
+% affiliation of author <i> among the distinct affiliations of the citation,
+% the index that \cffforeachaffiliation and \cffaffiliation use.
+\NewExpandableDocumentCommand \cffconvertaffiliationindex {m m}
+  {\__cfflatex_author_affiliation:nnn {#1} {#2} { indices }}
+
 % \cffaffiliationcount expands to the number of distinct affiliations of the
 % citation, and \cffaffiliation{<n>} to the <n>-th of them.
 \NewExpandableDocumentCommand \cffaffiliationcount {}

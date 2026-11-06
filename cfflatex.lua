@@ -154,8 +154,9 @@ local function read(filename, source)
           numbers[name] = affiliation_count
           output[#output + 1] = store("affiliations/" .. affiliation_count, name)
         end
-        output[#output + 1] = store(
-          "authors/" .. index .. "/affiliation-names/" .. position, name)
+        local key = "authors/" .. index .. "/affiliation-"
+        output[#output + 1] = store(key .. "names/" .. position, name)
+        output[#output + 1] = store(key .. "indices/" .. position, numbers[name])
       end
       output[#output + 1] = store("authors/" .. index .. "/affiliation-count", #names)
     end

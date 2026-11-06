@@ -12,9 +12,15 @@
 \TEST{\cffforeachauthor before \includecff}{\cffforeachauthor{\TYPE{never}}}
 \TEST{\cffaffiliationcount before \includecff}{\TYPE{[\cffaffiliationcount]}}
 \TEST{\cffforeachaffiliation before \includecff}{\cffforeachaffiliation{\TYPE{never}}}
+\TEST{\cffconvertaffiliationindex before \includecff}
+  {\TYPE{[\cffconvertaffiliationindex{1}{1}]}}
 \OMIT
 \includecff{paper.cff}
 \TIMO
+\TEST{affiliation index of \cffconvertaffiliationindex}
+  {\TYPE{[\cffconvertaffiliationindex{1}{1}]}}
+\TEST{author index of \cffconvertaffiliationindex}
+  {\TYPE{[\cffconvertaffiliationindex{2}{1}]}}
 \TEST{\cffaffiliationindex outside an affiliation loop}{\TYPE{[\cffaffiliationindex]}}
 \TEST{\cffauthoraffiliationindex outside an affiliation loop}
   {\TYPE{[\cffauthoraffiliationindex]}}

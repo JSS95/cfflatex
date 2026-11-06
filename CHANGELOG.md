@@ -18,6 +18,7 @@ First release.
 - `\cffauthorcount` expands to the number of authors of the selected citation.
 - `\cffforeachauthor{code}` runs `code` for each author, with `\cffauthorindex` expanding to the index of the current author.
 - `\cffauthoraffiliationcount` and `\cffauthoraffiliation` read author affiliations separated by semicolons.
+- `\cffconvertaffiliationindex{index}{k}` converts the index of an author's affiliation to its number among the distinct affiliations of the citation.
 - `\cffaffiliationcount` and `\cffaffiliation` parse all distinct affiliations of all authors in the order they first appear.
 - `\cffforeachauthoraffiliation{index}{code}` runs `code` for each affiliation of an author, with `\cffauthoraffiliationindex` expanding to its index among those of the author.
 - `\cffforeachaffiliation{code}` for each distinct affiliation, with `\cffaffiliationindex` expanding to its number.
