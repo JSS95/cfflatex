@@ -70,38 +70,19 @@ It supports \TeX{} Live 2025 and later.
 
 \section{Usage}
 
-Given a |CITATION.cff| file containing
-\begin{Verbatim}
-cff-version: 1.2.0
-message: Please cite the paper in preferred-citation.
-type: software
-title: My Paper Code
-authors:
-  - family-names: Doe
-    given-names: John
-preferred-citation:
-  type: article
-  title: My Paper
-  abstract: We describe a method.
-  authors:
-    - family-names: Doe
-      given-names: Jane
-    - family-names: Doe
-      given-names: John
-\end{Verbatim}
-the following document typesets the title, authors, and abstract of the paper:
-\begin{Verbatim}
-\documentclass{article}
-\usepackage[T1]{fontenc}
-\usepackage{cfflatex}
+This manuscript itself is an example of using \pkg{cfflatex}. Its |CITATION.cff|
+is
+\VerbatimInput{CITATION.cff}
 
-\includecff{CITATION.cff}
+Because this CFF file describes the software itself at its top level, the preamble of this
+manual should read it with the |source=root| option.
+The \LaTeX{} manuscript then imports and accesses the metadata by
+\begin{Verbatim}
+\documentclass{l3doc}
+\usepackage{cfflatex}
+\includecff[source=root]{CITATION.cff}
 \title{\cfftitle}
-\author{
-  \cffauthor{1}{given-names}~\cffauthor{1}{family-names} \and
-  \cffauthor{2}{given-names}~\cffauthor{2}{family-names}
-}
-\date{}
+\author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
 
 \begin{document}
 \maketitle
@@ -110,11 +91,20 @@ the following document typesets the title, authors, and abstract of the paper:
 \end{abstract}
 \end{document}
 \end{Verbatim}
-Compile it with either of
-\begin{Verbatim}
-lualatex manuscript.tex
-pdflatex --shell-escape manuscript.tex
-\end{Verbatim}
+
+\subsection{Specifying the source level}
+
+\subsection{Text in the metadata}
+
+Values are inserted as text. The \TeX{} special characters
+\verb+\ { } % # $ & _ ~ ^+ are printed as themselves, so \LaTeX{} markup in the
+CFF file is not interpreted. Line breaks inside a value become spaces, so the
+paragraphs of a multi-paragraph abstract run together, and spaces at either end
+are dropped. Non-ASCII characters are kept; with pdf\LaTeX{}, use a font
+encoding that has them, such as \texttt{T1}.
+
+\subsection{Recording the CFF file}
+
 \cs{includecff} records the CFF file as an input in the |.fls| file that the
 |-recorder| option writes. Build tools that read it, such as latexmk and the
 LaTeX Workshop extension of Visual Studio Code, therefore rebuild the document
@@ -172,15 +162,6 @@ when the CFF file changes.
 work where \LaTeX{} expands its argument, for example in the \texttt{pdftitle},
 \texttt{pdfsubject}, and \texttt{pdfauthor} options of \pkg{hyperref}.
 
-\section{Text in the metadata}
-
-Values are inserted as text. The \TeX{} special characters
-\verb+\ { } % # $ & _ ~ ^+ are printed as themselves, so \LaTeX{} markup in the
-CFF file is not interpreted. Line breaks inside a value become spaces, so the
-paragraphs of a multi-paragraph abstract run together, and spaces at either end
-are dropped. Non-ASCII characters are kept; with pdf\LaTeX{}, use a font
-encoding that has them, such as \texttt{T1}.
-
 \section{Errors}
 
 The following errors stop compilation.
@@ -197,19 +178,13 @@ The following errors stop compilation.
   \item[Install cfflatex.lua alongside cfflatex.sty.] \pkg{cfflatex} is
         incompletely installed.
 \end{description}
-The following errors are reported while expanding \cs{cfftitle},
-\cs{cffabstract}, or \cs{cffauthor}.
+
+The following errors are reported while expanding CFF macros.
 \begin{description}
   \item[Call \cs{includecff} first.] No CFF file has been read yet.
   \item[Author index `\meta{index}' is out of range.] The citation has fewer
         than \meta{index} authors.
 \end{description}
-
-\section{Limitations}
-
-\pkg{cfflatex} reads only the \texttt{title}, the \texttt{abstract}, and the
-fields of the \texttt{authors} of the selected citation. The YAML parser,
-\pkg{lua-tinyyaml}, supports a subset of YAML that covers usual CFF files.
 
 \section{License}
 
