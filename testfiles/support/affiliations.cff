@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: m
+title: Affiliations
+authors:
+  - family-names: One
+    affiliation: Univ A
+  - family-names: Two
+    affiliation: "Univ B;  Univ   A ;Lab C;"
+  - family-names: Three
+  - name: Research Collaboration

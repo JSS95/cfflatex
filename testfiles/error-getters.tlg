@@ -64,7 +64,59 @@ Try typing <return> to proceed.
 If that doesn't work, type X <return> to quit.
 ============================================================
 ============================================================
-TEST 6: \cffauthorindex outside \cffforeachauthor 
+TEST 6: \cffaffiliationcount before \includecff 
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Call \includecff first.
+l. ......includecff}{\TYPE{[\cffaffiliationcount]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 7: affiliation index past the last affiliation of an author
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Affiliation '1' is out of range.
+l. ...  {\TYPE{[\cffauthoraffiliation{1}{1}]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 8: affiliation index past the last affiliation
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Affiliation '1' is out of range.
+l. ...... affiliation}{\TYPE{[\cffaffiliation{1}]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 9: author index of an affiliation count
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Author index '2' is out of range.
+l. ......t}{\TYPE{[\cffauthoraffiliationcount{2}]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 10: \cffauthorindex outside \cffforeachauthor 
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -77,7 +129,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 7: author index 0
+TEST 11: author index 0
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -90,7 +142,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 8: author index past the last author
+TEST 12: author index past the last author
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  

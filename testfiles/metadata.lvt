@@ -165,4 +165,40 @@
     \xdef\x{\x)\cffauthorindex;}}
   \TYPE{\x}
 }
+\TEST{affiliations}{
+  \OMIT
+  \includecff{affiliations.cff}
+  \TIMO
+  \TYPE{\cffaffiliationcount: [\cffaffiliation{1}] [\cffaffiliation{2}]
+    [\cffaffiliation{3}]}
+  \TYPE{\cffauthoraffiliationcount{1} \cffauthoraffiliationcount{2}
+    \cffauthoraffiliationcount{3} \cffauthoraffiliationcount{4}}
+  \TYPE{[\cffauthoraffiliation{2}{1}] [\cffauthoraffiliation{2}{2}]
+    [\cffauthoraffiliation{2}{3}]}
+  \TYPE{\cffauthoraffiliationindex{1}{1};
+    \cffauthoraffiliationindex{2}{1},\cffauthoraffiliationindex{2}{2},%
+    \cffauthoraffiliationindex{2}{3}}
+  \TYPE{[\cffauthor{2}{affiliation}]}
+}
+\TEST{affiliations are cleared by the next include}{
+  \OMIT
+  \includecff{affiliations.cff}
+  \TIMO
+  \TYPE{\cffaffiliationcount}
+  \OMIT
+  \includecff{paper.cff}
+  \TIMO
+  \TYPE{\cffaffiliationcount}
+}
+\TEST{affiliations in foreach author}{
+  \OMIT
+  \includecff{affiliations.cff}
+  \TIMO
+  \gdef\x{}
+  \cffforeachauthor{%
+    \xdef\x{\x\cffauthor{\cffauthorindex}{family-names}%
+      \cffauthor{\cffauthorindex}{name}%
+      (\cffauthoraffiliationcount{\cffauthorindex});}}
+  \TYPE{\x}
+}
 \END
