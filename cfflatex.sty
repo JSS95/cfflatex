@@ -26,6 +26,9 @@
   { Author~index~'#1'~is~out~of~range. }
 \msg_new:nnn { cfflatex } { affiliation-index }
   { Affiliation~'#1'~is~out~of~range. }
+\msg_new:nnn { cfflatex } { contact-index } { Contact~'#1'~is~out~of~range. }
+\msg_new:nnn { cfflatex } { not-in-contact-loop }
+  { Not~inside~\iow_char:N\\cffforeachcontact. }
 \msg_new:nnn { cfflatex } { not-in-loop }
   { Not~inside~\iow_char:N\\cffforeachauthor. }
 \msg_new:nnn { cfflatex } { not-in-affiliation-loop }
@@ -57,6 +60,8 @@
 % \cffforeachauthoraffiliation; 0 outside these loops.
 \int_new:N \g__cfflatex_affiliation_index_int
 \int_new:N \g__cfflatex_author_affiliation_index_int
+% The index of the current contact in \cffforeachcontact; 0 outside the loop.
+\int_new:N \g__cfflatex_contact_index_int
 \bool_new:N \g__cfflatex_loaded_bool
 \tl_new:N \l__cfflatex_source_tl
 \tl_new:N \l__cfflatex_filename_tl
@@ -370,6 +375,35 @@
       { \msg_expandable_error:nn { cfflatex } { not-loaded } }
   }
 
+% Contacts -------------------------------------------------------------------
+%
+% The contacts of the citation are optional; like the authors, each is a person
+% or an entity.
+
+% \cffcontactcount expands to the number of contacts of the citation, which is
+% 0 if it has none.
+\NewExpandableDocumentCommand \cffcontactcount {}
+  {\__cfflatex_value:n { contact-count }}
+
+% \cffcontact{<index>}{<field>} expands to a field of the <index>-th contact,
+% counting from 1. An absent field expands to nothing.
+\NewExpandableDocumentCommand \cffcontact {m m}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \bool_lazy_or:nnTF { \int_compare_p:nNn {#1} < { 1 } }
+          {
+            \int_compare_p:nNn {#1} > { \__cfflatex_count:n { contact-count } }
+          }
+          { \msg_expandable_error:nnn { cfflatex } { contact-index } {#1} }
+          {
+            \prop_item:Ne \g__cfflatex_values_prop
+              { contact / \int_eval:n {#1} / \tl_to_str:n {#2} }
+          }
+      }
+      { \msg_expandable_error:nn { cfflatex } { not-loaded } }
+  }
+
 % Loops ----------------------------------------------------------------------
 %
 % \__cfflatex_loop:nnnnn {<first>} {<last>} {<set>} {<code>} {<restore>} runs
@@ -489,6 +523,27 @@
       {#2}
       { \int_use:N #1 }
   }
+% \cffforeachcontact{<code>} runs <code> once for each contact of the citation,
+% in order, with \cffcontactindex expanding to the index of the contact.
+\NewDocumentCommand \cffforeachcontact {+m}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \use:e
+          {
+            \__cfflatex_loop:nnnnn { 1 }
+              { \__cfflatex_count:n { contact-count } }
+              { \int_gset:Nn \exp_not:N \g__cfflatex_contact_index_int }
+              { \exp_not:n {#1} }
+              {
+                \int_gset:Nn \exp_not:N \g__cfflatex_contact_index_int
+                  { \int_use:N \g__cfflatex_contact_index_int }
+              }
+          }
+      }
+      { \msg_error:nn { cfflatex } { not-loaded } }
+  }
+
 \NewExpandableDocumentCommand \cffaffiliationindex {}
   {
     \__cfflatex_loop_state:Nn \g__cfflatex_affiliation_index_int
@@ -500,6 +555,14 @@
       {
         \msg_expandable_error:nn { cfflatex } { not-in-author-affiliation-loop }
       }
+  }
+
+% \cffcontactindex expands to the index of the current contact in
+% \cffforeachcontact.
+\NewExpandableDocumentCommand \cffcontactindex {}
+  {
+    \__cfflatex_loop_state:Nn \g__cfflatex_contact_index_int
+      { \msg_expandable_error:nn { cfflatex } { not-in-contact-loop } }
   }
 
 \endinput

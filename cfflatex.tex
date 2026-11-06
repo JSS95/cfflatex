@@ -290,6 +290,27 @@ The package has one option, |check|, which is |true| by default
   of the current affiliation.
 \end{function}
 
+\begin{function}[EXP]{\cffcontactcount, \cffcontact}
+  \begin{syntax}
+    \cs{cffcontactcount}
+    \cs{cffcontact} \marg{index} \marg{field}
+  \end{syntax}
+  Expand to the number of contacts of the citation, which is 0 if it has none,
+  and to the \meta{field} of the \meta{index}-th contact, counting from~1. As
+  for \cs{cffauthor}, \meta{field} is a key of the contact entry, such as
+  \texttt{email}, and a field that the contact does not have expands to nothing.
+\end{function}
+
+\begin{function}{\cffforeachcontact, \cffcontactindex}
+  \begin{syntax}
+    \cs{cffforeachcontact} \marg{code}
+    \cs{cffcontactindex}
+  \end{syntax}
+  \cs{cffforeachcontact} runs \meta{code} once for each contact of the citation,
+  in order, and \cs{cffcontactindex} expands to the index of the current
+  contact, counting from~1.
+\end{function}
+
 \section{Errors and warnings}
 
 The following errors stop compilation.
@@ -314,7 +335,11 @@ The following errors are reported while expanding CFF macros.
         fewer than \meta{index} authors.
   \item[Affiliation `\textmd{\meta{k}}' is out of range.] The author or the
         citation has fewer than \meta{k} affiliations.
+  \item[Contact `\textmd{\meta{index}}' is out of range.] The citation has fewer
+        than \meta{index} contacts.
   \item[Not inside \cs{cffforeachauthor}.] \cs{cffauthorindex} is used outside
+        the loop.
+  \item[Not inside \cs{cffforeachcontact}.] \cs{cffcontactindex} is used outside
         the loop.
   \item[Not inside an affiliation loop.] \cs{cffaffiliationindex} is used
         outside the loops over affiliations.

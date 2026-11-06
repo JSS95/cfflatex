@@ -22,5 +22,8 @@ First release.
 - `\cffaffiliationcount` and `\cffaffiliation` parse all distinct affiliations of all authors in the order they first appear.
 - `\cffforeachauthoraffiliation{index}{code}` runs `code` for each affiliation of an author, with `\cffauthoraffiliationindex` expanding to its index among those of the author.
 - `\cffforeachaffiliation{code}` for each distinct affiliation, with `\cffaffiliationindex` expanding to its number.
+- `\cffcontactcount` and `\cffcontact{index}{field}` read the contacts of the
+  citation, and `\cffforeachcontact{code}` runs `code` for each of them, with
+  `\cffcontactindex` expanding to the index of the current contact.
 - The `check` package option, on by default, warns after `\maketitle` unless
   `\title` uses `\cfftitle` and `\author` uses every author of the citation.

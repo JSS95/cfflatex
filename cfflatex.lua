@@ -163,6 +163,27 @@ local function read(filename, source)
   end
   output[#output + 1] = store("affiliation-count", affiliation_count)
 
+  -- The contacts are optional; like the authors, each is a person or an entity.
+  local contacts = selected.contact
+  local contact_count = 0
+  if contacts ~= nil then
+    if kind(contacts) ~= "seq" or #contacts == 0 then
+      error("'" .. prefix .. "contact' must be a nonempty sequence", 0)
+    end
+    for index, contact in ipairs(contacts) do
+      if kind(contact) ~= "map" then
+        error("'" .. prefix .. "contact/" .. index .. "' must be a mapping", 0)
+      end
+      for key, value in pairs(contact) do
+        if type(key) == "string" and is_scalar(value) then
+          output[#output + 1] = store("contact/" .. index .. "/" .. tex_text(key), value)
+        end
+      end
+    end
+    contact_count = #contacts
+  end
+  output[#output + 1] = store("contact-count", contact_count)
+
   output[#output + 1] = "\\csname __cfflatex_finish:n\\endcsname{"
     .. #authors .. "}"
   return table.concat(output, "\n")
