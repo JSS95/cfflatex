@@ -74,9 +74,7 @@ This manuscript itself is an example of using \pkg{cfflatex}. Its |CITATION.cff|
 is
 \VerbatimInput{CITATION.cff}
 
-This CFF file describes the software itself at its top level, which
-\cs{includecff} reads by default. The \LaTeX{} manuscript then imports and
-accesses the metadata by
+The \LaTeX{} manuscript then imports and accesses the metadata by
 \begin{Verbatim}
 \documentclass{l3doc}
 \usepackage{cfflatex}
@@ -94,18 +92,12 @@ accesses the metadata by
 
 \subsection{Specifying the source level}
 
-By default, \cs{includecff} reads the top level of the CFF file, which describes
-the software itself. The |source| option selects another citation instead:
-|source=|\meta{key} reads the mapping under the top-level \meta{key}. The
-manuscript of a paper about the software, for example, reads the
-\texttt{preferred-citation} section of the CFF file, which describes the paper:
-\begin{Verbatim}
-\includecff[source=preferred-citation]{CITATION.cff}
-\end{Verbatim}
-Any other top-level key is read in the same way, provided that its value is a
-mapping with a \texttt{title} and \texttt{authors}. Note that CFF~1.2.0 defines
-\texttt{preferred-citation} as the only such key and allows no others, so a file
-with another key fails CFF validation.
+By default, \cs{includecff} reads the top level of the CFF file. The
+|source=|\meta{key} option selects another citation under the top-level
+\meta{key}, such as \texttt{preferred-citation}. Any other top-level key is read
+in the same way. Note that CFF~1.2.0 defines \texttt{preferred-citation} as the
+only such key and allows no others, so a file with another key fails CFF
+validation.
 
 \subsection{Text in the metadata}
 
@@ -113,7 +105,7 @@ Values are inserted as text. The \TeX{} special characters
 \verb+\ { } % # $ & _ ~ ^+ are printed as themselves, so \LaTeX{} markup in the
 CFF file is not interpreted. Line breaks inside a value become spaces, so the
 paragraphs of a multi-paragraph abstract run together, and spaces at either end
-are dropped. Non-ASCII characters are kept; with pdf\LaTeX{}, use a font
+are dropped. Non-ASCII characters are kept. With pdf\LaTeX{}, use a font
 encoding that has them, such as \texttt{T1}.
 
 \subsection{Recording the CFF file}
@@ -184,7 +176,8 @@ The following errors stop compilation.
         run pdf\LaTeX{} with |--shell-escape|.
   \item[Cannot read CFF file: \meta{reason}.] The file cannot be used. For
         example, it has no top-level key given by \texttt{source}, or that key
-        does not hold a mapping, or the selected citation has incorrect structure.
+        does not hold a mapping, or the selected citation has incorrect
+        structure.
   \item[Install cfflatex.lua alongside cfflatex.sty.] \pkg{cfflatex} is
         incompletely installed.
 \end{description}
