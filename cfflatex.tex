@@ -14,7 +14,7 @@
 % The manual is its own example: its title, abstract, and author come from the
 % CITATION.cff file of this package.
 \includecff{CITATION.cff}
-\title{\cfftitle}
+\title{\cff{title}}
 % The authors, with authblk: marks for their affiliations, which authblk lists
 % below them, and email footnotes for the contacts of the citation.
 \cffsetauthors[style=authblk]
@@ -33,7 +33,7 @@
 \maketitle
 
 \begin{abstract}
-  \cffabstract
+  \cff{abstract}
 \end{abstract}
 
 \tableofcontents
@@ -84,13 +84,13 @@ The \LaTeX{} manuscript then imports and accesses the metadata by
 \documentclass{l3doc}
 \usepackage{cfflatex}
 \includecff{CITATION.cff}
-\title{\cfftitle}
+\title{\cff{title}}
 \author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
 
 \begin{document}
 \maketitle
 \begin{abstract}
-  \cffabstract
+  \cff{abstract}
 \end{abstract}
 \end{document}
 \end{Verbatim}
@@ -156,7 +156,7 @@ the affiliations below the authors, the title page of this manual is made by
 \begin{Verbatim}
 \usepackage{authblk}
 \includecff{CITATION.cff}
-\title{\cfftitle}
+\title{\cff{title}}
 \cffsetauthors[style=authblk]
 \hypersetup{pdfauthor={\cffauthornames}}
 \end{Verbatim}
@@ -185,9 +185,9 @@ when the CFF file changes.
 \label{sec:check}
 
 By default, \pkg{cfflatex} checks that \cs{maketitle} typesets the metadata of
-the citation. The \cs{title} command should use \cs{cfftitle}, and the
-\cs{author} command should use \cs{cffauthor} for every author of the citation.
-\cs{cff} with the paths of these values counts as well. The check cannot see
+the citation. The \cs{title} command should use |\cff{title}|, and the
+\cs{author} command should use \cs{cffauthor}, or \cs{cff} with a path such as
+|authors/1/family-names|, for every author of the citation. The check cannot see
 metadata that is expanded before \cs{maketitle}, such as an author list built
 with \cs{xdef} in the preamble, and it needs a class that keeps the title and
 the authors in \cs{@title} and \cs{@author}, as the standard classes do. In such
@@ -227,24 +227,9 @@ The package has one option, |check|, which is |true| by default
   from~1, that lead to the value, separated by slashes, such as
   |authors/1/family-names|. A missing path gives nothing for \cs{cff} and 0 for
   \cs{cffcount}. A list or a mapping for \cs{cff}, and a value or a mapping for
-  \cs{cffcount}, is an error. |\cff{title}| is \cs{cfftitle}, and
-  |\cff{authors/|\meta{index}|/|\meta{field}|}| is
+  \cs{cffcount}, is an error. |\cff{authors/|\meta{index}|/|\meta{field}|}| is
   \cs{cffauthor}\marg{index}\marg{field} without the check of the index.
   Section~\ref{sec:any-field} shows examples.
-\end{function}
-
-\begin{function}[EXP]{\cfftitle}
-  \begin{syntax}
-    \cs{cfftitle}
-  \end{syntax}
-  Expands to the \texttt{title} of the citation.
-\end{function}
-
-\begin{function}[EXP]{\cffabstract}
-  \begin{syntax}
-    \cs{cffabstract}
-  \end{syntax}
-  Expands to the \texttt{abstract} of the citation.
 \end{function}
 
 \begin{function}{\cffsetauthors, \cffauthornames}
@@ -277,7 +262,7 @@ The package has one option, |check|, which is |true| by default
     \item[\texttt{note=}\textmd{\marg{index}\marg{text}}] adds a footnote with
           \meta{text} to the \meta{index}-th author, such as a current
           affiliation. \meta{index} is an integer expression, such as
-          |\cffauthorcount| for the last author. The key can be given several
+          |\cffcount{authors}| for the last author. The key can be given several
           times. The footnotes follow those of the contacts, in order.
     \item[\texttt{author=}\textmd{\meta{template}}] declares an author, with the
           marks |#1| and the name |#2|.
@@ -287,16 +272,15 @@ The package has one option, |check|, which is |true| by default
   \end{description}
 \end{function}
 
-\begin{function}[EXP]{\cffauthorcount, \cffauthor}
+\begin{function}[EXP]{\cffauthor}
   \begin{syntax}
-    \cs{cffauthorcount}
     \cs{cffauthor} \marg{index} \marg{field}
   \end{syntax}
-  Expand to the number of authors of the citation, and to the \meta{field} of
-  the \meta{index}-th author, counting from~1. \meta{field} is a key of the
+  Expands to the \meta{field} of the \meta{index}-th author, counting from~1,
+  and reports an error if there is no such author. \meta{field} is a key of the
   author entry in the CFF file, such as \texttt{given-names} or
   \texttt{family-names}. A field that the author does not have expands to
-  nothing.
+  nothing. |\cffcount{authors}| is the number of authors.
 \end{function}
 
 \begin{function}{\cffforeachauthor, \cffauthorindex}
@@ -355,15 +339,14 @@ The package has one option, |check|, which is |true| by default
   of the current affiliation.
 \end{function}
 
-\begin{function}[EXP]{\cffcontactcount, \cffcontact}
+\begin{function}[EXP]{\cffcontact}
   \begin{syntax}
-    \cs{cffcontactcount}
     \cs{cffcontact} \marg{index} \marg{field}
   \end{syntax}
-  Expand to the number of contacts of the citation, which is 0 if it has none,
-  and to the \meta{field} of the \meta{index}-th contact, counting from~1. As
-  for \cs{cffauthor}, \meta{field} is a key of the contact entry, such as
+  Expands to the \meta{field} of the \meta{index}-th contact, counting from~1.
+  As for \cs{cffauthor}, \meta{field} is a key of the contact entry, such as
   \texttt{email}, and a field that the contact does not have expands to nothing.
+  |\cffcount{contact}| is the number of contacts, which is 0 if there are none.
 \end{function}
 
 \begin{function}{\cffforeachcontact, \cffcontactindex}
@@ -422,8 +405,8 @@ Section~\ref{sec:reference}.
 The following warnings are issued after \cs{maketitle} by the check of
 Section~\ref{sec:check}.
 \begin{description}
-  \item[\cs{title} does not use \cs{cfftitle}.] The title page does not show the
-        title of the citation.
+  \item[\cs{title} does not use the title of the citation.] The title page does
+        not show the title of the citation.
   \item[\cs{author} does not use author(s) \textmd{\meta{indices}} of the citation.] The
         title page does not show these authors.
 \end{description}

@@ -1,4 +1,4 @@
-% \includecff, \cfftitle, and \cffauthor read the selected citation.
+% \includecff, \cff{title}, and \cffauthor read the selected citation.
 % \OMIT ... \TIMO hides lt3luabridge's engine-specific log lines.
 \input{regression-test}
 \documentclass{article}
@@ -10,19 +10,19 @@
   \OMIT
   \includecff{paper.cff}
   \TIMO
-  \TYPE{\cfftitle}
+  \TYPE{\cff{title}}
 }
 \TEST{source=preferred-citation}{
   \OMIT
   \includecff[source=preferred-citation]{paper.cff}
   \TIMO
-  \TYPE{\cfftitle}
+  \TYPE{\cff{title}}
 }
 \TEST{top-level fields}{
   \OMIT
   \includecff{paper.cff}
   \TIMO
-  \TYPE{\cfftitle}
+  \TYPE{\cff{title}}
   \TYPE{\cffauthor{1}{given-names} | \cffauthor{1}{family-names}}
   \TYPE{\cffauthor{1}{orcid}}
 }
@@ -30,7 +30,7 @@
   \OMIT
   \includecff{root-only.cff}
   \TIMO
-  \TYPE{\cfftitle}
+  \TYPE{\cff{title}}
 }
 \TEST{absent author fields are empty}{
   \OMIT
@@ -44,92 +44,92 @@
   \OMIT
   \includecff{paper.cff}
   \TIMO
-  \TYPE{\cfftitle: [\cffauthor{1}{orcid}]}
+  \TYPE{\cff{title}: [\cffauthor{1}{orcid}]}
   \OMIT
   \includecff[source=preferred-citation]{paper.cff}
   \TIMO
-  \TYPE{\cfftitle: [\cffauthor{1}{orcid}]}
+  \TYPE{\cff{title}: [\cffauthor{1}{orcid}]}
 }
 \TEST{file in a subdirectory with a space}{
   \OMIT
   \includecff{data/citation file.cff}
   \TIMO
-  \TYPE{\cfftitle}
+  \TYPE{\cff{title}}
 }
 \TEST{TeX special characters are escaped}{
   \OMIT
   \includecff{special.cff}
   \TIMO
-  \TYPE{\cfftitle}
+  \TYPE{\cff{title}}
   \TYPE{\cffauthor{1}{name}}
 }
 \TEST{line breaks in values become spaces}{
   \OMIT
   \includecff{multiline.cff}
   \TIMO
-  \TYPE{\cfftitle}
+  \TYPE{\cff{title}}
 }
 \TEST{abstract of the selected citation}{
   \OMIT
   \includecff[source=preferred-citation]{paper.cff}
   \TIMO
-  \TYPE{\cffabstract}
+  \TYPE{\cff{abstract}}
   \OMIT
   \includecff{paper.cff}
   \TIMO
-  \TYPE{\cffabstract}
+  \TYPE{\cff{abstract}}
 }
 \TEST{absent abstract is empty}{
   \OMIT
   \includecff{mixed-authors.cff}
   \TIMO
-  \TYPE{[\cffabstract]}
+  \TYPE{[\cff{abstract}]}
 }
 \TEST{abstract is cleared by the next include}{
   \OMIT
   \includecff{paper.cff}
   \TIMO
-  \TYPE{[\cffabstract]}
+  \TYPE{[\cff{abstract}]}
   \OMIT
   \includecff{mixed-authors.cff}
   \TIMO
-  \TYPE{[\cffabstract]}
+  \TYPE{[\cff{abstract}]}
 }
 \TEST{line breaks in a literal-block abstract become spaces}{
   \OMIT
   \includecff{multiline.cff}
   \TIMO
-  \TYPE{[\cffabstract]}
+  \TYPE{[\cff{abstract}]}
 }
 \TEST{source selects any top-level key}{
   \OMIT
   \includecff[source=x-thesis]{custom-key.cff}
   \TIMO
-  \TYPE{\cfftitle}
+  \TYPE{\cff{title}}
   \TYPE{\cffauthor{1}{given-names} | \cffauthor{1}{family-names}}
-  \TYPE{\cffabstract}
+  \TYPE{\cff{abstract}}
 }
 \TEST{author count of the selected citation}{
   \OMIT
   \includecff[source=preferred-citation]{paper.cff}
   \TIMO
-  \TYPE{\cffauthorcount}
+  \TYPE{\cffcount{authors}}
   \OMIT
   \includecff{paper.cff}
   \TIMO
-  \TYPE{\cffauthorcount}
+  \TYPE{\cffcount{authors}}
   \OMIT
   \includecff[source=preferred-citation]{mixed-authors.cff}
   \TIMO
-  \TYPE{\cffauthorcount}
+  \TYPE{\cffcount{authors}}
 }
 \TEST{author count in integer expressions}{
   \OMIT
   \includecff[source=preferred-citation]{mixed-authors.cff}
   \TIMO
-  \TYPE{\the\numexpr \cffauthorcount + 1\relax}
-  \TYPE{\ifnum \cffauthorcount > 1 several authors\else one author\fi}
-  \TYPE{last: \cffauthor{\cffauthorcount}{given-names}}
+  \TYPE{\the\numexpr \cffcount{authors} + 1\relax}
+  \TYPE{\ifnum \cffcount{authors} > 1 several authors\else one author\fi}
+  \TYPE{last: \cffauthor{\cffcount{authors}}{given-names}}
 }
 \TEST{foreach author runs in order}{
   \OMIT
@@ -267,7 +267,7 @@
   \OMIT
   \includecff{contacts.cff}
   \TIMO
-  \TYPE{\cffcontactcount}
+  \TYPE{\cffcount{contact}}
   \TYPE{\cffcontact{1}{given-names} | \cffcontact{1}{family-names}
     | \cffcontact{1}{email}}
   \TYPE{\cffcontact{2}{name} | \cffcontact{2}{email}
@@ -277,11 +277,11 @@
   \OMIT
   \includecff[source=preferred-citation]{contacts.cff}
   \TIMO
-  \TYPE{\cffcontactcount: \cffcontact{1}{family-names} \cffcontact{1}{email}}
+  \TYPE{\cffcount{contact}: \cffcontact{1}{family-names} \cffcontact{1}{email}}
   \OMIT
   \includecff{paper.cff}
   \TIMO
-  \TYPE{\cffcontactcount}
+  \TYPE{\cffcount{contact}}
   \gdef\x{}
   \cffforeachcontact{\xdef\x{\x never}}
   \TYPE{[\x]}

@@ -5,16 +5,12 @@
 \usepackage{cfflatex}
 \begin{document}
 \START
-\TEST{\cfftitle before \includecff}{\TYPE{[\cfftitle]}}
-\TEST{\cffabstract before \includecff}{\TYPE{[\cffabstract]}}
 \TEST{\cffauthor before \includecff}{\TYPE{[\cffauthor{1}{given-names}]}}
-\TEST{\cffauthorcount before \includecff}{\TYPE{[\cffauthorcount]}}
 \TEST{\cffforeachauthor before \includecff}{\cffforeachauthor{\TYPE{never}}}
 \TEST{\cffaffiliationcount before \includecff}{\TYPE{[\cffaffiliationcount]}}
 \TEST{\cffforeachaffiliation before \includecff}{\cffforeachaffiliation{\TYPE{never}}}
 \TEST{\cffconvertaffiliationindex before \includecff}
   {\TYPE{[\cffconvertaffiliationindex{1}{1}]}}
-\TEST{\cffcontactcount before \includecff}{\TYPE{[\cffcontactcount]}}
 \TEST{\cffcontact before \includecff}{\TYPE{[\cffcontact{1}{name}]}}
 \TEST{\cffforeachcontact before \includecff}{\cffforeachcontact{\TYPE{never}}}
 \TEST{\cff before \includecff}{\TYPE{[\cff{title}]}}

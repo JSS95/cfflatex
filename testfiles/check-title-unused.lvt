@@ -1,4 +1,4 @@
-% The check warns when \title does not use \cfftitle.
+% The check warns when \title does not use \cff{title}.
 \input{regression-test}
 \documentclass{article}
 \usepackage[T1]{fontenc}

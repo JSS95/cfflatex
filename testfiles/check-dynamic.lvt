@@ -5,8 +5,8 @@
 \usepackage{cfflatex}
 \usepackage{pgffor}
 \includecff[source=preferred-citation]{paper.cff}
-\title{\MakeUppercase{\cfftitle}}
-\author{\foreach \i in {1,...,\cffauthorcount}{\cffauthor{\i}{family-names}, }}
+\title{\MakeUppercase{\cff{title}}}
+\author{\foreach \i in {1,...,\cffcount{authors}}{\cffauthor{\i}{family-names}, }}
 \date{}
 
 \begin{document}

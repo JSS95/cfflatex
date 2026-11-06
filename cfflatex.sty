@@ -7,7 +7,7 @@
   {Import Citation File Format metadata into LaTeX}
 \RequirePackage{lt3luabridge}
 
-% check (default true): after \maketitle, warn unless \title used \cfftitle and
+% check (default true): after \maketitle, warn unless \title used the title and
 % \author used every author of the citation. See "Checking the title page".
 \bool_new:N \g__cfflatex_check_bool
 \keys_define:nn { cfflatex }
@@ -39,7 +39,7 @@
   { Not~in~an~author~affiliation~loop. }
 \msg_new:nnn { cfflatex } { title-unused }
   {
-    \iow_char:N\\title~does~not~use~\iow_char:N\\cfftitle.~
+    \iow_char:N\\title~does~not~use~the~title~of~the~citation.~
     Load~cfflatex~with~check=false~to~skip~this~check.
   }
 \msg_new:nnn { cfflatex } { authors-unused }
@@ -80,7 +80,7 @@
 \ior_new:N \g__cfflatex_dependency_ior
 % For the check: whether \maketitle is running, the part of the title page
 % being typeset (1: \title, 2: \author, 0: neither), the uses recorded as
-% "<part>/<use>" (use 0: \cfftitle, <i>: author <i>), and missing authors.
+% "<part>/<use>" (use 0: the title, <i>: author <i>), and missing authors.
 \bool_new:N \g__cfflatex_recording_bool
 \tl_new:N \g__cfflatex_part_tl
 \prop_new:N \g__cfflatex_used_prop
@@ -173,7 +173,7 @@
 
 % Checking the title page ----------------------------------------------------
 %
-% While \maketitle runs, \cfftitle and \cffauthor leave a record marker before
+% While \maketitle runs, \cff{title} and \cffauthor leave a record marker before
 % their values, and markers around the contents of \@title and \@author tell
 % which part of the title page is being typeset. The markers record when they
 % are executed, which is when the title page is typeset; this sees uses in
@@ -182,7 +182,7 @@
 % keep them intact, and their names contain no "_" or ":", so they stay
 % readable if a class writes the title page to a file.
 
-% <use> is 0 for \cfftitle and <i> for author <i>.
+% <use> is 0 for \cff{title} and <i> for author <i>.
 \cs_new_protected:cpn { cfflatex@mark } #1
   {
     \bool_if:NT \g__cfflatex_recording_bool
@@ -265,26 +265,6 @@
       { \msg_expandable_error:nn { cfflatex } { not-loaded } }
   }
 
-% \cfftitle expands to the title of the loaded citation.
-\NewExpandableDocumentCommand \cfftitle {}
-  {
-    \__cfflatex_mark:n { 0 }
-    \__cfflatex_value:n { title }
-  }
-
-% \cffabstract expands to the abstract of the loaded citation, or to nothing if
-% it has none.
-\NewExpandableDocumentCommand \cffabstract {} {\__cfflatex_value:n { abstract }}
-
-% \cffauthorcount expands to the number of authors of the loaded citation, so
-% that it can be typeset or used in integer expressions.
-\NewExpandableDocumentCommand \cffauthorcount {}
-  {
-    \bool_if:NTF \g__cfflatex_loaded_bool
-      { \int_use:N \g__cfflatex_author_count_int }
-      { \msg_expandable_error:nn { cfflatex } { not-loaded } }
-  }
-
 % Expands to #2 if a CFF file is loaded and #1 is the index of an author, and
 % reports an error otherwise.
 \cs_new:Npn \__cfflatex_if_author:nT #1#2
@@ -319,7 +299,8 @@
 % missing path expands to nothing, and a mapping or a sequence is an error.
 % \cffcount{<path>} expands to the length of the sequence at <path>, 0 if it
 % is missing; a value or a mapping is an error. \cff{title} and
-% \cff{authors/<i>/<field>} count for the check as \cfftitle and \cffauthor.
+% \cff{authors/<i>/<field>} count for the check as uses of the title and of
+% author <i>, like \cffauthor.
 % The path is expanded first, so that it may contain \cffauthorindex.
 \NewExpandableDocumentCommand \cff {m} {\exp_args:Ne \__cfflatex_cff:n {#1}}
 \NewExpandableDocumentCommand \cffcount {m}
@@ -459,11 +440,6 @@
 %
 % The contacts of the citation are optional; like the authors, each is a person
 % or an entity.
-
-% \cffcontactcount expands to the number of contacts of the citation, which is
-% 0 if it has none.
-\NewExpandableDocumentCommand \cffcontactcount {}
-  {\__cfflatex_value:n { contact-count }}
 
 % \cffcontact{<index>}{<field>} expands to a field of the <index>-th contact,
 % counting from 1. An absent field expands to nothing.

@@ -41,7 +41,7 @@
 \TEST{notes}{
   \gdef\x{}
   \cffsetauthors[
-    note = {\cffauthorcount}{Current affiliation: Univ C},
+    note = {\cffcount{authors}}{Current affiliation: Univ C},
     note = {1}{Equal contribution},
     note = {2}{Equal contribution},
     author = {\g@addto@macro\x{[#1]}},
@@ -54,7 +54,7 @@
   \TYPE{\detokenize\expandafter{\x}}
 }
 \TEST{title page}{
-  \title{\cfftitle}
+  \title{\cff{title}}
   \cffsetauthors[note = {1}{Current affiliation: Univ C}]
   \maketitle
 }

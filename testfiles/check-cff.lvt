@@ -1,5 +1,5 @@
-% \cff{title} and \cff{authors/<i>/<field>} count for the check as
-% \cfftitle and \cffauthor.
+% \cff{title} and \cff{authors/<i>/<field>} count for the check, like
+% \cffauthor.
 \input{regression-test}
 \documentclass{article}
 \usepackage[T1]{fontenc}

@@ -144,14 +144,9 @@ local function read(filename, source)
   if not is_scalar(selected.title) then
     error("'" .. prefix .. "title' must be a string", 0)
   end
-  output[#output + 1] = store("title", selected.title)
-
-  -- The abstract is optional; when absent, \cffabstract expands to nothing.
-  if selected.abstract ~= nil then
-    if not is_scalar(selected.abstract) then
-      error("'" .. prefix .. "abstract' must be a string", 0)
-    end
-    output[#output + 1] = store("abstract", selected.abstract)
+  -- The abstract is optional.
+  if selected.abstract ~= nil and not is_scalar(selected.abstract) then
+    error("'" .. prefix .. "abstract' must be a string", 0)
   end
 
   local authors = selected.authors
