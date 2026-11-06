@@ -6,6 +6,7 @@
 \ProvidesExplPackage{cfflatex}{2026-11-06}{0.1.0}
   {Import Citation File Format metadata into LaTeX}
 \RequirePackage{lt3luabridge}
+\tl_const:Ne \c__cfflatex_package_path_tl { \@currpath }
 
 % check (default true): after \maketitle, warn unless \title used the title and
 % \author used every author of the citation. See "Checking the title page".
@@ -47,8 +48,15 @@
     \iow_char:N\\author~does~not~use~author(s)~#1~of~the~citation.~
     Load~cfflatex~with~check=false~to~skip~this~check.
   }
-\msg_new:nnn { cfflatex } { authblk-missing }
-  { style=authblk~needs~the~authblk~package. }
+\msg_new:nnn { cfflatex } { style-package-missing }
+  { style=#1~needs~the~#2~package. }
+\msg_new:nnn { cfflatex } { style-name } { Invalid~author~style~name~'#1'. }
+\msg_new:nnn { cfflatex } { style-duplicate }
+  { Author~style~'#1'~is~already~registered. }
+\msg_new:nnn { cfflatex } { style-missing }
+  { Author~style~'#1'~is~not~registered;~cannot~find~cfflatex-style-#1.def. }
+\msg_new:nnn { cfflatex } { style-not-registered }
+  { Author~style~'#1'~was~not~registered~by~its~file. }
 \msg_new:nnn { cfflatex } { shell-escape }
   {
     pdfLaTeX~requires~unrestricted~shell~escape~to~read~CFF~files.~
@@ -638,44 +646,101 @@
 \cs_new:Npn \__cfflatex_affiliation_mark:n #1 {}
 \cs_new_protected:Npn \__cfflatex_put_author:nn #1#2 {}
 \cs_new_protected:Npn \__cfflatex_put_affiliation:nn #1#2 {}
-% Styles produce declarations before applying them. Normal compilation runs
-% each declaration immediately; the exporter collects the same token lists.
+% Styles perform their own preparation, then send declarations through this
+% function. The exporter replaces only this output operation.
 \cs_new_protected:Npn \__cfflatex_emit:n #1 {#1}
-\cs_new_protected:Npn \__cfflatex_emit_author:nn #1#2
-  { \exp_args:No \__cfflatex_emit:n { \__cfflatex_put_author:nn {#1} {#2} } }
-\cs_generate_variant:Nn \__cfflatex_emit_author:nn { VV }
-\cs_new_protected:Npn \__cfflatex_emit_affiliation:nn #1#2
-  {
-    \exp_args:No \__cfflatex_emit:n { \__cfflatex_put_affiliation:nn {#1} {#2} }
-  }
+\NewDocumentCommand \cffemit {+m} {\__cfflatex_emit:n {#1}}
 \tl_new:N \l__cfflatex_separator_tl
 \bool_new:N \l__cfflatex_affiliations_bool
 \bool_new:N \l__cfflatex_contacts_bool
-\bool_new:N \l__cfflatex_standard_bool
-\bool_new:N \l__cfflatex_authblk_bool
+\bool_new:N \l__cfflatex_style_valid_bool
+\bool_new:N \g__cfflatex_export_bool
+\prop_new:N \g__cfflatex_author_styles_prop
+\tl_new:N \l__cfflatex_style_tl
+\tl_new:N \l__cfflatex_style_keys_tl
+\tl_new:N \l__cfflatex_style_file_tl
+\tl_new:N \l__cfflatex_author_options_tl
+\clist_new:N \l__cfflatex_style_requires_clist
+\tl_new:N \l__cfflatex_style_validate_tl
+\tl_new:N \l__cfflatex_style_begin_tl
+\tl_new:N \l__cfflatex_style_end_tl
+\tl_new:N \l__cfflatex_style_render_tl
+\int_new:N \l__cfflatex_style_match_int
+\regex_const:Nn \c__cfflatex_style_regex { \A [A-Za-z0-9] [-A-Za-z0-9_]* \Z }
+\cs_new_protected:Npn \__cfflatex_prepare_author:n #1 {}
+
+% Literal names are also used in filenames: do not accept paths or macros.
+\prg_new_protected_conditional:Npnn \__cfflatex_if_style_name:n #1 { TF }
+  {
+    \regex_count:NnN \c__cfflatex_style_regex {#1} \l__cfflatex_style_match_int
+    \int_compare:nNnTF { \l__cfflatex_style_match_int } = { 1 }
+      { \prg_return_true: }
+      { \prg_return_false: }
+  }
+\NewDocumentCommand \cffdeclareauthorstyle {m +m}
+  {
+    \__cfflatex_if_style_name:nTF {#1}
+      {
+        \prop_if_in:NnTF \g__cfflatex_author_styles_prop {#1}
+          { \msg_error:nnn { cfflatex } { style-duplicate } {#1} }
+          { \prop_gput:Nnn \g__cfflatex_author_styles_prop {#1} {#2} }
+      }
+      { \msg_error:nnn { cfflatex } { style-name } {#1} }
+  }
+% Read definition files with normal document catcodes, restoring the caller's
+% expl3 syntax afterwards. Plugins may turn expl3 syntax on for their helpers.
+\cs_new_protected:Npn \__cfflatex_input_style:n #1
+  {
+    \exp_args:Ne \__cfflatex_input_style:nn { \char_value_catcode:n { 58 } }
+      {#1}
+  }
+\cs_new_protected:Npn \__cfflatex_input_style:nn #1#2
+  {
+    \ExplSyntaxOff
+    \file_input:n {#2}
+    \int_compare:nNnTF {#1} = { 11 }
+      { \ExplSyntaxOn } { \ExplSyntaxOff }
+  }
+\cs_new_protected:Npn \__cfflatex_load_style:n #1
+  {
+    \__cfflatex_if_style_name:nTF {#1}
+      {
+        \prop_if_in:NnF \g__cfflatex_author_styles_prop {#1}
+          {
+            \file_get_full_name:nNF
+              { \c__cfflatex_package_path_tl cfflatex-style-#1.def }
+            \l__cfflatex_style_file_tl
+              {
+                \file_get_full_name:nNF { cfflatex-style-#1.def }
+                \l__cfflatex_style_file_tl
+                  { \tl_clear:N \l__cfflatex_style_file_tl }
+              }
+            \tl_if_empty:NTF \l__cfflatex_style_file_tl
+              { \msg_error:nnn { cfflatex } { style-missing } {#1} }
+              {
+                \exp_args:NV \__cfflatex_input_style:n
+                \l__cfflatex_style_file_tl
+                \prop_if_in:NnF \g__cfflatex_author_styles_prop {#1}
+                  { \msg_error:nnn { cfflatex } { style-not-registered } {#1} }
+              }
+          }
+      }
+      { \msg_error:nnn { cfflatex } { style-name } {#1} }
+  }
+\keys_define:nn { cfflatex / author-style }
+  {
+    style .tl_set:N = \l__cfflatex_style_tl,
+    style .value_required:n = true,
+  }
 \keys_define:nn { cfflatex / authors }
   {
-    style .choice:,
-    style / standard .code:n =
-      {
-        \bool_set_true:N \l__cfflatex_standard_bool
-        \bool_set_false:N \l__cfflatex_authblk_bool
-        \keys_set:nn { cfflatex / authors }
-          {
-            author = { \__cfflatex_standard_author:nn {##1} {##2} },
-            affiliation = {},
-          }
-      },
-    style / authblk .code:n =
-      {
-        \bool_set_false:N \l__cfflatex_standard_bool
-        \bool_set_true:N \l__cfflatex_authblk_bool
-        \keys_set:nn { cfflatex / authors }
-          {
-            author = { \author [{##1}] {##2} },
-            affiliation = { \affil [##1] {##2} },
-          }
-      },
+    requires .clist_set:N = \l__cfflatex_style_requires_clist,
+    validate .tl_set:N = \l__cfflatex_style_validate_tl,
+    begin .tl_set:N = \l__cfflatex_style_begin_tl,
+    end .tl_set:N = \l__cfflatex_style_end_tl,
+    render .tl_set:N = \l__cfflatex_style_render_tl,
+    prepare-author .code:n =
+      { \cs_set_protected:Npn \__cfflatex_prepare_author:n ##1 {#1} },
     name .code:n = { \cs_set:Npn \__cfflatex_name:n ##1 {#1} },
     note .code:n = { \__cfflatex_add_note:nn #1 },
     contact .code:n =
@@ -700,21 +765,30 @@
     affiliation-mark / Roman .code:n =
       { \cs_set_eq:NN \__cfflatex_affiliation_mark:n \int_to_Roman:n },
     author .code:n =
+      {
+        \cs_set_protected:Npn \__cfflatex_put_author:nn ##1##2
+          { \cffemit {#1} }
+      },
+    author-code .code:n =
       { \cs_set_protected:Npn \__cfflatex_put_author:nn ##1##2 {#1} },
     affiliation .code:n =
       {
-        \tl_if_blank:nTF {#1}
+        \keys_set:nn { cfflatex / authors }
+          { affiliation-code = { \cffemit {#1} } }
+        \tl_if_blank:nT {#1}
           { \bool_set_false:N \l__cfflatex_affiliations_bool }
-          {
-            \bool_set_true:N \l__cfflatex_affiliations_bool
-            \cs_set_protected:Npn \__cfflatex_put_affiliation:nn ##1##2 {#1}
-          }
+      },
+    affiliation-code .code:n =
+      {
+        \bool_set:Nn \l__cfflatex_affiliations_bool { ! \tl_if_blank_p:n {#1} }
+        \cs_set_protected:Npn \__cfflatex_put_affiliation:nn ##1##2 {#1}
       },
   }
-% The defaults, set by each \cffsetauthors before its keys.
+% Reset every setting before applying a style and the user's overrides.
 \tl_const:Nn \c__cfflatex_author_defaults_tl
   {
-    style = standard,
+    requires = {}, validate = {}, begin = {}, end = {}, render = {},
+    prepare-author = {}, author = {}, affiliation = {},
     name = { #1 { given-names } \nobreakspace #1 { family-names } },
     contact = { E-mail:~#1 { email } },
     separator = { , },
@@ -730,20 +804,6 @@
     \@thefnmark
     \protected@xdef \@thanks
       {\@thanks \protect \footnotetext [\int_use:N \c@footnote] {#1}}
-  }
-
-% The style=standard author template collects the authors in one \author.
-\tl_new:N \l__cfflatex_standard_authors_tl
-\cs_new_protected:Npn \__cfflatex_standard_author:nn #1#2
-  {
-    \tl_if_empty:NF \l__cfflatex_standard_authors_tl
-      { \tl_put_right:Nn \l__cfflatex_standard_authors_tl { \and } }
-    \tl_put_right:Nn \l__cfflatex_standard_authors_tl {#2}
-    \tl_if_blank:nF {#1}
-      {
-        \tl_put_right:Nn \l__cfflatex_standard_authors_tl
-          { \textsuperscript {#1} }
-      }
   }
 
 % The names of the #2-th entry of the authors or the contacts #1, which
@@ -787,38 +847,87 @@
 \NewDocumentCommand \cffsetauthors {O{}}
   {
     \bool_if:NTF \g__cfflatex_loaded_bool
-      {
-        \seq_clear:N \l__cfflatex_notes_seq
-        \keys_set:nV { cfflatex / authors } \c__cfflatex_author_defaults_tl
-        \keys_set:nn { cfflatex / authors } {#1}
-        \bool_lazy_and:nnTF { \l__cfflatex_authblk_bool }
-          { ! \cs_if_exist_p:N \affil }
-          { \msg_error:nn { cfflatex } { authblk-missing } }
-          { \__cfflatex_set_authors: }
-      }
+      { \__cfflatex_setup_authors:n {#1} }
       { \msg_error:nn { cfflatex } { not-loaded } }
+  }
+\cs_new_protected:Npn \__cfflatex_setup_authors:n #1
+  {
+    \seq_clear:N \l__cfflatex_notes_seq
+    \keys_set:nV { cfflatex / authors } \c__cfflatex_author_defaults_tl
+    \tl_set:Nn \l__cfflatex_style_tl { standard }
+    % Select the style first, regardless of where style= occurs in the list.
+    \keys_set_known:nnN { cfflatex / author-style } {#1}
+    \l__cfflatex_author_options_tl
+    \exp_args:NV \__cfflatex_load_style:n \l__cfflatex_style_tl
+    \prop_get:NVNT \g__cfflatex_author_styles_prop \l__cfflatex_style_tl
+    \l__cfflatex_style_keys_tl
+      {
+        \keys_set:nV { cfflatex / authors } \l__cfflatex_style_keys_tl
+        \keys_set:nV { cfflatex / authors } \l__cfflatex_author_options_tl
+        \bool_set_true:N \l__cfflatex_style_valid_bool
+        \bool_if:NF \g__cfflatex_export_bool
+          {
+            \clist_map_inline:Nn \l__cfflatex_style_requires_clist
+              {
+                \IfPackageLoadedTF {##1} {}
+                  {
+                    \bool_set_false:N \l__cfflatex_style_valid_bool
+                    \msg_error:nnee { cfflatex } { style-package-missing }
+                      { \l__cfflatex_style_tl } {##1}
+                  }
+              }
+            \bool_if:NT \l__cfflatex_style_valid_bool
+              { \tl_use:N \l__cfflatex_style_validate_tl }
+          }
+        \bool_if:NT \l__cfflatex_style_valid_bool { \__cfflatex_set_authors: }
+      }
   }
 \cs_new_protected:Npn \__cfflatex_set_authors:
   {
-    \tl_clear:N \l__cfflatex_standard_authors_tl
+    % Name collection is independent of the renderer and declaration order.
     \seq_clear:N \l__cfflatex_names_seq
     \int_step_inline:nn { \g__cfflatex_author_count_int }
-      { \__cfflatex_set_author:n {##1} }
-    \bool_if:NT \l__cfflatex_standard_bool
       {
-        \exp_args:Ne \__cfflatex_emit:n
-          { \exp_not:N \author { \exp_not:V \l__cfflatex_standard_authors_tl } }
-      }
-    \bool_if:NT \l__cfflatex_affiliations_bool
-      {
-        \int_step_inline:nn { \__cfflatex_count:n { affiliation-count } }
-          {
-            \exp_args:Nee \__cfflatex_emit_affiliation:nn
-              { \__cfflatex_affiliation_mark:n {##1} }
-              { \exp_not:N \cffaffiliation {##1} }
-          }
+        \tl_set:No \l__cfflatex_name_tl
+          { \__cfflatex_name:n { \cffauthor {##1} } }
+        \seq_put_right:NV \l__cfflatex_names_seq \l__cfflatex_name_tl
       }
     \__cfflatex_store_author_names:
+    \tl_use:N \l__cfflatex_style_begin_tl
+    \tl_if_empty:NTF \l__cfflatex_style_render_tl
+      {
+        \cffforeachauthor {\cffrenderauthor {\cffauthorindex}}
+        \bool_if:NT \l__cfflatex_affiliations_bool
+          {
+            \cffforeachaffiliation
+              {\cffrenderaffiliation {\cffaffiliationindex}}
+          }
+      }
+      { \tl_use:N \l__cfflatex_style_render_tl }
+    \tl_use:N \l__cfflatex_style_end_tl
+  }
+% A custom renderer can reuse the configured templates in another order.
+\NewDocumentCommand \cffrenderauthor {m}
+  {
+    \__cfflatex_if_author:nT {#1}
+      { \exp_args:Ne \__cfflatex_set_author:n { \int_eval:n {#1} } }
+  }
+\NewDocumentCommand \cffrenderaffiliation {m}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \__cfflatex_if_affiliation:nnT {#1}
+          { \__cfflatex_count:n { affiliation-count } }
+          {
+            \bool_if:NT \l__cfflatex_affiliations_bool
+              {
+                \exp_args:Nee \__cfflatex_put_affiliation:nn
+                  { \__cfflatex_affiliation_mark:n {#1} }
+                  { \exp_not:N \cffaffiliation {\int_eval:n {#1}} }
+              }
+          }
+      }
+      { \msg_error:nn { cfflatex } { not-loaded } }
   }
 % Kept separate so export can preserve class-defined formatting commands
 % while resolving CFF fields, rather than expanding arbitrary class code.
@@ -870,25 +979,22 @@
       { \__cfflatex_add_note_mark:nnn {#1} ##1 }
     \tl_set:Ne \l__cfflatex_marks_tl
       { \seq_use:NV \l__cfflatex_marks_seq \l__cfflatex_separator_tl }
-    % authblk tests its optional argument with \if, expanding the first mark.
-    % An empty group keeps a leading footnote from running in the preamble.
-    \bool_if:NT \l__cfflatex_authblk_bool
-      {
-        \exp_args:NV \tl_if_head_eq_meaning:nNT \l__cfflatex_marks_tl
-        \__cfflatex_thanks:n { \tl_put_left:Nn \l__cfflatex_marks_tl { {} } }
-      }
+    \__cfflatex_prepare_author:n {#1}
     % \protect keeps \cffauthor for \maketitle, where the check sees it, when
     % the template expands the name, as the \author of authblk does.
     \tl_set:No \l__cfflatex_name_tl
       { \__cfflatex_name:n { \protect \cffauthor {#1} } }
-    \__cfflatex_emit_author:VV \l__cfflatex_marks_tl \l__cfflatex_name_tl
-    \tl_set:No \l__cfflatex_name_tl { \__cfflatex_name:n { \cffauthor {#1} } }
-    \seq_put_right:NV \l__cfflatex_names_seq \l__cfflatex_name_tl
+    \exp_args:NVV \__cfflatex_put_author:nn
+    \l__cfflatex_marks_tl \l__cfflatex_name_tl
   }
 
 % \cffauthornames expands to the names of the authors, separated by commas, as
 % the name template of \cffsetauthors makes them.
 \NewExpandableDocumentCommand \cffauthornames {}
   {\tl_use:N \g__cfflatex_author_names_tl}
+
+% Built-ins use the same registration API as external definition files.
+\__cfflatex_load_style:n { standard }
+\__cfflatex_load_style:n { authblk }
 
 \endinput

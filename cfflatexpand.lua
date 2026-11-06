@@ -759,6 +759,9 @@ function Scanner:scan(first, last)
         position = self:include(position, after)
       elseif name == "cffsetauthors" then
         position = self:set_authors(position, after)
+      elseif name == "cffdeclareauthorstyle" then
+        self:fail(position, "inline author styles are not supported; "
+          .. "put the definition in cfflatex-style-NAME.def")
       elseif self.author_render and name == "__cfflatex_thanks:n" then
         position = self:author_thanks(position, after)
       elseif self.author_render and name == "protect" then

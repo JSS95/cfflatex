@@ -14,16 +14,12 @@ local driver = [[
 \iow_new:N \g__cfflatex_export_names_iow
 \iow_open:Nn \g__cfflatex_export_declarations_iow { declarations.tex }
 \iow_open:Nn \g__cfflatex_export_names_iow { names.tex }
-% Only existence is needed: declarations are collected rather than executed.
-\cs_if_exist:NF \affil { \cs_new_eq:NN \affil \use_none:n }
+% Requirements and validation belong to the final document's class/packages.
+\bool_gset_true:N \g__cfflatex_export_bool
 \cs_set_protected:Npn \__cfflatex_emit:n #1
   {
-    \tl_if_head_eq_meaning:nNTF {#1} \__cfflatex_standard_author:nn
-      {#1}
-      {
-        \iow_now:Ne \g__cfflatex_export_declarations_iow
-          { \tl_to_str:n {#1} }
-      }
+    \iow_now:Ne \g__cfflatex_export_declarations_iow
+      { \tl_to_str:n {#1} }
   }
 \cs_set_protected:Npn \__cfflatex_store_author_names:
   {
@@ -34,6 +30,7 @@ local driver = [[
           { \tl_put_right:Nn \l_tmpa_tl { ,~ } }
         \tl_put_right:Nn \l_tmpa_tl {##2}
       }
+    \tl_gset_eq:NN \g__cfflatex_author_names_tl \l_tmpa_tl
     \iow_now:Ne \g__cfflatex_export_names_iow
       { \tl_to_str:V \l_tmpa_tl }
   }
@@ -84,7 +81,7 @@ local function remove_tree(directory)
   assert(lfs.rmdir(directory))
 end
 
-function authors.render(model, options, source_directory)
+function authors.render(model, options, source_directory, document_directory)
   local reservation = os.tmpname()
   local temporary = reservation .. ".cfflatexpand-authors"
   local created, message = lfs.mkdir(temporary)
@@ -96,8 +93,10 @@ function authors.render(model, options, source_directory)
   end
   local previous_directory = assert(lfs.currentdir())
   local previous_var, previous_cache = os.getenv("TEXMFVAR"), os.getenv("TEXMFCACHE")
+  local previous_inputs = os.getenv("TEXINPUTS")
   local ok, result = pcall(function()
-    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua"}) do
+    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+      "cfflatex-style-standard.def", "cfflatex-style-authblk.def"}) do
       local contents = read_file(source_directory .. filename)
       if not contents then
         contents = read_file(kpse.find_file(filename, "tex") or filename)
@@ -115,6 +114,12 @@ function authors.render(model, options, source_directory)
     -- with the helper instead of writing to the user's default TeX cache.
     os.setenv("TEXMFVAR", previous_var or temporary .. "/cache")
     os.setenv("TEXMFCACHE", previous_cache or temporary .. "/cache")
+    -- Match native style lookup without executing the manuscript's preamble.
+    -- The staged package wins; document-local plugins and their inputs remain
+    -- available, followed by any caller-supplied search path and TeX defaults.
+    local separator = package.config:sub(1, 1) == "\\" and ";" or ":"
+    os.setenv("TEXINPUTS", "." .. separator .. (document_directory or previous_directory)
+      .. separator .. source_directory .. separator .. (previous_inputs or ""))
     assert(lfs.chdir(temporary))
     -- The command and filenames are constant. User text is read from files,
     -- never interpolated into shell arguments, and engine output is captured.
@@ -137,6 +142,7 @@ function authors.render(model, options, source_directory)
   assert(lfs.chdir(previous_directory))
   os.setenv("TEXMFVAR", previous_var)
   os.setenv("TEXMFCACHE", previous_cache)
+  os.setenv("TEXINPUTS", previous_inputs)
   remove_tree(temporary)
   if not ok then
     error(result, 0)

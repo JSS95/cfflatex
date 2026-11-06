@@ -10,7 +10,9 @@ With cffLaTeX, you don't need to write your paper metadata twice.
 
 ## Installation
 
-Install `cfflatex.sty`, `cfflatex.lua`, and `cfflatex-data.lua` in a local TeX tree such as `~/texmf/tex/latex/cfflatex/`.
+Install `cfflatex.sty`, `cfflatex-style-standard.def`,
+`cfflatex-style-authblk.def`, `cfflatex.lua`, and `cfflatex-data.lua` in a local
+TeX tree such as `~/texmf/tex/latex/cfflatex/`.
 Alternatively, you can put them next to your document.
 
 To install both the package and the `cfflatexpand` command from a source checkout:
@@ -129,7 +131,7 @@ Requires:
 ```sh
 badness format .
 badness lint .
-explcheck --warnings-are-errors cfflatex.sty
+explcheck --warnings-are-errors cfflatex.sty cfflatex-style-*.def
 luacheck . cfflatexpand
 ruff format .
 ruff check .

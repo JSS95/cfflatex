@@ -1,0 +1,11 @@
+\ProvidesFile{cfflatex-style-regression.def}[Regression test author style]
+\cffdeclareauthorstyle{regression}{
+  name = {#1{family-names}},
+  contact = {},
+  affiliation-mark = Roman,
+  begin = {\TYPE{begin}},
+  prepare-author = {\TYPE{prepare/#1}},
+  author = {\TYPE{author/#1/#2}},
+  affiliation = {\TYPE{affiliation/#1/#2}},
+  end = {\TYPE{end/\cffauthornames}},
+}

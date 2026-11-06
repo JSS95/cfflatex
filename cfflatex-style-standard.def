@@ -1,0 +1,29 @@
+% SPDX-License-Identifier: MIT
+% Copyright (c) 2026 cffLaTeX contributors
+\ProvidesFile{cfflatex-style-standard.def}[cffLaTeX standard author style]
+\ExplSyntaxOn
+
+\tl_new:N \l__cfflatex_standard_authors_tl
+\cffdeclareauthorstyle { standard }
+  {
+    begin = { \tl_clear:N \l__cfflatex_standard_authors_tl },
+    author-code =
+      {
+        \tl_if_empty:NF \l__cfflatex_standard_authors_tl
+          { \tl_put_right:Nn \l__cfflatex_standard_authors_tl { \and } }
+        \tl_put_right:Nn \l__cfflatex_standard_authors_tl {#2}
+        \tl_if_blank:nF {#1}
+          {
+            \tl_put_right:Nn \l__cfflatex_standard_authors_tl
+              { \textsuperscript {#1} }
+          }
+      },
+    end =
+      {
+        \exp_args:Ne \cffemit
+          { \exp_not:N \author { \exp_not:V \l__cfflatex_standard_authors_tl } }
+      },
+  }
+
+\ExplSyntaxOff
+\endinput

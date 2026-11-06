@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Author styles can be registered with `\cffdeclareauthorstyle` and loaded
+  automatically from `cfflatex-style-NAME.def`. Standard and authblk are
+  built-in plugins using the same API. Plugins support declaration templates,
+  lifecycle hooks, package requirements, executable templates, and custom
+  renderers. File-based plugins also work with `cfflatexpand`.
 - The Lua `cfflatexpand` CLI expands CFF fields, counts, author, affiliation,
   and contact accessors, and metadata loops, and removes CFF loading commands.
   It supports stdout and `--output`/`-o` output, source-location diagnostics,
@@ -27,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- User options to `\cffsetauthors` override style defaults regardless of the
+  position of `style=` in the option list.
 - With authblk, authors with footnotes and no affiliations no longer execute
   their first footnote while the author list is being declared.
 
