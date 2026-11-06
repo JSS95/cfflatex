@@ -5,6 +5,7 @@
 % `lualatex cfflatex.tex` next to cfflatex.sty, cfflatex.lua, and CITATION.cff.
 \documentclass{l3doc}
 \usepackage{cfflatex}
+\usepackage{authblk}
 
 % l3doc strips two characters from each verbatim line, which in .dtx files
 % are "% "; this file is plain LaTeX.
@@ -14,7 +15,41 @@
 % CITATION.cff file of this package.
 \includecff{CITATION.cff}
 \title{\cfftitle}
-\author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
+% authblk lists the affiliations and the email address below the authors,
+% marked a, b, ... and *. Each author is marked with the letters of their
+% affiliations, converted to the numbers that \cffforeachaffiliation gives the
+% \affil below, and the last author, the corresponding author, also with * for
+% the email address. The \author of authblk expands the name when it is called,
+% so \protect keeps \cffauthor for \maketitle, where the check of cfflatex sees
+% it. authblk also keeps the name unexpanded and expands it later, outside the
+% loop, so \cffdoc@author takes the index of the author as a number.
+\makeatletter
+\def\cffdoc@author#1{%
+  \def\cffdoc@marks{}%
+  \cffforeachauthoraffiliation{#1}{%
+    \edef\cffdoc@marks{%
+      \cffdoc@marks\ifnum\cffauthoraffiliationindex>1 ,\fi
+      \@alph{\cffconvertaffiliationindex{#1}{\cffauthoraffiliationindex}}}}%
+  \ifnum#1=\cffauthorcount
+  \edef\cffdoc@marks{\cffdoc@marks\ifx\cffdoc@marks\@empty\else,\fi*}%
+  \fi
+  \author[\cffdoc@marks]{%
+    \protect\cffauthor{#1}{given-names}~\protect\cffauthor{#1}{family-names}%
+  }}
+\def\cffdoc@names{}
+\cffforeachauthor{%
+  \edef\cffdoc@index{\cffauthorindex}%
+  \expandafter\cffdoc@author\expandafter{\cffdoc@index}%
+  \protected@edef\cffdoc@names{%
+    \cffdoc@names\ifx\cffdoc@names\@empty\else, \fi
+    \cffauthor{\cffdoc@index}{given-names}
+    \cffauthor{\cffdoc@index}{family-names}}}
+\cffforeachaffiliation{%
+  \affil[\@alph{\cffaffiliationindex}]{\cffaffiliation{\cffaffiliationindex}}}
+\affil[*]{E-mail: \cffauthor{\cffauthorcount}{email}}
+% hyperref cannot take the PDF author from the \author of authblk.
+\hypersetup{pdfauthor={\cffdoc@names}}
+\makeatother
 
 % The version and date of cfflatex.sty, unless the build defines others: CI
 % shows the commit or the release that the manual was built from. See
@@ -112,6 +147,16 @@ author list of \cs{maketitle}, with \cs{and} between the authors:
   \cffauthor{\cffauthorindex}{family-names}}}
 \end{Verbatim}
 
+\subsection{Multiple affiliations}
+\label{sec:affiliations}
+
+CFF gives each person one \texttt{affiliation} which is a nonempty string, and
+does not natively support multiple affiliations per author. \pkg{cfflatex},
+allows multiple affiliations per author by separating them with semicolons in
+the \texttt{affiliation} field of the author. Affiliations of each author can be
+accessed individually by \cs{cffauthoraffiliation} and related commands. Refer
+to Section~\ref{sec:reference} for details.
+
 \subsection{Text in the metadata}
 
 Values are inserted as text. The \TeX{} special characters
@@ -143,6 +188,7 @@ classes do. In such cases, load the package with the |check=false| option:
 \end{Verbatim}
 
 \section{Reference}
+\label{sec:reference}
 
 The package has one option, |check|, which is |true| by default
 (Section~\ref{sec:check}).
@@ -176,36 +222,72 @@ The package has one option, |check|, which is |true| by default
   Expands to the \texttt{abstract} of the citation.
 \end{function}
 
-\begin{function}[EXP]{\cffauthor}
-  \begin{syntax}
-    \cs{cffauthor} \marg{index} \marg{field}
-  \end{syntax}
-  Expands to the \meta{field} of the \meta{index}-th author, counting from~1.
-  \meta{field} is a key of the author entry in the CFF file, such as
-  \texttt{given-names} or \texttt{family-names}. A field that the author does
-  not have expands to nothing.
-\end{function}
-
-\begin{function}[EXP]{\cffauthorcount}
+\begin{function}[EXP]{\cffauthorcount, \cffauthor}
   \begin{syntax}
     \cs{cffauthorcount}
+    \cs{cffauthor} \marg{index} \marg{field}
   \end{syntax}
-  Expands to the number of authors of the citation.
+  Expand to the number of authors of the citation, and to the \meta{field} of
+  the \meta{index}-th author, counting from~1. \meta{field} is a key of the
+  author entry in the CFF file, such as \texttt{given-names} or
+  \texttt{family-names}. A field that the author does not have expands to
+  nothing.
 \end{function}
 
-\begin{function}{\cffforeachauthor}
+\begin{function}{\cffforeachauthor, \cffauthorindex}
   \begin{syntax}
     \cs{cffforeachauthor} \marg{code}
-  \end{syntax}
-  Runs \meta{code} once for each author of the citation, in order.
-\end{function}
-
-\begin{function}[EXP]{\cffauthorindex}
-  \begin{syntax}
     \cs{cffauthorindex}
   \end{syntax}
-  Expands to the index of the current author in \cs{cffforeachauthor}, counting
-  from~1.
+  \cs{cffforeachauthor} runs \meta{code} once for each author of the citation,
+  in order, and \cs{cffauthorindex} expands to the index of the current author,
+  counting from~1.
+\end{function}
+
+\begin{function}[EXP]
+  {
+    \cffauthoraffiliationcount, \cffauthoraffiliation,
+    \cffconvertaffiliationindex
+  }
+  \begin{syntax}
+    \cs{cffauthoraffiliationcount} \marg{index}
+    \cs{cffauthoraffiliation} \marg{index} \marg{k}
+    \cs{cffconvertaffiliationindex} \marg{index} \marg{k}
+  \end{syntax}
+  Expand to the number of affiliations of the \meta{index}-th author, which is 0
+  if the author has none, to the \meta{k}-th of them, and to its number among
+  the distinct affiliations of the citation, which \cs{cffaffiliation} and
+  \cs{cffforeachaffiliation} use.
+\end{function}
+
+\begin{function}{\cffforeachauthoraffiliation, \cffauthoraffiliationindex}
+  \begin{syntax}
+    \cs{cffforeachauthoraffiliation} \marg{index} \marg{code}
+    \cs{cffauthoraffiliationindex}
+  \end{syntax}
+  \cs{cffforeachauthoraffiliation} runs \meta{code} once for each affiliation of
+  the \meta{index}-th author, in order, and \cs{cffauthoraffiliationindex}
+  expands to the index of the current affiliation among those of the author,
+  counting from~1.
+\end{function}
+
+\begin{function}[EXP]{\cffaffiliationcount, \cffaffiliation}
+  \begin{syntax}
+    \cs{cffaffiliationcount}
+    \cs{cffaffiliation} \marg{n}
+  \end{syntax}
+  Expand to the number of distinct affiliations of the citation, and to the
+  \meta{n}-th of them.
+\end{function}
+
+\begin{function}{\cffforeachaffiliation, \cffaffiliationindex}
+  \begin{syntax}
+    \cs{cffforeachaffiliation} \marg{code}
+    \cs{cffaffiliationindex}
+  \end{syntax}
+  \cs{cffforeachaffiliation} runs \meta{code} once for each distinct affiliation
+  of the citation, in order, and \cs{cffaffiliationindex} expands to the number
+  of the current affiliation.
 \end{function}
 
 \section{Errors and warnings}
@@ -219,7 +301,8 @@ The following errors stop compilation.
   \item[Cannot read CFF file: \textmd{\meta{reason}}.] The file cannot be used.
         For example, it has no top-level key given by \texttt{source}, or that
         key does not hold a mapping, or the selected citation has incorrect
-        structure.
+        structure, or an affiliation breaks the rules of
+        Section~\ref{sec:affiliations}.
   \item[Install cfflatex.lua alongside cfflatex.sty.] \pkg{cfflatex} is
         incompletely installed.
 \end{description}
@@ -229,8 +312,14 @@ The following errors are reported while expanding CFF macros.
   \item[Call \cs{includecff} first.] No CFF file has been read yet.
   \item[Author index `\textmd{\meta{index}}' is out of range.] The citation has
         fewer than \meta{index} authors.
+  \item[Affiliation `\textmd{\meta{k}}' is out of range.] The author or the
+        citation has fewer than \meta{k} affiliations.
   \item[Not inside \cs{cffforeachauthor}.] \cs{cffauthorindex} is used outside
         the loop.
+  \item[Not inside an affiliation loop.] \cs{cffaffiliationindex} is used
+        outside the loops over affiliations.
+  \item[Not in an author affiliation loop.] The index of an affiliation of an
+        author is used outside the loop over the affiliations of the author.
 \end{description}
 
 The following warnings are issued after \cs{maketitle} by the check of

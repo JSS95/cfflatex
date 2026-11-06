@@ -53,6 +53,33 @@ local function store(path, value)
     .. path .. "}{" .. tex_text(value) .. "}"
 end
 
+-- CFF 1.2.0 gives a person one affiliation, a nonempty string. cffLaTeX reads
+-- several affiliations from a string that separates them with semicolons; a
+-- single trailing semicolon is allowed. Whitespace runs become single spaces,
+-- and each affiliation is trimmed.
+local function split_affiliations(value, path)
+  if kind(value) ~= "string" then
+    error("'" .. path .. "' must be a string", 0)
+  end
+  local text = value:gsub("%s+", " "):gsub("^ ", ""):gsub(" $", ""):gsub(";$", "")
+  if not text:match("%S") then
+    error("'" .. path .. "' must not be empty", 0)
+  end
+  local names, seen = {}, {}
+  for part in (text .. ";"):gmatch("([^;]*);") do
+    local name = part:match("^ *(.-) *$")
+    if name == "" then
+      error("'" .. path .. "' has an empty affiliation between semicolons", 0)
+    end
+    if seen[name] then
+      error("'" .. path .. "' lists '" .. name .. "' twice", 0)
+    end
+    seen[name] = true
+    names[#names + 1] = name
+  end
+  return names
+end
+
 -- An empty source selects the top level of the file. Any other source is a
 -- top-level key, such as preferred-citation, whose value is the citation.
 -- The prefix is put before field names in error messages.
@@ -107,6 +134,8 @@ local function read(filename, source)
   if kind(authors) ~= "seq" or #authors == 0 then
     error("'" .. prefix .. "authors' must be a nonempty sequence", 0)
   end
+  -- Distinct affiliations are numbered in the order they first appear.
+  local numbers, affiliation_count = {}, 0
   for index, author in ipairs(authors) do
     if kind(author) ~= "map" then
       error("'" .. prefix .. "authors/" .. index .. "' must be a mapping", 0)
@@ -116,7 +145,23 @@ local function read(filename, source)
         output[#output + 1] = store("authors/" .. index .. "/" .. tex_text(key), value)
       end
     end
+    if author.affiliation ~= nil then
+      local path = prefix .. "authors/" .. index .. "/affiliation"
+      local names = split_affiliations(author.affiliation, path)
+      for position, name in ipairs(names) do
+        if numbers[name] == nil then
+          affiliation_count = affiliation_count + 1
+          numbers[name] = affiliation_count
+          output[#output + 1] = store("affiliations/" .. affiliation_count, name)
+        end
+        local key = "authors/" .. index .. "/affiliation-"
+        output[#output + 1] = store(key .. "names/" .. position, name)
+        output[#output + 1] = store(key .. "indices/" .. position, numbers[name])
+      end
+      output[#output + 1] = store("authors/" .. index .. "/affiliation-count", #names)
+    end
   end
+  output[#output + 1] = store("affiliation-count", affiliation_count)
 
   output[#output + 1] = "\\csname __cfflatex_finish:n\\endcsname{"
     .. #authors .. "}"

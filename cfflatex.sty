@@ -24,8 +24,14 @@
 \msg_new:nnn { cfflatex } { not-loaded } { Call~\iow_char:N\\includecff~first. }
 \msg_new:nnn { cfflatex } { author-index }
   { Author~index~'#1'~is~out~of~range. }
+\msg_new:nnn { cfflatex } { affiliation-index }
+  { Affiliation~'#1'~is~out~of~range. }
 \msg_new:nnn { cfflatex } { not-in-loop }
   { Not~inside~\iow_char:N\\cffforeachauthor. }
+\msg_new:nnn { cfflatex } { not-in-affiliation-loop }
+  { Not~inside~an~affiliation~loop. }
+\msg_new:nnn { cfflatex } { not-in-author-affiliation-loop }
+  { Not~in~an~author~affiliation~loop. }
 \msg_new:nnn { cfflatex } { title-unused }
   {
     \iow_char:N\\title~does~not~use~\iow_char:N\\cfftitle.~
@@ -46,6 +52,11 @@
 \int_new:N \g__cfflatex_author_count_int
 % The index of the current author in \cffforeachauthor; 0 outside the loop.
 \int_new:N \g__cfflatex_author_index_int
+% The number of the current affiliation in \cffforeachaffiliation, and the
+% index of the current affiliation of the author in
+% \cffforeachauthoraffiliation; 0 outside these loops.
+\int_new:N \g__cfflatex_affiliation_index_int
+\int_new:N \g__cfflatex_author_affiliation_index_int
 \bool_new:N \g__cfflatex_loaded_bool
 \tl_new:N \l__cfflatex_source_tl
 \tl_new:N \l__cfflatex_filename_tl
@@ -255,51 +266,150 @@
       { \msg_expandable_error:nn { cfflatex } { not-loaded } }
   }
 
-% \cffauthor{<index>}{<field>} expands to a field of the <index>-th author,
-% counting from 1. An absent field expands to nothing.
-\cs_generate_variant:Nn \prop_item:Nn { Ne }
-\NewExpandableDocumentCommand \cffauthor {m m}
+% Expands to #2 if a CFF file is loaded and #1 is the index of an author, and
+% reports an error otherwise.
+\cs_new:Npn \__cfflatex_if_author:nT #1#2
   {
     \bool_if:NTF \g__cfflatex_loaded_bool
       {
         \bool_lazy_or:nnTF { \int_compare_p:nNn {#1} < { 1 } }
           { \int_compare_p:nNn {#1} > { \g__cfflatex_author_count_int } }
           { \msg_expandable_error:nnn { cfflatex } { author-index } {#1} }
+          {#2}
+      }
+      { \msg_expandable_error:nn { cfflatex } { not-loaded } }
+  }
+
+% \cffauthor{<index>}{<field>} expands to a field of the <index>-th author,
+% counting from 1. An absent field expands to nothing.
+\cs_generate_variant:Nn \prop_item:Nn { Ne }
+\NewExpandableDocumentCommand \cffauthor {m m}
+  {
+    \__cfflatex_if_author:nT {#1}
+      {
+        \__cfflatex_mark:e { \int_eval:n {#1} }
+        \prop_item:Ne \g__cfflatex_values_prop
+          { authors / \int_eval:n {#1} / \tl_to_str:n {#2} }
+      }
+  }
+
+% Affiliations ---------------------------------------------------------------
+%
+% cfflatex.lua splits each affiliation string at semicolons and numbers the
+% distinct affiliations of the citation in the order they first appear.
+
+% Expands to the number stored under the key #1, or to 0 if it is absent.
+\prg_generate_conditional_variant:Nnn \prop_if_in:Nn { Ne } { TF }
+\cs_new:Npn \__cfflatex_count:n #1
+  {
+    \prop_if_in:NeTF \g__cfflatex_values_prop {#1}
+      { \prop_item:Ne \g__cfflatex_values_prop {#1} }
+      { 0 }
+  }
+% Expands to #3 if #1 is between 1 and #2, and reports an error otherwise.
+\cs_new:Npn \__cfflatex_if_affiliation:nnT #1#2#3
+  {
+    \bool_lazy_or:nnTF { \int_compare_p:nNn {#1} < { 1 } }
+      { \int_compare_p:nNn {#1} > {#2} }
+      { \msg_expandable_error:nnn { cfflatex } { affiliation-index } {#1} }
+      {#3}
+  }
+% Expands to the item of author #1 under "affiliation-#3/#2".
+\cs_new:Npn \__cfflatex_author_affiliation:nnn #1#2#3
+  {
+    \__cfflatex_if_author:nT {#1}
+      {
+        \__cfflatex_if_affiliation:nnT {#2}
           {
-            \__cfflatex_mark:e { \int_eval:n {#1} }
+            \__cfflatex_count:n
+              { authors / \int_eval:n {#1} / affiliation-count }
+          }
+          {
             \prop_item:Ne \g__cfflatex_values_prop
-              { authors / \int_eval:n {#1} / \tl_to_str:n {#2} }
+              {
+                authors / \int_eval:n {#1} / affiliation- #3 / \int_eval:n {#2}
+              }
+          }
+      }
+  }
+
+% \cffauthoraffiliationcount{<i>} expands to the number of affiliations of
+% author <i>, which is 0 if the author has none.
+\NewExpandableDocumentCommand \cffauthoraffiliationcount {m}
+  {
+    \__cfflatex_if_author:nT {#1}
+      { \__cfflatex_count:n { authors / \int_eval:n {#1} / affiliation-count } }
+  }
+
+% \cffauthoraffiliation{<i>}{<k>} expands to the <k>-th affiliation of author
+% <i>.
+\NewExpandableDocumentCommand \cffauthoraffiliation {m m}
+  {\__cfflatex_author_affiliation:nnn {#1} {#2} { names }}
+
+% \cffconvertaffiliationindex{<i>}{<k>} expands to the number of the <k>-th
+% affiliation of author <i> among the distinct affiliations of the citation,
+% the index that \cffforeachaffiliation and \cffaffiliation use.
+\NewExpandableDocumentCommand \cffconvertaffiliationindex {m m}
+  {\__cfflatex_author_affiliation:nnn {#1} {#2} { indices }}
+
+% \cffaffiliationcount expands to the number of distinct affiliations of the
+% citation, and \cffaffiliation{<n>} to the <n>-th of them.
+\NewExpandableDocumentCommand \cffaffiliationcount {}
+  {\__cfflatex_value:n { affiliation-count }}
+\NewExpandableDocumentCommand \cffaffiliation {m}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \__cfflatex_if_affiliation:nnT {#1}
+          { \__cfflatex_count:n { affiliation-count } }
+          {
+            \prop_item:Ne \g__cfflatex_values_prop
+              { affiliations / \int_eval:n {#1} }
           }
       }
       { \msg_expandable_error:nn { cfflatex } { not-loaded } }
   }
 
+% Loops ----------------------------------------------------------------------
+%
+% \__cfflatex_loop:nnnnn {<first>} {<last>} {<set>} {<code>} {<restore>} runs
+% <set>{<value>} and then <code> for each <value> from <first> to <last>, and
+% then <restore>. The loops below keep their state in global variables, set by
+% <set> and restored by <restore> to that of an enclosing loop, and in the
+% arguments of this function. They add no group, so <code> may close and
+% reopen groups, as \and does between the authors in \author.
+\cs_new_protected:Npn \__cfflatex_loop:nnnnn #1#2#3#4#5
+  {
+    \int_compare:nNnTF {#1} > {#2}
+      {#5}
+      {
+        #3 {#1}
+        #4
+        \exp_args:Nf \__cfflatex_loop:nnnnn { \int_eval:n { #1 + 1 } } {#2} {#3}
+          {#4}
+          {#5}
+      }
+  }
+
 % \cffforeachauthor{<code>} runs <code> once for each author, in order, with
-% \cffauthorindex expanding to the index of the author. It adds no group and
-% keeps its state in global variables and in its arguments, so <code> may close
-% and reopen groups, as \and does between the authors in \author.
+% \cffauthorindex expanding to the index of the author.
 \NewDocumentCommand \cffforeachauthor {+m}
   {
     \bool_if:NTF \g__cfflatex_loaded_bool
       {
-        \exp_args:Nnno \__cfflatex_foreach_author:nnn { 1 } {#1}
-          { \int_use:N \g__cfflatex_author_index_int }
+        \use:e
+          {
+            \__cfflatex_loop:nnnnn { 1 }
+              { \int_use:N \g__cfflatex_author_count_int }
+              { \int_gset:Nn \exp_not:N \g__cfflatex_author_index_int }
+              { \exp_not:n {#1} }
+              {
+                \int_gset:Nn \exp_not:N \g__cfflatex_author_index_int
+                  { \int_use:N \g__cfflatex_author_index_int }
+              }
+          }
       }
       { \msg_error:nn { cfflatex } { not-loaded } }
-  }
-% #1 is the index of the next author, #2 the code, and #3 the index to restore
-% at the end, which is that of an enclosing loop or 0.
-\cs_new_protected:Npn \__cfflatex_foreach_author:nnn #1#2#3
-  {
-    \int_compare:nNnTF {#1} > { \g__cfflatex_author_count_int }
-      { \int_gset:Nn \g__cfflatex_author_index_int {#3} }
-      {
-        \int_gset:Nn \g__cfflatex_author_index_int {#1}
-        #2
-        \exp_args:Nf \__cfflatex_foreach_author:nnn { \int_eval:n { #1 + 1 } }
-          {#2}
-          {#3}
-      }
   }
 
 % \cffauthorindex expands to the index of the current author in
@@ -309,6 +419,87 @@
     \int_compare:nNnTF { \g__cfflatex_author_index_int } = { 0 }
       { \msg_expandable_error:nn { cfflatex } { not-in-loop } }
       { \int_use:N \g__cfflatex_author_index_int }
+  }
+
+% \cffforeachaffiliation{<code>} runs <code> once for each distinct affiliation
+% of the citation, in order, with \cffaffiliationindex expanding to the number
+% of the affiliation.
+\NewDocumentCommand \cffforeachaffiliation {+m}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \use:e
+          {
+            \__cfflatex_loop:nnnnn { 1 }
+              { \__cfflatex_count:n { affiliation-count } }
+              { \int_gset:Nn \exp_not:N \g__cfflatex_affiliation_index_int }
+              { \exp_not:n {#1} }
+              {
+                \int_gset:Nn \exp_not:N \g__cfflatex_affiliation_index_int
+                  { \int_use:N \g__cfflatex_affiliation_index_int }
+              }
+          }
+      }
+      { \msg_error:nn { cfflatex } { not-loaded } }
+  }
+
+% \cffforeachauthoraffiliation{<index>}{<code>} runs <code> once for each
+% affiliation of the <index>-th author, in order, with
+% \cffauthoraffiliationindex expanding to the index of the affiliation among
+% those of the author, counting from 1.
+\NewDocumentCommand \cffforeachauthoraffiliation {m +m}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \bool_lazy_or:nnTF { \int_compare_p:nNn {#1} < { 1 } }
+          { \int_compare_p:nNn {#1} > { \g__cfflatex_author_count_int } }
+          { \msg_error:nne { cfflatex } { author-index } { \int_eval:n {#1} } }
+          {
+            \exp_args:Ne \__cfflatex_foreach_author_affiliation:nn
+              { \int_eval:n {#1} }
+              {#2}
+          }
+      }
+      { \msg_error:nn { cfflatex } { not-loaded } }
+  }
+% #1 is the index of the author, and #2 the code.
+\cs_new_protected:Npn \__cfflatex_foreach_author_affiliation:nn #1#2
+  {
+    \use:e
+      {
+        \__cfflatex_loop:nnnnn { 1 }
+          { \__cfflatex_count:n { authors / #1 / affiliation-count } }
+          { \int_gset:Nn \exp_not:N \g__cfflatex_author_affiliation_index_int }
+          { \exp_not:n {#2} }
+          {
+            \int_gset:Nn \exp_not:N \g__cfflatex_author_affiliation_index_int
+              { \int_use:N \g__cfflatex_author_affiliation_index_int }
+          }
+      }
+  }
+
+% \cffaffiliationindex and \cffauthoraffiliationindex expand to the number of
+% the current affiliation in \cffforeachaffiliation and to the index of the
+% current affiliation of the author in \cffforeachauthoraffiliation.
+% Expands to the value of the counter #1 if it is not 0, and to the code #2,
+% an error, otherwise.
+\cs_new:Npn \__cfflatex_loop_state:Nn #1#2
+  {
+    \int_compare:nNnTF {#1} = { 0 }
+      {#2}
+      { \int_use:N #1 }
+  }
+\NewExpandableDocumentCommand \cffaffiliationindex {}
+  {
+    \__cfflatex_loop_state:Nn \g__cfflatex_affiliation_index_int
+      { \msg_expandable_error:nn { cfflatex } { not-in-affiliation-loop } }
+  }
+\NewExpandableDocumentCommand \cffauthoraffiliationindex {}
+  {
+    \__cfflatex_loop_state:Nn \g__cfflatex_author_affiliation_index_int
+      {
+        \msg_expandable_error:nn { cfflatex } { not-in-author-affiliation-loop }
+      }
   }
 
 \endinput
