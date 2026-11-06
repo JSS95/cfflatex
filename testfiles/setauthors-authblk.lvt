@@ -6,7 +6,7 @@
 \usepackage{cfflatex}
 \usepackage{authblk}
 \includecff{authors-contacts.cff}
-\title{\cfftitle}
+\title{\cff{title}}
 \cffsetauthors[style=authblk]
 \begin{document}
 % \maketitle sets math in \large and \footnotesize; load those fonts here, because TeX Live 2025

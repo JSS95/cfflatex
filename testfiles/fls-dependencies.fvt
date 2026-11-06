@@ -6,5 +6,5 @@
 \includecff[source=preferred-citation]{paper.cff}
 \includecff{data/citation file.cff}
 \begin{document}
-\cfftitle
+\cff{title}
 \end{document}

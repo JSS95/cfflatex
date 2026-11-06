@@ -83,6 +83,29 @@ end
 -- An empty source selects the top level of the file. Any other source is a
 -- top-level key, such as preferred-citation, whose value is the citation.
 -- The prefix is put before field names in error messages.
+-- Stores every value of the citation under its path, the keys and the indices
+-- of the mappings and sequences that hold it, separated by slashes, for \cff.
+-- The length of each sequence is stored as its kind, and a mapping as "map".
+local function flatten(value, path, output, active)
+  local value_kind = kind(value)
+  if value_kind == "map" or value_kind == "seq" then
+    if active[value] then
+      error("cyclic YAML aliases are not supported", 0)
+    end
+    active[value] = true
+    output[#output + 1] = "\\csname __cfflatex_store_kind:nn\\endcsname{"
+      .. path .. "}{" .. (value_kind == "seq" and #value or "map") .. "}"
+    for key, item in pairs(value) do
+      local name = tex_text(key)
+      flatten(item, path == "" and name or path .. "/" .. name, output, active)
+    end
+    active[value] = nil
+  elseif is_scalar(value) then
+    output[#output + 1] = "\\csname __cfflatex_store_field:nn\\endcsname{"
+      .. path .. "}{" .. tex_text(value) .. "}"
+  end
+end
+
 local function select_citation(data, source)
   if kind(data) ~= "map" then
     error("the CFF file must contain a mapping", 0)
@@ -117,17 +140,13 @@ local function read(filename, source)
   local selected, prefix = select_citation(data, source)
 
   local output = {}
+  flatten(selected, "", output, {})
   if not is_scalar(selected.title) then
     error("'" .. prefix .. "title' must be a string", 0)
   end
-  output[#output + 1] = store("title", selected.title)
-
-  -- The abstract is optional; when absent, \cffabstract expands to nothing.
-  if selected.abstract ~= nil then
-    if not is_scalar(selected.abstract) then
-      error("'" .. prefix .. "abstract' must be a string", 0)
-    end
-    output[#output + 1] = store("abstract", selected.abstract)
+  -- The abstract is optional.
+  if selected.abstract ~= nil and not is_scalar(selected.abstract) then
+    error("'" .. prefix .. "abstract' must be a string", 0)
   end
 
   local authors = selected.authors

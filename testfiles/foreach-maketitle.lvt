@@ -6,7 +6,7 @@
 \usepackage{cfflatex}
 
 \includecff[source=preferred-citation]{mixed-authors.cff}
-\title{\cfftitle}
+\title{\cff{title}}
 \author{\cffforeachauthor{%
     \ifnum\cffauthorindex>1 \and\fi
     \cffauthor{\cffauthorindex}{given-names}~%

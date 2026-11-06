@@ -7,7 +7,7 @@
   {Import Citation File Format metadata into LaTeX}
 \RequirePackage{lt3luabridge}
 
-% check (default true): after \maketitle, warn unless \title used \cfftitle and
+% check (default true): after \maketitle, warn unless \title used the title and
 % \author used every author of the citation. See "Checking the title page".
 \bool_new:N \g__cfflatex_check_bool
 \keys_define:nn { cfflatex }
@@ -26,6 +26,8 @@
   { Author~index~'#1'~is~out~of~range. }
 \msg_new:nnn { cfflatex } { affiliation-index }
   { Affiliation~'#1'~is~out~of~range. }
+\msg_new:nnn { cfflatex } { not-a-value } { Not~a~value:~#1. }
+\msg_new:nnn { cfflatex } { not-a-list } { Not~a~list:~#1. }
 \msg_new:nnn { cfflatex } { contact-index } { Contact~'#1'~is~out~of~range. }
 \msg_new:nnn { cfflatex } { not-in-contact-loop }
   { Not~inside~\iow_char:N\\cffforeachcontact. }
@@ -37,7 +39,7 @@
   { Not~in~an~author~affiliation~loop. }
 \msg_new:nnn { cfflatex } { title-unused }
   {
-    \iow_char:N\\title~does~not~use~\iow_char:N\\cfftitle.~
+    \iow_char:N\\title~does~not~use~the~title~of~the~citation.~
     Load~cfflatex~with~check=false~to~skip~this~check.
   }
 \msg_new:nnn { cfflatex } { authors-unused }
@@ -54,6 +56,10 @@
   }
 
 \prop_new:N \g__cfflatex_values_prop
+% Every value of the citation by its path, such as "authors/1/name", and the
+% kind of each mapping ("map") and sequence (its length) by its path, for \cff.
+\prop_new:N \g__cfflatex_fields_prop
+\prop_new:N \g__cfflatex_kinds_prop
 \int_new:N \g__cfflatex_author_count_int
 % The index of the current author in \cffforeachauthor; 0 outside the loop.
 \int_new:N \g__cfflatex_author_index_int
@@ -74,7 +80,7 @@
 \ior_new:N \g__cfflatex_dependency_ior
 % For the check: whether \maketitle is running, the part of the title page
 % being typeset (1: \title, 2: \author, 0: neither), the uses recorded as
-% "<part>/<use>" (use 0: \cfftitle, <i>: author <i>), and missing authors.
+% "<part>/<use>" (use 0: the title, <i>: author <i>), and missing authors.
 \bool_new:N \g__cfflatex_recording_bool
 \tl_new:N \g__cfflatex_part_tl
 \prop_new:N \g__cfflatex_used_prop
@@ -110,6 +116,10 @@
 % uses, so it would report the functions as unused (W401).
 \cs_new_protected:Npn \__cfflatex_store:nn #1#2 % noqa: w401
   { \prop_gput:Nnn \g__cfflatex_values_prop {#1} {#2} }
+\cs_new_protected:Npn \__cfflatex_store_field:nn #1#2 % noqa: w401
+  { \prop_gput:Nnn \g__cfflatex_fields_prop {#1} {#2} }
+\cs_new_protected:Npn \__cfflatex_store_kind:nn #1#2 % noqa: w401
+  { \prop_gput:Nnn \g__cfflatex_kinds_prop {#1} {#2} }
 \cs_new_protected:Npn \__cfflatex_finish:n #1 % noqa: w401
   {
     \int_gset:Nn \g__cfflatex_author_count_int {#1}
@@ -143,6 +153,8 @@
     \bool_gset_false:N \g__cfflatex_loaded_bool
     \int_gzero:N \g__cfflatex_author_count_int
     \prop_gclear:N \g__cfflatex_values_prop
+    \prop_gclear:N \g__cfflatex_fields_prop
+    \prop_gclear:N \g__cfflatex_kinds_prop
     \__cfflatex_lua_quote:NN \l__cfflatex_filename_tl \l__cfflatex_file_lua_str
     \__cfflatex_lua_quote:NN \g__cfflatex_helper_tl \l__cfflatex_helper_lua_str
     \__cfflatex_lua_quote:NN \l__cfflatex_source_tl \l__cfflatex_source_lua_str
@@ -161,7 +173,7 @@
 
 % Checking the title page ----------------------------------------------------
 %
-% While \maketitle runs, \cfftitle and \cffauthor leave a record marker before
+% While \maketitle runs, \cff{title} and \cffauthor leave a record marker before
 % their values, and markers around the contents of \@title and \@author tell
 % which part of the title page is being typeset. The markers record when they
 % are executed, which is when the title page is typeset; this sees uses in
@@ -170,7 +182,7 @@
 % keep them intact, and their names contain no "_" or ":", so they stay
 % readable if a class writes the title page to a file.
 
-% <use> is 0 for \cfftitle and <i> for author <i>.
+% <use> is 0 for \cff{title} and <i> for author <i>.
 \cs_new_protected:cpn { cfflatex@mark } #1
   {
     \bool_if:NT \g__cfflatex_recording_bool
@@ -253,26 +265,6 @@
       { \msg_expandable_error:nn { cfflatex } { not-loaded } }
   }
 
-% \cfftitle expands to the title of the loaded citation.
-\NewExpandableDocumentCommand \cfftitle {}
-  {
-    \__cfflatex_mark:n { 0 }
-    \__cfflatex_value:n { title }
-  }
-
-% \cffabstract expands to the abstract of the loaded citation, or to nothing if
-% it has none.
-\NewExpandableDocumentCommand \cffabstract {} {\__cfflatex_value:n { abstract }}
-
-% \cffauthorcount expands to the number of authors of the loaded citation, so
-% that it can be typeset or used in integer expressions.
-\NewExpandableDocumentCommand \cffauthorcount {}
-  {
-    \bool_if:NTF \g__cfflatex_loaded_bool
-      { \int_use:N \g__cfflatex_author_count_int }
-      { \msg_expandable_error:nn { cfflatex } { not-loaded } }
-  }
-
 % Expands to #2 if a CFF file is loaded and #1 is the index of an author, and
 % reports an error otherwise.
 \cs_new:Npn \__cfflatex_if_author:nT #1#2
@@ -297,6 +289,73 @@
         \__cfflatex_mark:e { \int_eval:n {#1} }
         \prop_item:Ne \g__cfflatex_values_prop
           { authors / \int_eval:n {#1} / \tl_to_str:n {#2} }
+      }
+  }
+
+% Any field ------------------------------------------------------------------
+%
+% \cff{<path>} expands to the value at <path>, the keys and indices that lead
+% to it from the citation, separated by slashes, such as authors/1/name. A
+% missing path expands to nothing, and a mapping or a sequence is an error.
+% \cffcount{<path>} expands to the length of the sequence at <path>, 0 if it
+% is missing; a value or a mapping is an error. \cff{title} and
+% \cff{authors/<i>/<field>} count for the check as uses of the title and of
+% author <i>, like \cffauthor.
+% The path is expanded first, so that it may contain \cffauthorindex.
+\NewExpandableDocumentCommand \cff {m} {\exp_args:Ne \__cfflatex_cff:n {#1}}
+\NewExpandableDocumentCommand \cffcount {m}
+  {\exp_args:Ne \__cfflatex_cffcount:n {#1}}
+\cs_new:Npn \__cfflatex_cff:n #1
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \prop_if_in:NnTF \g__cfflatex_fields_prop {#1}
+          {
+            \__cfflatex_path_mark:w #1 / / \s__cfflatex_stop
+            \prop_item:Nn \g__cfflatex_fields_prop {#1}
+          }
+          {
+            \prop_if_in:NnT \g__cfflatex_kinds_prop {#1}
+              { \msg_expandable_error:nnn { cfflatex } { not-a-value } {#1} }
+          }
+      }
+      { \msg_expandable_error:nn { cfflatex } { not-loaded } }
+  }
+\cs_new:Npn \__cfflatex_cffcount:n #1
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \prop_if_in:NnTF \g__cfflatex_kinds_prop {#1}
+          {
+            \str_if_eq:eeTF { \prop_item:Nn \g__cfflatex_kinds_prop {#1} }
+              { map }
+              { \msg_expandable_error:nnn { cfflatex } { not-a-list } {#1} }
+              { \prop_item:Nn \g__cfflatex_kinds_prop {#1} }
+          }
+          {
+            \prop_if_in:NnTF \g__cfflatex_fields_prop {#1}
+              { \msg_expandable_error:nnn { cfflatex } { not-a-list } {#1} }
+              { 0 }
+          }
+      }
+      { \msg_expandable_error:nn { cfflatex } { not-loaded } }
+  }
+% Marks the use of the value at the path #1/#2/#3 for the check: title, and a
+% field of an author, whose index #2 is a number since the value exists.
+\scan_new:N \s__cfflatex_stop
+\cs_new:Npn \__cfflatex_path_mark:w #1 / #2 / #3 \s__cfflatex_stop
+  {
+    \str_if_eq:nnTF {#1} { title }
+      {
+        \tl_if_blank:nT {#2}
+          { \__cfflatex_mark:n { 0 } }
+      }
+      {
+        \str_if_eq:nnT {#1} { authors }
+          {
+            \tl_if_blank:nF {#3}
+              { \__cfflatex_mark:e { \int_eval:n {#2} } }
+          }
       }
   }
 
@@ -381,11 +440,6 @@
 %
 % The contacts of the citation are optional; like the authors, each is a person
 % or an entity.
-
-% \cffcontactcount expands to the number of contacts of the citation, which is
-% 0 if it has none.
-\NewExpandableDocumentCommand \cffcontactcount {}
-  {\__cfflatex_value:n { contact-count }}
 
 % \cffcontact{<index>}{<field>} expands to a field of the <index>-th contact,
 % counting from 1. An absent field expands to nothing.

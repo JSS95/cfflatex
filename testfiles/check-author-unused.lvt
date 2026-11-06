@@ -5,7 +5,7 @@
 \usepackage{cfflatex}
 
 \includecff[source=preferred-citation]{paper.cff}
-\title{\cfftitle{} by \cffauthor{2}{family-names}}
+\title{\cff{title} by \cffauthor{2}{family-names}}
 \author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
 \date{}
 

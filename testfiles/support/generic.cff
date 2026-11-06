@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: m
+title: T
+date-released: 2026-11-06
+version: 2
+authors:
+  - name: A
+keywords:
+  - LaTeX
+  - CFF
+identifiers:
+  - type: doi
+    value: 10.1/x
+preferred-citation:
+  type: article
+  title: P
+  authors:
+    - name: B

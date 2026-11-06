@@ -45,7 +45,7 @@ Write:
 
 %\includecff{CITATION.cff}  % reads fields in top level
 \includecff[source=preferred-citation]{CITATION.cff}  % reads fields in preferred-citation
-\title{\cfftitle}
+\title{\cff{title}}
 \author{
   \cffauthor{1}{given-names}~\cffauthor{1}{family-names}
   \and
@@ -56,7 +56,7 @@ Write:
 \begin{document}
 \maketitle
 \begin{abstract}
-  \cffabstract
+  \cff{abstract}
 \end{abstract}
 \end{document}
 ```
