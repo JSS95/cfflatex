@@ -70,7 +70,9 @@ lualatex manuscript.tex
 
 ## Documentation
 
-The manual is `cfflatex.pdf`.
+The latest document can be found at:
+
+> https://jss95.github.io/cfflatex/cfflatex.pdf
 
 ### Building the document
 
@@ -79,6 +81,8 @@ Run:
 ```sh
 l3build doc
 ```
+
+The manual is `cfflatex.pdf`.
 
 ## Development
 
