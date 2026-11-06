@@ -923,6 +923,32 @@ end={\cffemit{\journalEnd}},
     end
   end)
 
+  test("the rsc style exports the commands of its title block", function(f)
+    write_file(f.cff, rich_citation)
+    local header = replace(preamble, "{cfflatex}", "[style=rsc]{cfflatex}")
+    write_file(f.input, header .. [=[\cffsetauthors[name={#1{family-names}#1{name}},note={1}{Equal.}]
+\begin{document}
+\begin{@twocolumnfalse}\cff{title}\par\rscauthors\end{@twocolumnfalse}
+\rscfootnotes
+\end{document}
+]=])
+    local result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, [[\newcommand \rscauthors {One,\textit {$^{a\ddag }$} ]]
+      .. [[Two,\textit {$^{\ast ba}$} and Team \& Co}]])
+    contains(result.stdout, [[\newcommand \rscfootnotes {]]
+      .. [[\footnotetext {\textit {$^{\ast }$\nobreakspace Corresponding author. ]]
+      .. [[E-mail: ben@example.org}}]]
+      .. [[\footnotetext {\textit {$^{a}$\nobreakspace Univ A}}]]
+      .. [[\footnotetext {\textit {$^{b}$\nobreakspace Univ B}}]]
+      .. [[\footnotetext {\textit {$^{\ddag }$\nobreakspace Equal.}}}]])
+    assert(not result.stdout:find("\\cff", 1, true), "export retained a cfflatex command")
+    -- The output compiles without cfflatex or the CFF file.
+    write_file(f.input, result.stdout)
+    assert(os.remove(f.cff))
+    compile(f.directory, "manuscript.tex")
+  end)
+
   test("plugin loading errors and inline definitions keep source diagnostics", function(f)
     write_file(f.directory .. "/cfflatex-style-empty.def", "\\endinput\n")
     for _, pair in ipairs({

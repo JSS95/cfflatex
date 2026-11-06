@@ -777,6 +777,10 @@ function Scanner:scan(first, last)
       elseif name == "cffdeclareauthorstyle" then
         self:fail(position, "inline author styles are not supported; "
           .. "put the definition in cfflatex-style-NAME.def")
+      elseif self.author_render and name == "newcommand" then
+        -- A style may define a command for the document, as rsc does for its
+        -- author line. Its body is scanned like the other declarations.
+        position = after
       elseif self.author_render and name == "__cfflatex_thanks:n" then
         position = self:author_thanks(position, after)
       elseif self.author_render and name == "protect" then

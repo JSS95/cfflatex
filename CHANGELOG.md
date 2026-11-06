@@ -35,6 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the checked regions with `check-region`: `\maketitle`, the code between
   two LaTeX hooks, or the whole document as a fallback. This checks title
   blocks typeset without `\maketitle`. `cfflatexpand` accepts the option.
+- The built-in `rsc` author style supports the article template of the Royal
+  Society of Chemistry. It defines `\rscauthors`, the author line with the
+  marks of contacts, affiliations, and notes, and `\rscfootnotes`, their
+  footnotes, and checks the title, the authors, and the abstract in the title
+  block of the template. Declarations of author styles may define commands
+  with `\newcommand`, which `cfflatexpand` exports.
 
 ### Changed
 
