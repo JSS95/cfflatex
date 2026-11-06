@@ -199,53 +199,41 @@ The package has one option, |check|, which is |true| by default
   Expands to the \texttt{abstract} of the citation.
 \end{function}
 
-\begin{function}[EXP]{\cffauthor}
-  \begin{syntax}
-    \cs{cffauthor} \marg{index} \marg{field}
-  \end{syntax}
-  Expands to the \meta{field} of the \meta{index}-th author, counting from~1.
-  \meta{field} is a key of the author entry in the CFF file, such as
-  \texttt{given-names} or \texttt{family-names}. A field that the author does
-  not have expands to nothing.
-\end{function}
-
-\begin{function}[EXP]{\cffauthorcount}
+\begin{function}[EXP]{\cffauthorcount, \cffauthor}
   \begin{syntax}
     \cs{cffauthorcount}
+    \cs{cffauthor} \marg{index} \marg{field}
   \end{syntax}
-  Expands to the number of authors of the citation.
+  Expand to the number of authors of the citation, and to the \meta{field} of
+  the \meta{index}-th author, counting from~1. \meta{field} is a key of the
+  author entry in the CFF file, such as \texttt{given-names} or
+  \texttt{family-names}. A field that the author does not have expands to
+  nothing.
 \end{function}
 
-\begin{function}{\cffforeachauthor}
+\begin{function}{\cffforeachauthor, \cffauthorindex}
   \begin{syntax}
     \cs{cffforeachauthor} \marg{code}
-  \end{syntax}
-  Runs \meta{code} once for each author of the citation, in order.
-\end{function}
-
-\begin{function}[EXP]{\cffauthorindex}
-  \begin{syntax}
     \cs{cffauthorindex}
   \end{syntax}
-  Expands to the index of the current author in \cs{cffforeachauthor}, counting
-  from~1.
+  \cs{cffforeachauthor} runs \meta{code} once for each author of the citation,
+  in order, and \cs{cffauthorindex} expands to the index of the current author,
+  counting from~1.
 \end{function}
 
-\begin{function}[EXP]{\cffauthoraffiliationcount}
+\begin{function}[EXP]
+  {
+    \cffauthoraffiliationcount, \cffauthoraffiliation,
+    \cffauthoraffiliationindex
+  }
   \begin{syntax}
     \cs{cffauthoraffiliationcount} \marg{index}
-  \end{syntax}
-  Expands to the number of affiliations of the \meta{index}-th author, which is
-  0 if the author has none.
-\end{function}
-
-\begin{function}[EXP]{\cffauthoraffiliation, \cffauthoraffiliationindex}
-  \begin{syntax}
     \cs{cffauthoraffiliation} \marg{index} \marg{k}
     \cs{cffauthoraffiliationindex} \marg{index} \marg{k}
   \end{syntax}
-  Expand to the \meta{k}-th affiliation of the \meta{index}-th author, and to
-  its number among the distinct affiliations of the citation.
+  Expand to the number of affiliations of the \meta{index}-th author, which is 0
+  if the author has none, to the \meta{k}-th of them, and to its number among
+  the distinct affiliations of the citation.
 \end{function}
 
 \begin{function}[EXP]{\cffaffiliationcount, \cffaffiliation}
