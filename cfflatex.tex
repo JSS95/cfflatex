@@ -215,10 +215,10 @@ From a source checkout, use \texttt{./cfflatexpand} instead. The command runs
 with \texttt{texlua}. Converting \cs{cffsetauthors} also requires LuaLaTeX,
 which runs with shell escape disabled.
 
-The exporter also supports \cs{cffsetauthors} with the built-in styles,
-file-based plugins (Section~\ref{sec:author-styles}), and the keys described in
-Section~\ref{sec:setauthors}. The output still needs the class or package that
-provides its declarations.
+\texttt{cfflatexpand} also converts \cs{cffsetauthors} with the keys of
+Section~\ref{sec:setauthors}, the built-in styles, and author style plugins that
+follow the rules of Section~\ref{sec:export-styles}. The output still needs the
+class or package that provides its declarations.
 
 For a manuscript split into several TeX files, first merge it with latexpand.
 Keep the merged file beside the root manuscript and keep the literal CFF
@@ -231,14 +231,16 @@ cfflatexpand manuscript-flat.tex --output submission.tex
 \section{Author style plugins}
 \label{sec:author-styles}
 
-\cs{cffdeclareauthorstyle} registers author style to \cs{cffsetauthors}.
-To define a plugin for your own author style, create a file named
-\texttt{cfflatex-style-MyStyle.def} and use \cs{cffdeclareauthorstyle} to register
-the style with the desired options and commands. The file can be put beside the
-manuscript or in a TeX tree.
+An author style plugin is a definition file that registers a style for the
+|style| key of \cs{cffsetauthors}. The built-in |standard| and |authblk| styles
+are plugins written with the same interface.
 
-For example, the following defines a new author style using \cs{author} and \cs{affil}
-commands of \pkg{authblk}, with numeric affiliation marks:
+\subsection{Writing a definition file}
+
+A style named \meta{name} lives in the file \texttt{cfflatex-style-}\meta{name}%
+\texttt{.def}, beside the manuscript or in a TeX tree, and registers itself with
+\cs{cffdeclareauthorstyle}. For example, the following style uses the \cs{author}
+and \cs{affil} commands of \pkg{authblk} with numeric affiliation marks:
 \begin{Verbatim}
 % cfflatex-style-authblk-arabic.def
 \cffdeclareauthorstyle{authblk-arabic}{
@@ -248,55 +250,71 @@ commands of \pkg{authblk}, with numeric affiliation marks:
   affiliation = {\affil[#1]{#2}},
 }
 \end{Verbatim}
-Use the new style as follows:
+The manuscript selects it by name:
 \begin{Verbatim}
 \usepackage{authblk}
 \usepackage{cfflatex}
 \includecff{CITATION.cff}
 \cffsetauthors[style=authblk-arabic]
 \end{Verbatim}
-The package loads the definition file on first use and requires it to register
-the requested name. Names are case-sensitive, start with an ASCII letter or
-digit, and contain only ASCII letters, digits, hyphens, and underscores.
-Registration is global, and registering a name twice is an error.
-Helper commands needed beyond a local group should also be defined globally.
 
-The definition accepts the keys of \cs{cffsetauthors}, except \texttt{style}.
-Common defaults are applied first, then the style definition, then user options.
-Thus user options override style defaults even when they appear before
-\texttt{style} in the option list. Settings and notes are reset for each call.
-Definition files are read with normal document catcodes. Use \cs{ExplSyntaxOn}
-and \cs{ExplSyntaxOff} around expl3 helpers if needed.
+\cs{cffsetauthors} reads the definition file the first time the style is used,
+and the file must register the requested name. Names are case-sensitive, start
+with an ASCII letter or digit, and contain only ASCII letters, digits, hyphens,
+and underscores. Registration is global, and registering a name twice is an
+error. Define helper commands that are used outside the file globally.
+Definition files are read with normal document catcodes. Put \cs{ExplSyntaxOn}
+and \cs{ExplSyntaxOff} around expl3 code.
 
-Additional plugin keys are
+\subsection{Plugin keys}
+
+A style definition accepts the keys of \cs{cffsetauthors}, except |style|, as
+its defaults. Each call of \cs{cffsetauthors} resets every key, then applies
+the style definition, then the user's options. User options therefore override
+the style even when they appear before |style| in the option list.
+
+The following keys are only useful in a style definition.
 \begin{description}
   \item[\texttt{requires}] a comma-separated list of packages that must already
-        be loaded. The plugin does not load them automatically.
-  \item[\texttt{validate}] code to check the target class or required fields.
-  \item[\texttt{begin}, \texttt{end}] code to initialize and finalize rendering.
-        For example, the standard plugin collects names and emits one
-        \cs{author} in its \texttt{end} hook.
-  \item[\texttt{prepare-author}] code run before each author declaration, with
-        |#1| equal to the author's integer index. Use the public field accessors
-        to inspect that author.
-  \item[\texttt{author-code}, \texttt{affiliation-code}] executable code with
-        the same two arguments as \texttt{author} and \texttt{affiliation}.
-        These keys perform preparation or accumulation and send final
-        declarations through \cs{cffemit}. By contrast, \texttt{author} and
-        \texttt{affiliation} are declaration templates emitted automatically. An
-        empty affiliation template or code disables affiliation output and its
-        author marks.
-  \item[\texttt{render}] code replacing the default loop over all authors
-        followed by all distinct affiliations. It can use the public loops,
-        \cs{cffrenderauthor}, and \cs{cffrenderaffiliation} to change the order.
-        An empty value selects the default renderer.
+        be loaded. The plugin does not load them.
+  \item[\texttt{validate}] code that checks the document, such as the class or
+        the fields the style needs.
+  \item[\texttt{begin}, \texttt{end}] code run before and after the
+        declarations. For example, the |standard| style collects the names
+        and declares one \cs{author} in its |end| code.
+  \item[\texttt{prepare-author}] code run before each author is declared, with
+        |#1| equal to the index of the author. Use the public accessors of
+        Section~\ref{sec:reference} to inspect that author.
+  \item[\texttt{author-code}, \texttt{affiliation-code}] code run in place of
+        the |author| and |affiliation| templates, with the same arguments.
+  \item[\texttt{render}] code that replaces the default order of declarations.
+        An empty value selects the default.
 \end{description}
-The lifecycle is validation, name collection, \texttt{begin}, rendering, and
-\texttt{end}. The current \cs{cffauthornames} is available in both hooks. The
-\texttt{prepare-author} hook runs inside \cs{cffrenderauthor}. Name collection
-for \cs{cffauthornames} is independent of the renderer's declaration order. For
-example, this renderer declares each author followed by that author's
-affiliations, repeating shared affiliations:
+
+The |author| and |affiliation| templates are declarations: \cs{cffsetauthors}
+passes each of them to \cs{cffemit} itself. The |author-code| and
+|affiliation-code| keys are code instead: they can prepare or accumulate, and
+must pass each final declaration to \cs{cffemit}. An empty affiliation template
+or code gives no affiliations and no affiliation marks.
+
+\subsection{Rendering order}
+
+\cs{cffsetauthors} runs a style in this order:
+\begin{enumerate}
+  \item the |requires| check and the |validate| code;
+  \item the collection of the names for \cs{cffauthornames};
+  \item the |begin| code;
+  \item the renderer, which by default calls \cs{cffrenderauthor} for every
+        author and then \cs{cffrenderaffiliation} for every distinct
+        affiliation;
+  \item the |end| code.
+\end{enumerate}
+\cs{cffauthornames} is available from the |begin| code on, and does not depend
+on the order of the renderer. \cs{cffrenderauthor} runs the |prepare-author|
+code before the author template. A |render| value can use the loops of
+Section~\ref{sec:reference} to change the order. For example, this renderer
+declares each author followed by the affiliations of that author, repeating
+shared affiliations:
 \begin{Verbatim}
 render = {
   \cffforeachauthor{
@@ -308,16 +326,47 @@ render = {
 },
 \end{Verbatim}
 
-For export support, keep the style in its definition file and send every final
-declaration through \cs{cffemit}. Preparation code runs in both compilation and
-export. The exporter starts an isolated article document and does not replay the
-manuscript's preamble. Package requirements and \texttt{validate} are checked
-only during normal compilation. Generated declarations must use commands
-supplied by the final class or its packages, with no dependency on plugin helper
-commands. Preserve deferred names and footnotes when constructing declarations.
-Expanding the whole declaration with \cs{edef} can execute them too early.
-Inline registration in the manuscript is supported during normal compilation,
-but exporting it requires moving the definition into a file.
+\subsection{Supporting \texttt{cfflatexpand}}
+\label{sec:export-styles}
+
+\texttt{cfflatexpand} converts \cs{cffsetauthors} by running the style, not by
+reading it. It
+\begin{enumerate}
+  \item starts a separate Lua\LaTeX{} run of an empty \texttt{article} document
+        that loads \pkg{cfflatex} and the metadata, but none of the
+        manuscript's preamble;
+  \item calls \cs{cffsetauthors} there with the options of the manuscript,
+        loading the definition file from the directory of the manuscript or
+        the TeX search path, and skipping |requires| and |validate|;
+  \item records the argument of every \cs{cffemit} as it is, without executing
+        it;
+  \item replaces \cs{cffsetauthors} in the output with the recorded
+        declarations, in which the metadata commands become their values and
+        the footnotes of contacts and notes use a self-contained definition.
+\end{enumerate}
+
+A style therefore works with \texttt{cfflatexpand} if it follows these rules.
+\begin{itemize}
+  \item Register the style in a definition file. \cs{cffdeclareauthorstyle} in
+        the manuscript works when compiling, but \texttt{cfflatexpand} reports
+        an error.
+  \item Pass every final declaration to \cs{cffemit}. A declaration that the
+        code executes directly, such as \cs{author} in |author-code|, appears
+        when compiling but is missing from the output.
+  \item Make the preparation code self-contained. The |begin|, |end|,
+        |prepare-author|, |author-code|, |affiliation-code|, and |render| code
+        also runs in the isolated document, where the class and the packages of
+        the manuscript, including those in |requires|, are not loaded.
+  \item Use only commands of the final class and its packages in the
+        declarations. The output is compiled without \pkg{cfflatex} and without the
+        definition file, so helper commands of the style are undefined there.
+  \item Keep the marks and the names unexpanded. They contain the footnotes and
+        the metadata commands, which must run when the title page is typeset.
+        To accumulate declarations, append the arguments with
+        \cs{tl_put_right:Nn} and insert the result with \cs{exp_not:V}, as
+        \texttt{cfflatex-style-standard.def} does, rather than expanding the
+        whole declaration with \cs{edef}.
+\end{itemize}
 
 \section{Reference}
 \label{sec:reference}
