@@ -197,6 +197,31 @@ cases, load the package with the |check=false| option:
 \usepackage[check=false]{cfflatex}
 \end{Verbatim}
 
+\subsection{Expanding metadata}
+
+The Lua command-line tool \texttt{cfflatexpand} replaces metadata commands with
+their values and removes the cfflatex package load and \cs{includecff}. The
+resulting source can be compiled without cfflatex or the CFF file. From a source
+checkout, run either
+\begin{Verbatim}
+./cfflatexpand manuscript.tex > submission.tex
+./cfflatexpand manuscript.tex --output submission.tex
+./cfflatexpand manuscript.tex -o submission.tex
+\end{Verbatim}
+
+The exporter also supports \cs{cffsetauthors} with the \texttt{standard} and
+\texttt{authblk} styles and the keys described in Section~\ref{sec:setauthors}.
+It emits ordinary author and affiliation declarations, preserving the name,
+contact, and declaration templates, affiliation marks, separators, and notes.
+
+For a manuscript split into several TeX files, first merge it with latexpand.
+Keep the merged file beside the root manuscript and keep the literal CFF
+filename valid there:
+\begin{Verbatim}
+latexpand manuscript.tex > manuscript-flat.tex
+./cfflatexpand manuscript-flat.tex --output submission.tex
+\end{Verbatim}
+
 \section{Reference}
 \label{sec:reference}
 
