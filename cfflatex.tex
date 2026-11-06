@@ -15,22 +15,41 @@
 % CITATION.cff file of this package.
 \includecff{CITATION.cff}
 \title{\cfftitle}
-% authblk lists the affiliations and the email address below the author,
-% marked a, b, ... and *. Its \author expands the name when it is called,
-% so \protect keeps \cffauthor for \maketitle, where the check of cfflatex
-% sees it.
-\author[{a,b,*}]{%
-  \protect\cffauthor{1}{given-names}~\protect\cffauthor{1}{family-names}%
-}
-% One \affil for each distinct affiliation of the citation, marked a, b, ... in
-% the order of \cffforeachaffiliation.
+% authblk lists the affiliations and the email address below the authors,
+% marked a, b, ... and *. Each author is marked with the letters of their
+% affiliations, converted to the numbers that \cffforeachaffiliation gives the
+% \affil below, and the last author, the corresponding author, also with * for
+% the email address. The \author of authblk expands the name when it is called,
+% so \protect keeps \cffauthor for \maketitle, where the check of cfflatex sees
+% it. authblk also keeps the name unexpanded and expands it later, outside the
+% loop, so \cffdoc@author takes the index of the author as a number.
 \makeatletter
+\def\cffdoc@author#1{%
+  \def\cffdoc@marks{}%
+  \cffforeachauthoraffiliation{#1}{%
+    \edef\cffdoc@marks{%
+      \cffdoc@marks\ifnum\cffauthoraffiliationindex>1 ,\fi
+      \@alph{\cffconvertaffiliationindex{#1}{\cffauthoraffiliationindex}}}}%
+  \ifnum#1=\cffauthorcount
+  \edef\cffdoc@marks{\cffdoc@marks\ifx\cffdoc@marks\@empty\else,\fi*}%
+  \fi
+  \author[\cffdoc@marks]{%
+    \protect\cffauthor{#1}{given-names}~\protect\cffauthor{#1}{family-names}%
+  }}
+\def\cffdoc@names{}
+\cffforeachauthor{%
+  \edef\cffdoc@index{\cffauthorindex}%
+  \expandafter\cffdoc@author\expandafter{\cffdoc@index}%
+  \protected@edef\cffdoc@names{%
+    \cffdoc@names\ifx\cffdoc@names\@empty\else, \fi
+    \cffauthor{\cffdoc@index}{given-names}
+    \cffauthor{\cffdoc@index}{family-names}}}
 \cffforeachaffiliation{%
   \affil[\@alph{\cffaffiliationindex}]{\cffaffiliation{\cffaffiliationindex}}}
-\makeatother
-\affil[*]{E-mail: \cffauthor{1}{email}}
+\affil[*]{E-mail: \cffauthor{\cffauthorcount}{email}}
 % hyperref cannot take the PDF author from the \author of authblk.
-\hypersetup{pdfauthor={\cffauthor{1}{given-names} \cffauthor{1}{family-names}}}
+\hypersetup{pdfauthor={\cffdoc@names}}
+\makeatother
 
 % The version and date of cfflatex.sty, unless the build defines others: CI
 % shows the commit or the release that the manual was built from. See
