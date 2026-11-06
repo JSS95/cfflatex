@@ -99,6 +99,7 @@ badness format .
 badness lint .
 explcheck --warnings-are-errors cfflatex.sty
 luacheck .
+python3 .ci/check_versions.py
 ```
 
 ### Build
