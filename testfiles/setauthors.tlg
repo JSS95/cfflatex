@@ -40,6 +40,23 @@ TEST 5: no contact footnotes
 [][]
 ============================================================
 ============================================================
-TEST 6: title page
+TEST 6: notes
+============================================================
+[\__cfflatex_thanks:n {Equal contribution}][\__cfflatex_thanks:n {E-mail: \cffcontact {2}{email}},\__cfflatex_thanks:n {Current affiliation: Univ C},\__cfflatex_thanks:n {Equal contribution}]
+============================================================
+============================================================
+TEST 7: note for an author out of range
+============================================================
+! Package cfflatex Error: Author index '3' is out of range.
+Type <return> to continue.
+ ...                                              
+l. ...}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+[][\__cfflatex_thanks:n {E-mail: \cffcontact {2}{email}}]
+============================================================
+============================================================
+TEST 8: title page
 ============================================================
 ============================================================

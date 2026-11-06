@@ -38,9 +38,24 @@
   \cffsetauthors[contact = {}, author = {\g@addto@macro\x{[#1]}}]
   \TYPE{\detokenize\expandafter{\x}}
 }
+\TEST{notes}{
+  \gdef\x{}
+  \cffsetauthors[
+    note = {\cffauthorcount}{Current affiliation: Univ C},
+    note = {1}{Equal contribution},
+    note = {2}{Equal contribution},
+    author = {\g@addto@macro\x{[#1]}},
+  ]
+  \TYPE{\detokenize\expandafter{\x}}
+}
+\TEST{note for an author out of range}{
+  \gdef\x{}
+  \cffsetauthors[note = {3}{Never}, author = {\g@addto@macro\x{[#1]}}]
+  \TYPE{\detokenize\expandafter{\x}}
+}
 \TEST{title page}{
   \title{\cfftitle}
-  \cffsetauthors
+  \cffsetauthors[note = {1}{Current affiliation: Univ C}]
   \maketitle
 }
 \makeatother

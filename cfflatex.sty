@@ -571,9 +571,10 @@
 %
 % \cffsetauthors[<keys>] declares the authors of the citation for \maketitle.
 % Each author gets marks: the marks of their affiliations, numbered among the
-% distinct affiliations of the citation, and a footnote for each contact of
-% the citation with the same names. The keys give templates for the name, the
-% footnote, and the commands that declare an author and an affiliation.
+% distinct affiliations of the citation, a footnote for each contact of the
+% citation with the same names, and a footnote for each of their notes, given
+% by the note key. The other keys give templates for the name, the footnote of
+% a contact, and the commands that declare an author and an affiliation.
 
 % Templates set by the keys; #1 of \__cfflatex_name:n and \__cfflatex_contact:n
 % is a field getter, such as \cffauthor{2}, which takes a field.
@@ -612,6 +613,7 @@
           }
       },
     name .code:n = { \cs_set:Npn \__cfflatex_name:n ##1 {#1} },
+    note .code:n = { \__cfflatex_add_note:nn #1 },
     contact .code:n =
       {
         \tl_if_blank:nTF {#1}
@@ -693,6 +695,25 @@
 \cs_generate_variant:Nn \seq_use:Nn { NV }
 \seq_new:N \l__cfflatex_marks_seq
 \seq_new:N \l__cfflatex_names_seq
+% The notes of the note key, as {<author>}{<text>} items.
+\seq_new:N \l__cfflatex_notes_seq
+\cs_new_protected:Npn \__cfflatex_add_note:nn #1#2
+  {
+    \bool_lazy_or:nnTF { \int_compare_p:nNn {#1} < { 1 } }
+      { \int_compare_p:nNn {#1} > { \g__cfflatex_author_count_int } }
+      { \msg_error:nne { cfflatex } { author-index } { \int_eval:n {#1} } }
+      {
+        \seq_put_right:Ne \l__cfflatex_notes_seq
+          { { \int_eval:n {#1} } { \exp_not:n {#2} } }
+      }
+  }
+% Adds a footnote with the text #3 to the marks of the #1-th author if the note
+% is for the #2-th author.
+\cs_new_protected:Npn \__cfflatex_add_note_mark:nnn #1#2#3
+  {
+    \int_compare:nNnT {#1} = {#2}
+      { \seq_put_right:Nn \l__cfflatex_marks_seq { \__cfflatex_thanks:n {#3} } }
+  }
 \tl_new:N \l__cfflatex_marks_tl
 \tl_new:N \l__cfflatex_name_tl
 \tl_new:N \l__cfflatex_author_who_tl
@@ -703,6 +724,7 @@
   {
     \bool_if:NTF \g__cfflatex_loaded_bool
       {
+        \seq_clear:N \l__cfflatex_notes_seq
         \keys_set:nV { cfflatex / authors } \c__cfflatex_author_defaults_tl
         \keys_set:nn { cfflatex / authors } {#1}
         \bool_lazy_and:nnTF { \l__cfflatex_authblk_bool }
@@ -771,6 +793,8 @@
               }
           }
       }
+    \seq_map_inline:Nn \l__cfflatex_notes_seq
+      { \__cfflatex_add_note_mark:nnn {#1} ##1 }
     \tl_set:Ne \l__cfflatex_marks_tl
       { \seq_use:NV \l__cfflatex_marks_seq \l__cfflatex_separator_tl }
     % \protect keeps \cffauthor for \maketitle, where the check sees it, when

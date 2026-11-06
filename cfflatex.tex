@@ -328,6 +328,11 @@ The package has one option, |check|, which is |true| by default
           author who is a contact. |#1| takes a field of the contact. The
           default is |E-mail: #1{email}|, and an empty template gives no
           footnotes.
+    \item[\texttt{note=}\textmd{\marg{index}\marg{text}}] adds a footnote with
+          \meta{text} to the \meta{index}-th author, such as a current
+          affiliation. \meta{index} is an integer expression, such as
+          |\cffauthorcount| for the last author. The key can be given several
+          times. The footnotes follow those of the contacts, in order.
     \item[\texttt{author=}\textmd{\meta{template}}] declares an author, with the
           marks |#1| and the name |#2|.
     \item[\texttt{affiliation=}\textmd{\meta{template}}] declares an
