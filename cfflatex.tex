@@ -221,19 +221,24 @@ The package has one option, |check|, which is |true| by default
   counting from~1.
 \end{function}
 
-\begin{function}[EXP]
-  {
-    \cffauthoraffiliationcount, \cffauthoraffiliation,
-    \cffauthoraffiliationindex
-  }
+\begin{function}[EXP]{\cffauthoraffiliationcount, \cffauthoraffiliation}
   \begin{syntax}
     \cs{cffauthoraffiliationcount} \marg{index}
     \cs{cffauthoraffiliation} \marg{index} \marg{k}
-    \cs{cffauthoraffiliationindex} \marg{index} \marg{k}
   \end{syntax}
   Expand to the number of affiliations of the \meta{index}-th author, which is 0
-  if the author has none, to the \meta{k}-th of them, and to its number among
-  the distinct affiliations of the citation.
+  if the author has none, and to the \meta{k}-th of them.
+\end{function}
+
+\begin{function}{\cffforeachauthoraffiliation, \cffauthoraffiliationindex}
+  \begin{syntax}
+    \cs{cffforeachauthoraffiliation} \marg{index} \marg{code}
+    \cs{cffauthoraffiliationindex}
+  \end{syntax}
+  \cs{cffforeachauthoraffiliation} runs \meta{code} once for each affiliation of
+  the \meta{index}-th author, in order, and \cs{cffauthoraffiliationindex}
+  expands to the index of the current affiliation among those of the author,
+  counting from~1.
 \end{function}
 
 \begin{function}[EXP]{\cffaffiliationcount, \cffaffiliation}
@@ -243,6 +248,16 @@ The package has one option, |check|, which is |true| by default
   \end{syntax}
   Expand to the number of distinct affiliations of the citation, and to the
   \meta{n}-th of them.
+\end{function}
+
+\begin{function}{\cffforeachaffiliation, \cffaffiliationindex}
+  \begin{syntax}
+    \cs{cffforeachaffiliation} \marg{code}
+    \cs{cffaffiliationindex}
+  \end{syntax}
+  \cs{cffforeachaffiliation} runs \meta{code} once for each distinct affiliation
+  of the citation, in order, and \cs{cffaffiliationindex} expands to the number
+  of the current affiliation.
 \end{function}
 
 \section{Errors and warnings}
@@ -271,6 +286,10 @@ The following errors are reported while expanding CFF macros.
         citation has fewer than \meta{k} affiliations.
   \item[Not inside \cs{cffforeachauthor}.] \cs{cffauthorindex} is used outside
         the loop.
+  \item[Not inside an affiliation loop.] \cs{cffaffiliationindex} is used
+        outside the loops over affiliations.
+  \item[Not in an author affiliation loop.] The index of an affiliation of an
+        author is used outside the loop over the affiliations of the author.
 \end{description}
 
 The following warnings are issued after \cs{maketitle} by the check of

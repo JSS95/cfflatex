@@ -11,9 +11,15 @@
 \TEST{\cffauthorcount before \includecff}{\TYPE{[\cffauthorcount]}}
 \TEST{\cffforeachauthor before \includecff}{\cffforeachauthor{\TYPE{never}}}
 \TEST{\cffaffiliationcount before \includecff}{\TYPE{[\cffaffiliationcount]}}
+\TEST{\cffforeachaffiliation before \includecff}{\cffforeachaffiliation{\TYPE{never}}}
 \OMIT
 \includecff{paper.cff}
 \TIMO
+\TEST{\cffaffiliationindex outside an affiliation loop}{\TYPE{[\cffaffiliationindex]}}
+\TEST{\cffauthoraffiliationindex outside an affiliation loop}
+  {\TYPE{[\cffauthoraffiliationindex]}}
+\TEST{author index of foreach author affiliation}
+  {\cffforeachauthoraffiliation{2}{\TYPE{never}}}
 \TEST{affiliation index past the last affiliation of an author}
   {\TYPE{[\cffauthoraffiliation{1}{1}]}}
 \TEST{affiliation index past the last affiliation}{\TYPE{[\cffaffiliation{1}]}}
@@ -21,4 +27,11 @@
 \TEST{\cffauthorindex outside \cffforeachauthor}{\TYPE{[\cffauthorindex]}}
 \TEST{author index 0}{\TYPE{[\cffauthor{0}{given-names}]}}
 \TEST{author index past the last author}{\TYPE{[\cffauthor{3}{given-names}]}}
+\OMIT
+\includecff{affiliations.cff}
+\TIMO
+\TEST{\cffaffiliationindex in \cffforeachauthoraffiliation}
+  {\cffforeachauthoraffiliation{2}{\TYPE{[\cffaffiliationindex]}}}
+\TEST{\cffauthoraffiliationindex in \cffforeachaffiliation}
+  {\cffforeachaffiliation{\TYPE{[\cffaffiliationindex:\cffauthoraffiliationindex]}}}
 \END

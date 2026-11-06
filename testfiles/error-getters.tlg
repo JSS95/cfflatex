@@ -77,7 +77,55 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 7: affiliation index past the last affiliation of an author
+TEST 7: \cffforeachaffiliation before \includecff 
+============================================================
+! Package cfflatex Error: Call \includecff first.
+Type <return> to continue.
+ ...                                              
+l. ......cff}{\cffforeachaffiliation{\TYPE{never}}}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+============================================================
+============================================================
+TEST 8: \cffaffiliationindex outside an affiliation loop
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not inside an affiliation loop.
+l. ......ation loop}{\TYPE{[\cffaffiliationindex]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 9: \cffauthoraffiliationindex outside an affiliation loop
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not in an author affiliation loop.
+l. ...  {\TYPE{[\cffauthoraffiliationindex]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 10: author index of foreach author affiliation
+============================================================
+! Package cfflatex Error: Author index '2' is out of range.
+Type <return> to continue.
+ ...                                              
+l. ......foreachauthoraffiliation{2}{\TYPE{never}}}
+LaTeX does not know anything more about this error, sorry.
+Try typing <return> to proceed.
+If that doesn't work, type X <return> to quit.
+============================================================
+============================================================
+TEST 11: affiliation index past the last affiliation of an author
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -90,7 +138,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 8: affiliation index past the last affiliation
+TEST 12: affiliation index past the last affiliation
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -103,7 +151,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 9: author index of an affiliation count
+TEST 13: author index of an affiliation count
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -116,7 +164,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 10: \cffauthorindex outside \cffforeachauthor 
+TEST 14: \cffauthorindex outside \cffforeachauthor 
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -129,7 +177,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 11: author index 0
+TEST 15: author index 0
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -142,7 +190,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 12: author index past the last author
+TEST 16: author index past the last author
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -153,4 +201,66 @@ put `1' after `\a', since control sequence names are
 made up of letters only. The macro here has not been
 followed by the required stuff, so I'm ignoring it.
 []
+============================================================
+============================================================
+TEST 17: \cffaffiliationindex in \cffforeachauthoraffiliation 
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not inside an affiliation loop.
+l. ......liation{2}{\TYPE{[\cffaffiliationindex]}}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not inside an affiliation loop.
+l. ......liation{2}{\TYPE{[\cffaffiliationindex]}}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not inside an affiliation loop.
+l. ......liation{2}{\TYPE{[\cffaffiliationindex]}}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 18: \cffauthoraffiliationindex in \cffforeachaffiliation 
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not in an author affiliation loop.
+l. ......iationindex:\cffauthoraffiliationindex]}}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[1:]
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not in an author affiliation loop.
+l. ......iationindex:\cffauthoraffiliationindex]}}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[2:]
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not in an author affiliation loop.
+l. ......iationindex:\cffauthoraffiliationindex]}}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[3:]
 ============================================================

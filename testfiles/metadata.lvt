@@ -175,9 +175,6 @@
     \cffauthoraffiliationcount{3} \cffauthoraffiliationcount{4}}
   \TYPE{[\cffauthoraffiliation{2}{1}] [\cffauthoraffiliation{2}{2}]
     [\cffauthoraffiliation{2}{3}]}
-  \TYPE{\cffauthoraffiliationindex{1}{1};
-    \cffauthoraffiliationindex{2}{1},\cffauthoraffiliationindex{2}{2},%
-    \cffauthoraffiliationindex{2}{3}}
   \TYPE{[\cffauthor{2}{affiliation}]}
 }
 \TEST{affiliations are cleared by the next include}{
@@ -199,6 +196,55 @@
     \xdef\x{\x\cffauthor{\cffauthorindex}{family-names}%
       \cffauthor{\cffauthorindex}{name}%
       (\cffauthoraffiliationcount{\cffauthorindex});}}
+  \TYPE{\x}
+}
+\TEST{foreach affiliation}{
+  \OMIT
+  \includecff{affiliations.cff}
+  \TIMO
+  \gdef\x{}
+  \cffforeachaffiliation{%
+    \xdef\x{\x[\cffaffiliationindex:\cffaffiliation{\cffaffiliationindex}]}}
+  \TYPE{\x}
+}
+\TEST{foreach author affiliation}{
+  \OMIT
+  \includecff{affiliations.cff}
+  \TIMO
+  \gdef\x{}
+  \cffforeachauthoraffiliation{2}{%
+    \xdef\x{\x[\cffauthoraffiliationindex:%
+      \cffauthoraffiliation{2}{\cffauthoraffiliationindex}]}}
+  \TYPE{\x}
+  \gdef\x{}
+  \cffforeachauthoraffiliation{3}{\xdef\x{\x never}}
+  \TYPE{[\x]}
+}
+\TEST{foreach author affiliation in foreach author}{
+  \OMIT
+  \includecff{affiliations.cff}
+  \TIMO
+  \gdef\x{}
+  \cffforeachauthor{%
+    \xdef\x{\x\cffauthorindex(}%
+    \cffforeachauthoraffiliation{\cffauthorindex}{%
+      \xdef\x{\x\ifnum\cffauthoraffiliationindex>1 ,\fi\cffauthoraffiliationindex}}%
+    \xdef\x{\x)}}
+  \TYPE{\x}
+}
+\TEST{affiliation loops survive groups and nest}{
+  \OMIT
+  \includecff{affiliations.cff}
+  \TIMO
+  \gdef\x{}
+  \begingroup
+  \cffforeachaffiliation{\endgroup\xdef\x{\x\cffaffiliationindex}\begingroup}
+  \endgroup
+  \TYPE{\x}
+  \gdef\x{}
+  \cffforeachaffiliation{%
+    \cffforeachauthoraffiliation{1}{}%
+    \xdef\x{\x\cffaffiliationindex;}}
   \TYPE{\x}
 }
 \END
