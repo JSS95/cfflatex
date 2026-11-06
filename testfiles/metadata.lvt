@@ -109,4 +109,26 @@
   \TYPE{\cffauthor{1}{given-names} | \cffauthor{1}{family-names}}
   \TYPE{\cffabstract}
 }
+\TEST{author count of the selected citation}{
+  \OMIT
+  \includecff[source=preferred-citation]{paper.cff}
+  \TIMO
+  \TYPE{\cffauthorcount}
+  \OMIT
+  \includecff{paper.cff}
+  \TIMO
+  \TYPE{\cffauthorcount}
+  \OMIT
+  \includecff[source=preferred-citation]{mixed-authors.cff}
+  \TIMO
+  \TYPE{\cffauthorcount}
+}
+\TEST{author count in integer expressions}{
+  \OMIT
+  \includecff[source=preferred-citation]{mixed-authors.cff}
+  \TIMO
+  \TYPE{\the\numexpr \cffauthorcount + 1\relax}
+  \TYPE{\ifnum \cffauthorcount > 1 several authors\else one author\fi}
+  \TYPE{last: \cffauthor{\cffauthorcount}{given-names}}
+}
 \END

@@ -40,7 +40,20 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 4: author index 0
+TEST 4: \cffauthorcount before \includecff 
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Call \includecff first.
+l. ......ore \includecff}{\TYPE{[\cffauthorcount]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 5: author index 0
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -53,7 +66,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 5: author index past the last author
+TEST 6: author index past the last author
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  

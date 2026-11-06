@@ -8,6 +8,7 @@
 \TEST{\cfftitle before \includecff}{\TYPE{[\cfftitle]}}
 \TEST{\cffabstract before \includecff}{\TYPE{[\cffabstract]}}
 \TEST{\cffauthor before \includecff}{\TYPE{[\cffauthor{1}{given-names}]}}
+\TEST{\cffauthorcount before \includecff}{\TYPE{[\cffauthorcount]}}
 \OMIT
 \includecff{paper.cff}
 \TIMO

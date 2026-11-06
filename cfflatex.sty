@@ -125,6 +125,15 @@
 % it has none.
 \NewExpandableDocumentCommand \cffabstract {} {\__cfflatex_value:n { abstract }}
 
+% \cffauthorcount expands to the number of authors of the loaded citation, so
+% that it can be typeset or used in integer expressions.
+\NewExpandableDocumentCommand \cffauthorcount {}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      { \int_use:N \g__cfflatex_author_count_int }
+      { \msg_expandable_error:nn { cfflatex } { not-loaded } }
+  }
+
 % \cffauthor{<index>}{<field>} expands to a field of the <index>-th author,
 % counting from 1. An absent field expands to nothing.
 \cs_generate_variant:Nn \prop_item:Nn { Ne }
