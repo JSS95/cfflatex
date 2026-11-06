@@ -12,6 +12,20 @@ on:
 jobs:
   # Lint stage. The test jobs start only after every lint job passes.
 
+  versions:
+    name: Check release versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test release tooling
+        run: python3 -m unittest discover -s .ci -p 'test_*.py' -v
+
+      # Only a dated stable release at the top of CHANGELOG.md is checked.
+      # An Unreleased section skips the check, including on release events.
+      - name: Compare versions and dates with the changelog
+        run: python3 .ci/check_versions.py
+
   badness:
     name: Lint LaTeX (badness)
     runs-on: ubuntu-latest
@@ -59,11 +73,24 @@ jobs:
       - name: Lint
         run: luacheck .
 
+  ruff:
+    name: Lint Python (Ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Settings are in ruff.toml.
+      - name: Check formatting
+        run: pipx run ruff==0.16.1 format --check .
+
+      - name: Lint
+        run: pipx run ruff==0.16.1 check .
+
   # Test stage.
 
   l3build:
     name: l3build (TeX Live ${{ matrix.texlive }})
-    needs: [badness, explcheck, luacheck]
+    needs: [versions, badness, explcheck, luacheck, ruff]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -110,7 +137,7 @@ jobs:
 
   doc:
     name: Build the manual
-    needs: [badness, explcheck, luacheck]
+    needs: [versions, badness, explcheck, luacheck, ruff]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

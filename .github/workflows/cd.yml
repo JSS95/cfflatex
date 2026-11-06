@@ -1,0 +1,168 @@
+name: CD
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build the CTAN package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check release versions
+        run: python3 .ci/check_versions.py
+
+      - name: Extract release notes from the changelog
+        if: github.event_name == 'release'
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: python3 .ci/release_notes.py --tag "$TAG" > "$RUNNER_TEMP/release-notes.md"
+
+      # l3build ctan runs the tests and typesets the manual before packaging.
+      # This is the union of the test and manual dependencies in ci.yml.
+      - name: Install TeX Live
+        uses: zauguin/install-texlive@c9f3ea3d51b2e04d092c4f9d208a19542d5dabcf # v4.5.0
+        with:
+          texlive_version: 2026
+          packages: >-
+            scheme-basic
+            l3build
+            lt3luabridge
+            lua-tinyyaml
+            lm
+            cm-super
+            pgf
+            preprint
+            alphalph
+            booktabs
+            csquotes
+            enumitem
+            fancyvrb
+            hologo
+            hypdoc
+            underscore
+
+      - name: Build the package
+        run: l3build ctan
+
+      # Both release jobs download this archive; neither rebuilds it.
+      - name: Upload the package
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfflatex-ctan
+          path: cfflatex-ctan.zip
+          if-no-files-found: error
+
+      # Both release jobs use the exact same changelog entry.
+      - name: Upload release notes
+        if: github.event_name == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfflatex-release-notes
+          path: ${{ runner.temp }}/release-notes.md
+          if-no-files-found: error
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfflatex-ctan-logs
+          path: |
+            build/test*/*.diff
+            build/test*/*.log
+            build/doc/*.log
+
+  release:
+    name: Attach the package to the GitHub Release
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download the package
+        uses: actions/download-artifact@v4
+        with:
+          name: cfflatex-ctan
+
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: cfflatex-release-notes
+
+      - name: Set release notes from the changelog
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY"
+          --notes-file release-notes.md
+
+      - name: Upload the release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: >-
+          gh release upload "$TAG" cfflatex-ctan.zip
+          --repo "$GITHUB_REPOSITORY" --clobber
+
+  ctan:
+    name: Submit the package to CTAN
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the uploader email
+        env:
+          CTAN_EMAIL: ${{ secrets.CTAN_EMAIL }}
+        run: ': "${CTAN_EMAIL:?Set the CTAN_EMAIL repository secret to the uploader email.}"'
+
+      # Uploading only needs l3build, not the test and manual dependencies.
+      - name: Install TeX Live
+        uses: zauguin/install-texlive@c9f3ea3d51b2e04d092c4f9d208a19542d5dabcf # v4.5.0
+        with:
+          texlive_version: 2026
+          packages: >-
+            scheme-basic
+            l3build
+
+      - name: Download the package
+        uses: actions/download-artifact@v4
+        with:
+          name: cfflatex-ctan
+
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: cfflatex-release-notes
+
+      # Set update explicitly so l3build also handles the first submission
+      # without an interactive prompt or a retry of a failed validation.
+      - name: Determine whether the package is already on CTAN
+        run: |
+          status=$(curl --silent --show-error --location \
+            --connect-timeout 30 --max-time 60 \
+            --output /dev/null --write-out '%{http_code}' \
+            https://ctan.org/json/2.0/pkg/cfflatex)
+          case "$status" in
+            200) echo "CFFLATEX_CTAN_UPDATE=true" >> "$GITHUB_ENV" ;;
+            404) echo "CFFLATEX_CTAN_UPDATE=false" >> "$GITHUB_ENV" ;;
+            *) echo "CTAN package lookup failed: HTTP $status" >&2; exit 1 ;;
+          esac
+
+      - name: Submit to CTAN
+        env:
+          CTAN_EMAIL: ${{ secrets.CTAN_EMAIL }}
+          CFFLATEX_CTAN_UPLOAD: 'true'
+        run: l3build upload --email "$CTAN_EMAIL" --file release-notes.md
