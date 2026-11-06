@@ -74,6 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # pgf is only for testfiles/check-dynamic.lvt, which uses \foreach.
       - name: Install TeX Live
         uses: zauguin/install-texlive@c9f3ea3d51b2e04d092c4f9d208a19542d5dabcf # v4.5.0
         with:
@@ -85,6 +86,7 @@ jobs:
             lua-tinyyaml
             lm
             cm-super
+            pgf
 
       # Runs testfiles/ with pdfLaTeX and LuaLaTeX, and testfiles-noshell/
       # with pdfLaTeX without shell escape (see build.lua).
