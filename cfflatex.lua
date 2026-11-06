@@ -1,210 +1,74 @@
 -- SPDX-License-Identifier: MIT
 -- Copyright (c) 2026 cffLaTeX contributors
--- Reads a CFF file with lua-tinyyaml and returns TeX code that stores the
--- selected citation's title and author fields in cfflatex.sty.
+-- Turns the shared CFF model into the storage commands of cfflatex.sty.
 
+-- Match the helper selected by cfflatex.sty, including an explicit package
+-- path outside the current directory or the installed TeX tree.
+local helper = ... or "cfflatex.lua"
+local directory = helper:match("^(.*[/\\])") or ""
+local data_file = require("kpse").find_file(directory .. "cfflatex-data.lua", "tex")
+local data = data_file and dofile(data_file) or require("cfflatex-data")
 local cfflatex = {}
-
-local escapes = {
-  ["\\"] = "\\textbackslash{}",
-  ["{"] = "\\{",
-  ["}"] = "\\}",
-  ["%"] = "\\%",
-  ["#"] = "\\#",
-  ["$"] = "\\$",
-  ["&"] = "\\&",
-  ["_"] = "\\_",
-  ["~"] = "\\textasciitilde{}",
-  ["^"] = "\\textasciicircum{}",
-}
-
--- Each returned line is tokenized by TeX, so line breaks become spaces and
--- TeX special characters are printed literally. Surrounding whitespace, such
--- as the final line break of a YAML literal block, is dropped.
-local function tex_text(value)
-  return (tostring(value)
-    :gsub("\r\n", "\n")
-    :gsub("[\r\n\t]", " ")
-    :gsub("^ +", "")
-    :gsub(" +$", "")
-    :gsub("[\\{}%%#$&_~%^]", escapes))
-end
-
--- lua-tinyyaml marks parsed collections and nulls with a __type metatable.
-local function kind(value)
-  if type(value) ~= "table" then
-    return type(value)
-  end
-  local metadata = getmetatable(value)
-  if metadata and metadata.__type then
-    return metadata.__type
-  end
-  return #value > 0 and "seq" or "map"
-end
-
-local function is_scalar(value)
-  local value_kind = kind(value)
-  return value_kind == "string" or value_kind == "number"
-    or value_kind == "boolean"
-end
 
 local function store(path, value)
   return "\\csname __cfflatex_store:nn\\endcsname{"
-    .. path .. "}{" .. tex_text(value) .. "}"
+    .. path .. "}{" .. data.tex_text(value) .. "}"
 end
 
--- CFF 1.2.0 gives a person one affiliation, a nonempty string. cffLaTeX reads
--- several affiliations from a string that separates them with semicolons; a
--- single trailing semicolon is allowed. Whitespace runs become single spaces,
--- and each affiliation is trimmed.
-local function split_affiliations(value, path)
-  if kind(value) ~= "string" then
-    error("'" .. path .. "' must be a string", 0)
-  end
-  local text = value:gsub("%s+", " "):gsub("^ ", ""):gsub(" $", ""):gsub(";$", "")
-  if not text:match("%S") then
-    error("'" .. path .. "' must not be empty", 0)
-  end
-  local names, seen = {}, {}
-  for part in (text .. ";"):gmatch("([^;]*);") do
-    local name = part:match("^ *(.-) *$")
-    if name == "" then
-      error("'" .. path .. "' has an empty affiliation between semicolons", 0)
-    end
-    if seen[name] then
-      error("'" .. path .. "' lists '" .. name .. "' twice", 0)
-    end
-    seen[name] = true
-    names[#names + 1] = name
-  end
-  return names
-end
-
--- An empty source selects the top level of the file. Any other source is a
--- top-level key, such as preferred-citation, whose value is the citation.
--- The prefix is put before field names in error messages.
 -- Stores every value of the citation under its path, the keys and the indices
 -- of the mappings and sequences that hold it, separated by slashes, for \cff.
 -- The length of each sequence is stored as its kind, and a mapping as "map".
-local function flatten(value, path, output, active)
-  local value_kind = kind(value)
+local function flatten(value, path, output)
+  local value_kind = data.kind(value)
   if value_kind == "map" or value_kind == "seq" then
-    if active[value] then
-      error("cyclic YAML aliases are not supported", 0)
-    end
-    active[value] = true
     output[#output + 1] = "\\csname __cfflatex_store_kind:nn\\endcsname{"
       .. path .. "}{" .. (value_kind == "seq" and #value or "map") .. "}"
     for key, item in pairs(value) do
-      local name = tex_text(key)
-      flatten(item, path == "" and name or path .. "/" .. name, output, active)
+      local name = data.tex_text(key)
+      flatten(item, path == "" and name or path .. "/" .. name, output)
     end
-    active[value] = nil
-  elseif is_scalar(value) then
+  elseif data.is_scalar(value) then
     output[#output + 1] = "\\csname __cfflatex_store_field:nn\\endcsname{"
-      .. path .. "}{" .. tex_text(value) .. "}"
+      .. path .. "}{" .. data.tex_text(value) .. "}"
   end
-end
-
-local function select_citation(data, source)
-  if kind(data) ~= "map" then
-    error("the CFF file must contain a mapping", 0)
-  end
-  if source == "" then
-    return data, ""
-  end
-  local selected = data[source]
-  if selected == nil then
-    error("the CFF file has no '" .. source .. "'", 0)
-  end
-  if kind(selected) ~= "map" then
-    error("'" .. source .. "' must be a mapping", 0)
-  end
-  return selected, source .. "/"
 end
 
 local function read(filename, source)
-  local available, yaml = pcall(require, "tinyyaml")
-  if not available then
-    error("install the lua-tinyyaml TeX package", 0)
-  end
-  local kpse = require("kpse")
-  local input, open_error = io.open(kpse.find_file(filename, "tex") or filename, "rb")
-  if not input then
-    error(open_error, 0)
-  end
-  local contents = input:read("*a")
-  input:close()
-  -- Dates stay text, as CFF writes them.
-  local data = yaml.parse(contents, {timestamps = false})
-  local selected, prefix = select_citation(data, source)
-
+  local model = data.load(filename, source)
   local output = {}
-  flatten(selected, "", output, {})
-  if not is_scalar(selected.title) then
-    error("'" .. prefix .. "title' must be a string", 0)
-  end
-  -- The abstract is optional.
-  if selected.abstract ~= nil and not is_scalar(selected.abstract) then
-    error("'" .. prefix .. "abstract' must be a string", 0)
-  end
-
-  local authors = selected.authors
-  if kind(authors) ~= "seq" or #authors == 0 then
-    error("'" .. prefix .. "authors' must be a nonempty sequence", 0)
-  end
-  -- Distinct affiliations are numbered in the order they first appear.
-  local numbers, affiliation_count = {}, 0
-  for index, author in ipairs(authors) do
-    if kind(author) ~= "map" then
-      error("'" .. prefix .. "authors/" .. index .. "' must be a mapping", 0)
-    end
+  flatten(model.citation, "", output)
+  for index, author in ipairs(model.citation.authors) do
     for key, value in pairs(author) do
-      if type(key) == "string" and is_scalar(value) then
-        output[#output + 1] = store("authors/" .. index .. "/" .. tex_text(key), value)
+      if type(key) == "string" and data.is_scalar(value) then
+        output[#output + 1] = store("authors/" .. index .. "/" .. data.tex_text(key), value)
       end
     end
-    if author.affiliation ~= nil then
-      local path = prefix .. "authors/" .. index .. "/affiliation"
-      local names = split_affiliations(author.affiliation, path)
-      for position, name in ipairs(names) do
-        if numbers[name] == nil then
-          affiliation_count = affiliation_count + 1
-          numbers[name] = affiliation_count
-          output[#output + 1] = store("affiliations/" .. affiliation_count, name)
-        end
+    local affiliation = model.author_affiliations[index]
+    if affiliation then
+      for position, name in ipairs(affiliation.names) do
         local key = "authors/" .. index .. "/affiliation-"
         output[#output + 1] = store(key .. "names/" .. position, name)
-        output[#output + 1] = store(key .. "indices/" .. position, numbers[name])
+        output[#output + 1] = store(key .. "indices/" .. position,
+          affiliation.indices[position])
       end
-      output[#output + 1] = store("authors/" .. index .. "/affiliation-count", #names)
+      output[#output + 1] = store("authors/" .. index .. "/affiliation-count",
+        #affiliation.names)
     end
   end
-  output[#output + 1] = store("affiliation-count", affiliation_count)
-
-  -- The contacts are optional; like the authors, each is a person or an entity.
-  local contacts = selected.contact
-  local contact_count = 0
-  if contacts ~= nil then
-    if kind(contacts) ~= "seq" or #contacts == 0 then
-      error("'" .. prefix .. "contact' must be a nonempty sequence", 0)
-    end
-    for index, contact in ipairs(contacts) do
-      if kind(contact) ~= "map" then
-        error("'" .. prefix .. "contact/" .. index .. "' must be a mapping", 0)
-      end
-      for key, value in pairs(contact) do
-        if type(key) == "string" and is_scalar(value) then
-          output[#output + 1] = store("contact/" .. index .. "/" .. tex_text(key), value)
-        end
-      end
-    end
-    contact_count = #contacts
+  for index, name in ipairs(model.affiliations) do
+    output[#output + 1] = store("affiliations/" .. index, name)
   end
-  output[#output + 1] = store("contact-count", contact_count)
-
+  output[#output + 1] = store("affiliation-count", #model.affiliations)
+  for index, contact in ipairs(model.citation.contact or {}) do
+    for key, value in pairs(contact) do
+      if type(key) == "string" and data.is_scalar(value) then
+        output[#output + 1] = store("contact/" .. index .. "/" .. data.tex_text(key), value)
+      end
+    end
+  end
+  output[#output + 1] = store("contact-count", model.contact_count)
   output[#output + 1] = "\\csname __cfflatex_finish:n\\endcsname{"
-    .. #authors .. "}"
+    .. #model.citation.authors .. "}"
   return table.concat(output, "\n")
 end
 
@@ -213,7 +77,7 @@ function cfflatex.read(filename, source)
   if success then
     return result
   end
-  return "\\csname __cfflatex_fail:n\\endcsname{" .. tex_text(result) .. "}"
+  return "\\csname __cfflatex_fail:n\\endcsname{" .. data.tex_text(result) .. "}"
 end
 
 return cfflatex

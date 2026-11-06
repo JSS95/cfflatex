@@ -10,7 +10,7 @@ With cffLaTeX, you don't need to write your paper metadata twice.
 
 ## Installation
 
-Install `cfflatex.sty` and `cfflatex.lua` in a local TeX tree such as `~/texmf/tex/latex/cfflatex/`.
+Install `cfflatex.sty`, `cfflatex.lua`, and `cfflatex-data.lua` in a local TeX tree such as `~/texmf/tex/latex/cfflatex/`.
 Alternatively, you can put them next to your document.
 
 ## Quick start
@@ -99,18 +99,26 @@ Requires:
 badness format .
 badness lint .
 explcheck --warnings-are-errors cfflatex.sty
-luacheck .
+luacheck . cfflatexpand
 ruff format .
 ruff check .
 python3 .ci/check_versions.py
 ```
 
-### Build
+### Test
 
-[l3build](https://ctan.org/pkg/l3build) runs the tests and builds the manual and the CTAN archive:
+Run the LaTeX regression tests and the standalone export CLI tests:
 
 ```sh
 l3build check   # tests with pdfLaTeX and LuaLaTeX
+texlua tests/test_cfflatexpand.lua  # export CLI tests
+```
+
+### Build
+
+[l3build](https://ctan.org/pkg/l3build) builds the manual and the CTAN archive:
+
+```sh
 l3build doc     # cfflatex.pdf
 l3build ctan    # cfflatex-<version>.zip
 ```

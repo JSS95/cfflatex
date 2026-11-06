@@ -162,7 +162,8 @@
       {
         local~kpse = require("kpse");
         local~helper = \exp_not:V \l__cfflatex_helper_lua_str;
-        local~cfflatex = dofile(kpse.find_file(helper,~"tex")~or~helper);
+        local~cfflatex = assert(loadfile(
+        kpse.find_file(helper,~"tex")~or~helper))(helper);
         print(cfflatex.read(
         \exp_not:V \l__cfflatex_file_lua_str,
         \exp_not:V \l__cfflatex_source_lua_str

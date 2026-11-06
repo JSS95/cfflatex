@@ -6,7 +6,7 @@
 --   l3build upload       submit the CTAN archive (asks for your email)
 module = "cfflatex"
 
-sourcefiles = {"cfflatex.sty", "cfflatex.lua"}
+sourcefiles = {"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua"}
 installfiles = sourcefiles
 
 -- Tests ---------------------------------------------------------------------
