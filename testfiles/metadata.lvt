@@ -131,4 +131,38 @@
   \TYPE{\ifnum \cffauthorcount > 1 several authors\else one author\fi}
   \TYPE{last: \cffauthor{\cffauthorcount}{given-names}}
 }
+\TEST{foreach author runs in order}{
+  \OMIT
+  \includecff[source=preferred-citation]{mixed-authors.cff}
+  \TIMO
+  \gdef\x{}
+  \cffforeachauthor{\xdef\x{\x[\cffauthorindex]}}
+  \TYPE{\x}
+  \gdef\x{}
+  \cffforeachauthor{%
+    \xdef\x{\x\cffauthor{\cffauthorindex}{family-names}%
+      \cffauthor{\cffauthorindex}{name};}}
+  \TYPE{\x}
+}
+\TEST{foreach author survives groups that the code closes}{
+  \OMIT
+  \includecff[source=preferred-citation]{mixed-authors.cff}
+  \TIMO
+  \gdef\x{}
+  \begingroup
+  \cffforeachauthor{\endgroup\xdef\x{\x\cffauthorindex}\begingroup}
+  \endgroup
+  \TYPE{\x}
+}
+\TEST{nested foreach author}{
+  \OMIT
+  \includecff[source=preferred-citation]{paper.cff}
+  \TIMO
+  \gdef\x{}
+  \cffforeachauthor{%
+    \xdef\x{\x\cffauthorindex(}%
+    \cffforeachauthor{\xdef\x{\x\cffauthorindex}}%
+    \xdef\x{\x)\cffauthorindex;}}
+  \TYPE{\x}
+}
 \END

@@ -9,9 +9,11 @@
 \TEST{\cffabstract before \includecff}{\TYPE{[\cffabstract]}}
 \TEST{\cffauthor before \includecff}{\TYPE{[\cffauthor{1}{given-names}]}}
 \TEST{\cffauthorcount before \includecff}{\TYPE{[\cffauthorcount]}}
+\TEST{\cffforeachauthor before \includecff}{\cffforeachauthor{\TYPE{never}}}
 \OMIT
 \includecff{paper.cff}
 \TIMO
+\TEST{\cffauthorindex outside \cffforeachauthor}{\TYPE{[\cffauthorindex]}}
 \TEST{author index 0}{\TYPE{[\cffauthor{0}{given-names}]}}
 \TEST{author index past the last author}{\TYPE{[\cffauthor{3}{given-names}]}}
 \END

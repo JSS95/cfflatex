@@ -14,6 +14,8 @@
 \msg_new:nnn { cfflatex } { not-loaded } { Call~\iow_char:N\\includecff~first. }
 \msg_new:nnn { cfflatex } { author-index }
   { Author~index~'#1'~is~out~of~range. }
+\msg_new:nnn { cfflatex } { not-in-loop }
+  { Not~inside~\iow_char:N\\cffforeachauthor. }
 \msg_new:nnn { cfflatex } { shell-escape }
   {
     pdfLaTeX~requires~unrestricted~shell~escape~to~read~CFF~files.~
@@ -22,6 +24,8 @@
 
 \prop_new:N \g__cfflatex_values_prop
 \int_new:N \g__cfflatex_author_count_int
+% The index of the current author in \cffforeachauthor; 0 outside the loop.
+\int_new:N \g__cfflatex_author_index_int
 \bool_new:N \g__cfflatex_loaded_bool
 \tl_new:N \l__cfflatex_source_tl
 \tl_new:N \l__cfflatex_filename_tl
@@ -150,6 +154,43 @@
           }
       }
       { \msg_expandable_error:nn { cfflatex } { not-loaded } }
+  }
+
+% \cffforeachauthor{<code>} runs <code> once for each author, in order, with
+% \cffauthorindex expanding to the index of the author. It adds no group and
+% keeps its state in global variables and in its arguments, so <code> may close
+% and reopen groups, as \and does between the authors in \author.
+\NewDocumentCommand \cffforeachauthor {+m}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \exp_args:Nnno \__cfflatex_foreach_author:nnn { 1 } {#1}
+          { \int_use:N \g__cfflatex_author_index_int }
+      }
+      { \msg_error:nn { cfflatex } { not-loaded } }
+  }
+% #1 is the index of the next author, #2 the code, and #3 the index to restore
+% at the end, which is that of an enclosing loop or 0.
+\cs_new_protected:Npn \__cfflatex_foreach_author:nnn #1#2#3
+  {
+    \int_compare:nNnTF {#1} > { \g__cfflatex_author_count_int }
+      { \int_gset:Nn \g__cfflatex_author_index_int {#3} }
+      {
+        \int_gset:Nn \g__cfflatex_author_index_int {#1}
+        #2
+        \exp_args:Nf \__cfflatex_foreach_author:nnn { \int_eval:n { #1 + 1 } }
+          {#2}
+          {#3}
+      }
+  }
+
+% \cffauthorindex expands to the index of the current author in
+% \cffforeachauthor.
+\NewExpandableDocumentCommand \cffauthorindex {}
+  {
+    \int_compare:nNnTF { \g__cfflatex_author_index_int } = { 0 }
+      { \msg_expandable_error:nn { cfflatex } { not-in-loop } }
+      { \int_use:N \g__cfflatex_author_index_int }
   }
 
 \endinput

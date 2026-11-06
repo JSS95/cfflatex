@@ -99,6 +99,19 @@ in the same way. Note that CFF~1.2.0 defines \texttt{preferred-citation} as the
 only such key and allows no others, so a file with another key fails CFF
 validation.
 
+\subsection{Iterating over authors}
+
+\cs{cffforeachauthor} runs its argument once for each author of the citation,
+and \cs{cffauthorindex} gives the index of the current author. A document can
+thus list the authors without knowing how many there are. The following sets the
+author list of \cs{maketitle}, with \cs{and} between the authors:
+\begin{Verbatim}
+\author{\cffforeachauthor{%
+  \ifnum\cffauthorindex>1 \and\fi
+  \cffauthor{\cffauthorindex}{given-names}~%
+  \cffauthor{\cffauthorindex}{family-names}}}
+\end{Verbatim}
+
 \subsection{Text in the metadata}
 
 Values are inserted as text. The \TeX{} special characters
@@ -163,6 +176,21 @@ when the CFF file changes.
   Expands to the number of authors of the citation.
 \end{function}
 
+\begin{function}{\cffforeachauthor}
+  \begin{syntax}
+    \cs{cffforeachauthor} \marg{code}
+  \end{syntax}
+  Runs \meta{code} once for each author of the citation, in order.
+\end{function}
+
+\begin{function}[EXP]{\cffauthorindex}
+  \begin{syntax}
+    \cs{cffauthorindex}
+  \end{syntax}
+  Expands to the index of the current author in \cs{cffforeachauthor}, counting
+  from~1.
+\end{function}
+
 \section{Errors}
 
 The following errors stop compilation.
@@ -184,6 +212,8 @@ The following errors are reported while expanding CFF macros.
   \item[Call \cs{includecff} first.] No CFF file has been read yet.
   \item[Author index `\textmd{\meta{index}}' is out of range.] The citation has
         fewer than \meta{index} authors.
+  \item[Not inside \cs{cffforeachauthor}.] \cs{cffauthorindex} is used outside
+        the loop.
 \end{description}
 
 \section{License}
