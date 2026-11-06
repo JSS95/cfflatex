@@ -22,8 +22,12 @@
 \author[{a,b,*}]{%
   \protect\cffauthor{1}{given-names}~\protect\cffauthor{1}{family-names}%
 }
-\affil[{a}]{\cffauthoraffiliation{1}{1}}
-\affil[{b}]{\cffauthoraffiliation{1}{2}}
+% One \affil for each distinct affiliation of the citation, marked a, b, ... in
+% the order of \cffforeachaffiliation.
+\makeatletter
+\cffforeachaffiliation{%
+  \affil[\@alph{\cffaffiliationindex}]{\cffaffiliation{\cffaffiliationindex}}}
+\makeatother
 \affil[*]{E-mail: \cffauthor{1}{email}}
 % hyperref cannot take the PDF author from the \author of authblk.
 \hypersetup{pdfauthor={\cffauthor{1}{given-names} \cffauthor{1}{family-names}}}
