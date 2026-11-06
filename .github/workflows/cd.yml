@@ -166,8 +166,8 @@ jobs:
             *) echo "CTAN package lookup failed: HTTP $status" >&2; exit 1 ;;
           esac
 
-      # - name: Submit to CTAN
-      #   env:
-      #     CTAN_EMAIL: ${{ secrets.CTAN_EMAIL }}
-      #     CFFLATEX_CTAN_UPLOAD: 'true'
-      #   run: l3build upload --email "$CTAN_EMAIL" --file release-notes.md
+      - name: Submit to CTAN
+        env:
+          CTAN_EMAIL: ${{ secrets.CTAN_EMAIL }}
+          CFFLATEX_CTAN_UPLOAD: 'true'
+        run: l3build upload --email "$CTAN_EMAIL" --file release-notes.md
