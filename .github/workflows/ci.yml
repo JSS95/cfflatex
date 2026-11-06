@@ -142,3 +142,75 @@ jobs:
         with:
           name: cfflatex-manual-log
           path: build/doc/*.log
+
+  # Deploy stage: publish the manual of the head of master to GitHub Pages.
+  # Pages must use "GitHub Actions" as its source (Settings > Pages). Every
+  # deployment replaces the whole site, so it shows only the latest manual.
+
+  pages:
+    name: Deploy the manual to GitHub Pages
+    needs: doc
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    # Deployments run one at a time. A queued deployment is replaced by a
+    # newer one, and a deployment whose commit is no longer the head of master
+    # is skipped below, so an older run never overwrites a newer manual.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Check that this commit is still the head of master
+        id: head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/master" --jq .sha)
+          if [ "$head" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "master is now at $head; skipping $GITHUB_SHA."
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download the manual
+        if: steps.head.outputs.current == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: cfflatex-manual
+          path: site
+
+      # The site root opens the manual.
+      - name: Add an index page
+        if: steps.head.outputs.current == 'true'
+        run: |
+          cat > site/index.html <<'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>cffLaTeX manual</title>
+            <meta http-equiv="refresh" content="0; url=cfflatex.pdf">
+          </head>
+          <body>
+            <p><a href="cfflatex.pdf">cffLaTeX manual (PDF)</a></p>
+          </body>
+          </html>
+          HTML
+
+      - name: Upload the site
+        if: steps.head.outputs.current == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - name: Deploy
+        id: deploy
+        if: steps.head.outputs.current == 'true'
+        uses: actions/deploy-pages@v5
