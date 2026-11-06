@@ -104,6 +104,24 @@ in the same way. Note that CFF~1.2.0 defines \texttt{preferred-citation} as the
 only such key and allows no others, so a file with another key fails CFF
 validation.
 
+\subsection{Reading CFF fields}
+\label{sec:any-field}
+
+Once the CFF file is included, \cs{cff} reads any value of the citation by its
+path. The keys and the indices, counting from~1, that lead to it, are separated
+by slashes. \cs{cffcount} gives the length of a list. With the |CITATION.cff| of
+this manual,
+\begin{center}
+  \begin{tabular}{ll}
+    |\cff{title}|                  & \cff{title}                  \\
+    |\cff{authors/1/family-names}| & \cff{authors/1/family-names} \\
+    |\cff{keywords/2}|             & \cff{keywords/2}             \\
+    |\cffcount{keywords}|          & \cffcount{keywords}          \\
+  \end{tabular}
+\end{center}
+The path is expanded first, so |\cff{authors/\cffauthorindex/email}| reads the
+email address of the current author in \cs{cffforeachauthor}.
+
 \subsection{Iterating over authors}
 
 \cs{cffforeachauthor} runs its argument once for each author of the citation,
@@ -169,10 +187,11 @@ when the CFF file changes.
 By default, \pkg{cfflatex} checks that \cs{maketitle} typesets the metadata of
 the citation. The \cs{title} command should use \cs{cfftitle}, and the
 \cs{author} command should use \cs{cffauthor} for every author of the citation.
-The check cannot see metadata that is expanded before \cs{maketitle}, such as an
-author list built with \cs{xdef} in the preamble, and it needs a class that
-keeps the title and the authors in \cs{@title} and \cs{@author}, as the standard
-classes do. In such cases, load the package with the |check=false| option:
+\cs{cff} with the paths of these values counts as well. The check cannot see
+metadata that is expanded before \cs{maketitle}, such as an author list built
+with \cs{xdef} in the preamble, and it needs a class that keeps the title and
+the authors in \cs{@title} and \cs{@author}, as the standard classes do. In such
+cases, load the package with the |check=false| option:
 \begin{Verbatim}
 \usepackage[check=false]{cfflatex}
 \end{Verbatim}
@@ -196,6 +215,22 @@ The package has one option, |check|, which is |true| by default
           top-level \meta{key} instead. Without this option, the citation is the
           top level of the file.
   \end{description}
+\end{function}
+
+\begin{function}[EXP]{\cff, \cffcount}
+  \begin{syntax}
+    \cs{cff} \marg{path}
+    \cs{cffcount} \marg{path}
+  \end{syntax}
+  Expand to the value at \meta{path} in the citation, and to the length of the
+  list at \meta{path}. \meta{path} lists the keys and the indices, counting
+  from~1, that lead to the value, separated by slashes, such as
+  |authors/1/family-names|. A missing path gives nothing for \cs{cff} and 0 for
+  \cs{cffcount}. A list or a mapping for \cs{cff}, and a value or a mapping for
+  \cs{cffcount}, is an error. |\cff{title}| is \cs{cfftitle}, and
+  |\cff{authors/|\meta{index}|/|\meta{field}|}| is
+  \cs{cffauthor}\marg{index}\marg{field} without the check of the index.
+  Section~\ref{sec:any-field} shows examples.
 \end{function}
 
 \begin{function}[EXP]{\cfftitle}
@@ -374,6 +409,10 @@ Section~\ref{sec:reference}.
         the loop.
   \item[Not inside \cs{cffforeachcontact}.] \cs{cffcontactindex} is used outside
         the loop.
+  \item[Not a value: \textmd{\meta{path}}.] \cs{cff} is given the path of a list
+        or a mapping.
+  \item[Not a list: \textmd{\meta{path}}.] \cs{cffcount} is given the path of a
+        value or a mapping.
   \item[Not inside an affiliation loop.] \cs{cffaffiliationindex} is used
         outside the loops over affiliations.
   \item[Not in an author affiliation loop.] The index of an affiliation of an

@@ -138,7 +138,85 @@ Try typing <return> to proceed.
 If that doesn't work, type X <return> to quit.
 ============================================================
 ============================================================
-TEST 12: contact index past the last contact
+TEST 12: \cff before \includecff 
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Call \includecff first.
+l. ...... before \includecff}{\TYPE{[\cff{title}]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 13: \cffcount before \includecff 
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Call \includecff first.
+l. ...... \includecff}{\TYPE{[\cffcount{authors}]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 14: \cff of a sequence
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not a value: authors.
+l. ......cff of a sequence}{\TYPE{[\cff{authors}]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 15: \cff of a mapping
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not a value: authors/1.
+l. ......ff of a mapping}{\TYPE{[\cff{authors/1}]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 16: \cffcount of a value
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not a list: title.
+l. ......unt of a value}{\TYPE{[\cffcount{title}]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 17: \cffcount of a mapping
+============================================================
+! Use of \??? doesn't match its definition.
+<argument> \???  
+                 ! Package cfflatex Error: Not a list: authors/1.
+l. ...... a mapping}{\TYPE{[\cffcount{authors/1}]}}
+If you say, e.g., `\def\a1{...}', then you must always
+put `1' after `\a', since control sequence names are
+made up of letters only. The macro here has not been
+followed by the required stuff, so I'm ignoring it.
+[]
+============================================================
+============================================================
+TEST 18: contact index past the last contact
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -151,7 +229,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 13: \cffcontactindex outside \cffforeachcontact 
+TEST 19: \cffcontactindex outside \cffforeachcontact 
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -164,7 +242,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 14: affiliation index of \cffconvertaffiliationindex 
+TEST 20: affiliation index of \cffconvertaffiliationindex 
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -177,7 +255,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 15: author index of \cffconvertaffiliationindex 
+TEST 21: author index of \cffconvertaffiliationindex 
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -190,7 +268,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 16: \cffaffiliationindex outside an affiliation loop
+TEST 22: \cffaffiliationindex outside an affiliation loop
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -203,7 +281,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 17: \cffauthoraffiliationindex outside an affiliation loop
+TEST 23: \cffauthoraffiliationindex outside an affiliation loop
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -216,7 +294,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 18: author index of foreach author affiliation
+TEST 24: author index of foreach author affiliation
 ============================================================
 ! Package cfflatex Error: Author index '2' is out of range.
 Type <return> to continue.
@@ -227,7 +305,7 @@ Try typing <return> to proceed.
 If that doesn't work, type X <return> to quit.
 ============================================================
 ============================================================
-TEST 19: affiliation index past the last affiliation of an author
+TEST 25: affiliation index past the last affiliation of an author
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -240,7 +318,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 20: affiliation index past the last affiliation
+TEST 26: affiliation index past the last affiliation
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -253,7 +331,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 21: author index of an affiliation count
+TEST 27: author index of an affiliation count
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -266,7 +344,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 22: \cffauthorindex outside \cffforeachauthor 
+TEST 28: \cffauthorindex outside \cffforeachauthor 
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -279,7 +357,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 23: author index 0
+TEST 29: author index 0
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -292,7 +370,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 24: author index past the last author
+TEST 30: author index past the last author
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -305,7 +383,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 25: \cffaffiliationindex in \cffforeachauthoraffiliation 
+TEST 31: \cffaffiliationindex in \cffforeachauthoraffiliation 
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
@@ -336,7 +414,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ============================================================
 ============================================================
-TEST 26: \cffauthoraffiliationindex in \cffforeachaffiliation 
+TEST 32: \cffauthoraffiliationindex in \cffforeachaffiliation 
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  

@@ -1,0 +1,19 @@
+% \cff{title} and \cff{authors/<i>/<field>} count for the check as
+% \cfftitle and \cffauthor.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+
+\includecff[source=preferred-citation]{paper.cff}
+\title{\cff{title}}
+\author{\cff{authors/1/family-names} \and \cff{authors/2/family-names}}
+\date{}
+
+\begin{document}
+% \maketitle sets math in \large; load those fonts here, because TeX Live 2025
+% logs them and 2026 does not.
+\sbox0{\large $x$}
+\START
+\maketitle
+\END

@@ -17,9 +17,15 @@
 \TEST{\cffcontactcount before \includecff}{\TYPE{[\cffcontactcount]}}
 \TEST{\cffcontact before \includecff}{\TYPE{[\cffcontact{1}{name}]}}
 \TEST{\cffforeachcontact before \includecff}{\cffforeachcontact{\TYPE{never}}}
+\TEST{\cff before \includecff}{\TYPE{[\cff{title}]}}
+\TEST{\cffcount before \includecff}{\TYPE{[\cffcount{authors}]}}
 \OMIT
 \includecff{paper.cff}
 \TIMO
+\TEST{\cff of a sequence}{\TYPE{[\cff{authors}]}}
+\TEST{\cff of a mapping}{\TYPE{[\cff{authors/1}]}}
+\TEST{\cffcount of a value}{\TYPE{[\cffcount{title}]}}
+\TEST{\cffcount of a mapping}{\TYPE{[\cffcount{authors/1}]}}
 \TEST{contact index past the last contact}{\TYPE{[\cffcontact{1}{name}]}}
 \TEST{\cffcontactindex outside \cffforeachcontact}{\TYPE{[\cffcontactindex]}}
 \TEST{affiliation index of \cffconvertaffiliationindex}

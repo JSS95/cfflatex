@@ -301,4 +301,36 @@
   \endgroup
   \TYPE{\x}
 }
+\TEST{any field}{
+  \OMIT
+  \includecff{generic.cff}
+  \TIMO
+  \TYPE{\cff{title} | \cff{cff-version} | \cff{date-released} | \cff{version}}
+  \TYPE{\cff{keywords/2} | \cff{identifiers/1/value} | \cff{authors/1/name}
+    | \cff{preferred-citation/title}}
+  \TYPE{[\cff{missing}] [\cff{authors/2/name}] [\cff{keywords/3}]}
+  \TYPE{\cffcount{keywords} \cffcount{authors} \cffcount{identifiers}
+    \cffcount{preferred-citation/authors} \cffcount{missing}}
+}
+\TEST{any field of the selected citation}{
+  \OMIT
+  \includecff[source=preferred-citation]{generic.cff}
+  \TIMO
+  \TYPE{\cff{title} | \cff{authors/1/name} | [\cff{cff-version}]}
+}
+\TEST{any field as the named commands}{
+  \OMIT
+  \includecff{special.cff}
+  \TIMO
+  \TYPE{\cff{title}}
+  \TYPE{\cff{authors/1/name}}
+  \OMIT
+  \includecff{affiliations.cff}
+  \TIMO
+  \gdef\x{}
+  \cffforeachauthor{%
+    \xdef\x{\x[\cff{authors/\cffauthorindex/family-names}%
+      \cff{authors/\cffauthorindex/name}]}}
+  \TYPE{\x}
+}
 \END

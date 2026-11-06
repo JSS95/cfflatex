@@ -13,6 +13,8 @@ First release.
 
 - `\includecff[source=key]{file}` reads the top level of a CFF file, or the
   mapping under its top-level `key`, such as `preferred-citation`.
+- `\cff{path}` expands to any value of the citation by its path, such as
+  `authors/1/family-names`, and `\cffcount{path}` to the length of a list.
 - `\cfftitle` and `\cffabstract` expand to the title and abstract of the selected citation.
 - `\cffauthor{index}{field}` expands to the author fields of the selected citation.
 - `\cffauthorcount` expands to the number of authors of the selected citation.
