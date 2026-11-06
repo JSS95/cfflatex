@@ -1,0 +1,21 @@
+% style=authblk declares each author and each distinct affiliation with the
+% \author and \affil of authblk.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+\usepackage{authblk}
+\includecff{authors-contacts.cff}
+\title{\cfftitle}
+\cffsetauthors[style=authblk]
+\begin{document}
+% \maketitle sets math in \large and \footnotesize; load those fonts here, because TeX Live 2025
+% logs them and 2026 does not.
+\sbox0{\large $x$}\sbox0{\footnotesize $x$}
+\START
+\makeatletter
+\TYPE{\detokenize\expandafter{\AB@authlist}}
+\TYPE{\detokenize\expandafter{\AB@affillist}}
+\makeatother
+\maketitle
+\END

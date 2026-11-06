@@ -45,6 +45,8 @@
     \iow_char:N\\author~does~not~use~author(s)~#1~of~the~citation.~
     Load~cfflatex~with~check=false~to~skip~this~check.
   }
+\msg_new:nnn { cfflatex } { authblk-missing }
+  { style=authblk~needs~the~authblk~package. }
 \msg_new:nnn { cfflatex } { shell-escape }
   {
     pdfLaTeX~requires~unrestricted~shell~escape~to~read~CFF~files.~
@@ -564,5 +566,225 @@
     \__cfflatex_loop_state:Nn \g__cfflatex_contact_index_int
       { \msg_expandable_error:nn { cfflatex } { not-in-contact-loop } }
   }
+
+% Title page authors ---------------------------------------------------------
+%
+% \cffsetauthors[<keys>] declares the authors of the citation for \maketitle.
+% Each author gets marks: the marks of their affiliations, numbered among the
+% distinct affiliations of the citation, and a footnote for each contact of
+% the citation with the same names. The keys give templates for the name, the
+% footnote, and the commands that declare an author and an affiliation.
+
+% Templates set by the keys; #1 of \__cfflatex_name:n and \__cfflatex_contact:n
+% is a field getter, such as \cffauthor{2}, which takes a field.
+\cs_new:Npn \__cfflatex_name:n #1 {}
+\cs_new:Npn \__cfflatex_contact:n #1 {}
+\cs_new:Npn \__cfflatex_affiliation_mark:n #1 {}
+\cs_new_protected:Npn \__cfflatex_put_author:nn #1#2 {}
+\cs_generate_variant:Nn \__cfflatex_put_author:nn { VV }
+\cs_new_protected:Npn \__cfflatex_put_affiliation:nn #1#2 {}
+\tl_new:N \l__cfflatex_separator_tl
+\bool_new:N \l__cfflatex_affiliations_bool
+\bool_new:N \l__cfflatex_contacts_bool
+\bool_new:N \l__cfflatex_standard_bool
+\bool_new:N \l__cfflatex_authblk_bool
+\keys_define:nn { cfflatex / authors }
+  {
+    style .choice:,
+    style / standard .code:n =
+      {
+        \bool_set_true:N \l__cfflatex_standard_bool
+        \bool_set_false:N \l__cfflatex_authblk_bool
+        \keys_set:nn { cfflatex / authors }
+          {
+            author = { \__cfflatex_standard_author:nn {##1} {##2} },
+            affiliation = {},
+          }
+      },
+    style / authblk .code:n =
+      {
+        \bool_set_false:N \l__cfflatex_standard_bool
+        \bool_set_true:N \l__cfflatex_authblk_bool
+        \keys_set:nn { cfflatex / authors }
+          {
+            author = { \author [{##1}] {##2} },
+            affiliation = { \affil [##1] {##2} },
+          }
+      },
+    name .code:n = { \cs_set:Npn \__cfflatex_name:n ##1 {#1} },
+    contact .code:n =
+      {
+        \tl_if_blank:nTF {#1}
+          { \bool_set_false:N \l__cfflatex_contacts_bool }
+          {
+            \bool_set_true:N \l__cfflatex_contacts_bool
+            \cs_set:Npn \__cfflatex_contact:n ##1 {#1}
+          }
+      },
+    separator .tl_set:N = \l__cfflatex_separator_tl,
+    affiliation-mark .choice:,
+    affiliation-mark / alph .code:n =
+      { \cs_set_eq:NN \__cfflatex_affiliation_mark:n \int_to_alph:n },
+    affiliation-mark / Alph .code:n =
+      { \cs_set_eq:NN \__cfflatex_affiliation_mark:n \int_to_Alph:n },
+    affiliation-mark / arabic .code:n =
+      { \cs_set:Npn \__cfflatex_affiliation_mark:n ##1 { \int_eval:n {##1} } },
+    affiliation-mark / roman .code:n =
+      { \cs_set_eq:NN \__cfflatex_affiliation_mark:n \int_to_roman:n },
+    affiliation-mark / Roman .code:n =
+      { \cs_set_eq:NN \__cfflatex_affiliation_mark:n \int_to_Roman:n },
+    author .code:n =
+      { \cs_set_protected:Npn \__cfflatex_put_author:nn ##1##2 {#1} },
+    affiliation .code:n =
+      {
+        \tl_if_blank:nTF {#1}
+          { \bool_set_false:N \l__cfflatex_affiliations_bool }
+          {
+            \bool_set_true:N \l__cfflatex_affiliations_bool
+            \cs_set_protected:Npn \__cfflatex_put_affiliation:nn ##1##2 {#1}
+          }
+      },
+  }
+% The defaults, set by each \cffsetauthors before its keys.
+\tl_const:Nn \c__cfflatex_author_defaults_tl
+  {
+    style = standard,
+    name = { #1 { given-names } \nobreakspace #1 { family-names } },
+    contact = { E-mail:~#1 { email } },
+    separator = { , },
+    affiliation-mark = alph,
+  }
+
+% Like \thanks in \maketitle, but typesets the footnote symbol as text among
+% the marks of an author, so that it does not overlap them.
+\cs_new_protected:Npn \__cfflatex_thanks:n #1
+  {
+    \stepcounter {footnote}
+    \protected@xdef \@thefnmark {\thefootnote}
+    \@thefnmark
+    \protected@xdef \@thanks
+      {\@thanks \protect \footnotetext [\int_use:N \c@footnote] {#1}}
+  }
+
+% The style=standard author template collects the authors in one \author.
+\tl_new:N \l__cfflatex_standard_authors_tl
+\cs_new_protected:Npn \__cfflatex_standard_author:nn #1#2
+  {
+    \tl_if_empty:NF \l__cfflatex_standard_authors_tl
+      { \tl_put_right:Nn \l__cfflatex_standard_authors_tl { \and } }
+    \tl_put_right:Nn \l__cfflatex_standard_authors_tl {#2}
+    \tl_if_blank:nF {#1}
+      {
+        \tl_put_right:Nn \l__cfflatex_standard_authors_tl
+          { \textsuperscript {#1} }
+      }
+  }
+
+% The names of the #2-th entry of the authors or the contacts #1, which
+% identify a contact with an author.
+\cs_new:Npn \__cfflatex_names:nn #1#2
+  {
+    \prop_item:Nn \g__cfflatex_values_prop { #1 / #2 / given-names } |
+    \prop_item:Nn \g__cfflatex_values_prop { #1 / #2 / family-names } |
+    \prop_item:Nn \g__cfflatex_values_prop { #1 / #2 / name }
+  }
+
+\tl_new:N \g__cfflatex_author_names_tl
+\cs_generate_variant:Nn \seq_use:Nn { NV }
+\seq_new:N \l__cfflatex_marks_seq
+\seq_new:N \l__cfflatex_names_seq
+\tl_new:N \l__cfflatex_marks_tl
+\tl_new:N \l__cfflatex_name_tl
+\tl_new:N \l__cfflatex_author_who_tl
+\tl_new:N \l__cfflatex_contact_who_tl
+\tl_new:N \l__cfflatex_contact_tl
+
+\NewDocumentCommand \cffsetauthors {O{}}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      {
+        \keys_set:nV { cfflatex / authors } \c__cfflatex_author_defaults_tl
+        \keys_set:nn { cfflatex / authors } {#1}
+        \bool_lazy_and:nnTF { \l__cfflatex_authblk_bool }
+          { ! \cs_if_exist_p:N \affil }
+          { \msg_error:nn { cfflatex } { authblk-missing } }
+          { \__cfflatex_set_authors: }
+      }
+      { \msg_error:nn { cfflatex } { not-loaded } }
+  }
+\cs_new_protected:Npn \__cfflatex_set_authors:
+  {
+    \tl_clear:N \l__cfflatex_standard_authors_tl
+    \seq_clear:N \l__cfflatex_names_seq
+    \int_step_inline:nn { \g__cfflatex_author_count_int }
+      { \__cfflatex_set_author:n {##1} }
+    \bool_if:NT \l__cfflatex_standard_bool
+      { \exp_args:NV \author \l__cfflatex_standard_authors_tl }
+    \bool_if:NT \l__cfflatex_affiliations_bool
+      {
+        \int_step_inline:nn { \__cfflatex_count:n { affiliation-count } }
+          {
+            \exp_args:Nee \__cfflatex_put_affiliation:nn
+              { \__cfflatex_affiliation_mark:n {##1} }
+              { \exp_not:N \cffaffiliation {##1} }
+          }
+      }
+    \tl_gset:Ne \g__cfflatex_author_names_tl
+      { \seq_use:Nn \l__cfflatex_names_seq { ,~ } }
+  }
+% Declares the #1-th author.
+\cs_new_protected:Npn \__cfflatex_set_author:n #1
+  {
+    \seq_clear:N \l__cfflatex_marks_seq
+    \bool_if:NT \l__cfflatex_affiliations_bool
+      {
+        \int_step_inline:nn
+          { \__cfflatex_count:n { authors / #1 / affiliation-count } }
+          {
+            \seq_put_right:Ne \l__cfflatex_marks_seq
+              {
+                \__cfflatex_affiliation_mark:n
+                  {
+                    \prop_item:Nn \g__cfflatex_values_prop
+                      { authors / #1 / affiliation-indices / ##1 }
+                  }
+              }
+          }
+      }
+    \bool_if:NT \l__cfflatex_contacts_bool
+      {
+        \tl_set:Ne \l__cfflatex_author_who_tl
+          { \__cfflatex_names:nn { authors } {#1} }
+        \int_step_inline:nn { \__cfflatex_count:n { contact-count } }
+          {
+            \tl_set:Ne \l__cfflatex_contact_who_tl
+              { \__cfflatex_names:nn { contact } {##1} }
+            \tl_if_eq:NNT \l__cfflatex_author_who_tl \l__cfflatex_contact_who_tl
+              {
+                \tl_set:No \l__cfflatex_contact_tl
+                  { \__cfflatex_contact:n { \cffcontact {##1} } }
+                \seq_put_right:Ne \l__cfflatex_marks_seq
+                  {
+                    \exp_not:N \__cfflatex_thanks:n
+                      { \exp_not:V \l__cfflatex_contact_tl }
+                  }
+              }
+          }
+      }
+    \tl_set:Ne \l__cfflatex_marks_tl
+      { \seq_use:NV \l__cfflatex_marks_seq \l__cfflatex_separator_tl }
+    % \protect keeps \cffauthor for \maketitle, where the check sees it, when
+    % the template expands the name, as the \author of authblk does.
+    \tl_set:No \l__cfflatex_name_tl
+      { \__cfflatex_name:n { \protect \cffauthor {#1} } }
+    \__cfflatex_put_author:VV \l__cfflatex_marks_tl \l__cfflatex_name_tl
+    \tl_set:No \l__cfflatex_name_tl { \__cfflatex_name:n { \cffauthor {#1} } }
+    \seq_put_right:NV \l__cfflatex_names_seq \l__cfflatex_name_tl
+  }
+
+% \cffauthornames expands to the names of the authors, separated by commas, as
+% the name template of \cffsetauthors makes them.
+\NewExpandableDocumentCommand \cffauthornames {}
+  {\tl_use:N \g__cfflatex_author_names_tl}
 
 \endinput

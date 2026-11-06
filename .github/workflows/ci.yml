@@ -74,7 +74,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # pgf is only for testfiles/check-dynamic.lvt, which uses \foreach.
+      # pgf and preprint (authblk) are only for the tests that use them:
+      # testfiles/check-dynamic.lvt and testfiles/setauthors-authblk.lvt.
       - name: Install TeX Live
         uses: zauguin/install-texlive@c9f3ea3d51b2e04d092c4f9d208a19542d5dabcf # v4.5.0
         with:
@@ -87,6 +88,7 @@ jobs:
             lm
             cm-super
             pgf
+            preprint
 
       # Runs testfiles/ with pdfLaTeX and LuaLaTeX, and testfiles-noshell/
       # with pdfLaTeX without shell escape (see build.lua).

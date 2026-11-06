@@ -1,0 +1,47 @@
+% \cffsetauthors declares the authors with the marks of their affiliations and
+% footnotes for the contacts among them; \cffauthornames lists their names.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{cfflatex}
+\begin{document}
+% \maketitle sets math in \large and \footnotesize; load those fonts here, because TeX Live 2025
+% logs them and 2026 does not.
+\sbox0{\large $x$}\sbox0{\footnotesize $x$}
+\START
+\makeatletter
+\TEST{\cffsetauthors before \includecff}{\cffsetauthors}
+\OMIT
+\includecff{authors-contacts.cff}
+\TIMO
+\TEST{style=authblk without authblk}{\cffsetauthors[style=authblk]}
+\TEST{default style}{
+  \cffsetauthors
+  \TYPE{\detokenize\expandafter{\@author}}
+}
+\TEST{templates}{
+  \gdef\x{}
+  \gdef\y{}
+  \cffsetauthors[
+    name = {#1{family-names}, #1{given-names}},
+    separator = {;},
+    affiliation-mark = Roman,
+    author = {\g@addto@macro\x{[#1|#2]}},
+    affiliation = {\g@addto@macro\y{[#1:#2]}},
+  ]
+  \TYPE{\detokenize\expandafter{\x}}
+  \TYPE{\detokenize\expandafter{\y}}
+  \TYPE{\cffauthornames}
+}
+\TEST{no contact footnotes}{
+  \gdef\x{}
+  \cffsetauthors[contact = {}, author = {\g@addto@macro\x{[#1]}}]
+  \TYPE{\detokenize\expandafter{\x}}
+}
+\TEST{title page}{
+  \title{\cfftitle}
+  \cffsetauthors
+  \maketitle
+}
+\makeatother
+\END
