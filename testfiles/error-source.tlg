@@ -5,7 +5,7 @@ Package luabridge Info: Writing a helper Lua script to file error-source.luabrid
 Package luabridge Info: Executing a helper Lua script from file error-source.luabridge.lua
 (|TEXMF_OUTPUT_DIRECTORY=${TEXMF_OUTPUT_DIRECTORY:-.}
 texlua $TEXMF_OUTPUT_DIRECTORY/error-source.luabridge.lua)
-! Fatal Package cfflatex Error: Cannot read CFF file: 'authors' must be a mapping.
+! Fatal Package import-citation-cff Error: Cannot read CFF file: 'authors' must be a mapping.
 Type <return> to continue.
  ...                                              
 l. ...\includecff[source=authors]{paper.cff}

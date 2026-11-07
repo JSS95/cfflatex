@@ -1,6 +1,6 @@
 This is a generated file for the l3build validation system.
 Don't change this file in any respect.
-! Fatal Package cfflatex Error: Cannot read CFF file: 'authors/1' must be a mapping.
+! Fatal Package import-citation-cff Error: Cannot read CFF file: 'authors/1' must be a mapping.
 Type <return> to continue.
  ...                                              
 l. ...\includecff{author-string.cff}

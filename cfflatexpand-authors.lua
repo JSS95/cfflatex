@@ -1,5 +1,5 @@
 -- SPDX-License-Identifier: MIT
--- Copyright (c) 2026 cffLaTeX contributors
+-- Copyright (c) 2026 import-citation-cff contributors
 -- Collect the existing TeX author renderer's declarations in an isolated run.
 
 local lfs = require("lfs")
@@ -8,7 +8,7 @@ local authors = {}
 
 local driver = [[
 \documentclass{article}
-\usepackage[check=false]{cfflatex}
+\usepackage[check=false]{import-citation-cff}
 \ExplSyntaxOn
 \iow_new:N \g__cfflatex_export_declarations_iow
 \iow_new:N \g__cfflatex_export_names_iow
@@ -95,7 +95,7 @@ function authors.render(model, options, source_directory, document_directory)
   local previous_var, previous_cache = os.getenv("TEXMFVAR"), os.getenv("TEXMFCACHE")
   local previous_inputs = os.getenv("TEXINPUTS")
   local ok, result = pcall(function()
-    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+    for _, filename in ipairs({"import-citation-cff.sty", "cfflatex.lua", "cfflatex-data.lua",
       "cfflatex-style-standard.def", "cfflatex-style-authblk.def",
       "cfflatex-style-rsc.def"}) do
       local contents = read_file(source_directory .. filename)

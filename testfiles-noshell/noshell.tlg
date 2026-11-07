@@ -1,6 +1,6 @@
 This is a generated file for the l3build validation system.
 Don't change this file in any respect.
-! Fatal Package cfflatex Error: pdfLaTeX requires unrestricted shell escape to read CFF files. Compile with --shell-escape, or use LuaLaTeX.
+! Fatal Package import-citation-cff Error: pdfLaTeX requires unrestricted shell escape to read CFF files. Compile with --shell-escape, or use LuaLaTeX.
 Type <return> to continue.
  ...                                              
 l. ...\includecff{paper.cff}

@@ -57,14 +57,14 @@ jobs:
       # Exercise the distributed files outside the checkout, including the
       # executable command and Kpathsea lookup through a bin-directory link.
       - name: Test the packaged export CLI
-        run: texlua tests/test_cfflatexpand.lua --tds cfflatex.tds.zip
+        run: texlua tests/test_cfflatexpand.lua --tds import-citation-cff.tds.zip
 
       # Both release jobs download this archive; neither rebuilds it.
       - name: Upload the package
         uses: actions/upload-artifact@v4
         with:
-          name: cfflatex-ctan
-          path: cfflatex-*.zip
+          name: import-citation-cff-ctan
+          path: import-citation-cff-*.zip
           if-no-files-found: error
 
       # Both release jobs use the exact same changelog entry.
@@ -72,7 +72,7 @@ jobs:
         if: github.event_name == 'release'
         uses: actions/upload-artifact@v4
         with:
-          name: cfflatex-release-notes
+          name: import-citation-cff-release-notes
           path: ${{ runner.temp }}/release-notes.md
           if-no-files-found: error
 
@@ -80,7 +80,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: cfflatex-ctan-logs
+          name: import-citation-cff-ctan-logs
           path: |
             build/test*/*.diff
             build/test*/*.log
@@ -97,12 +97,12 @@ jobs:
       - name: Download the package
         uses: actions/download-artifact@v4
         with:
-          name: cfflatex-ctan
+          name: import-citation-cff-ctan
 
       - name: Download release notes
         uses: actions/download-artifact@v4
         with:
-          name: cfflatex-release-notes
+          name: import-citation-cff-release-notes
 
       - name: Set release notes from the changelog
         env:
@@ -117,7 +117,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
         run: >-
-          gh release upload "$TAG" "cfflatex-${TAG#v}.zip"
+          gh release upload "$TAG" "import-citation-cff-${TAG#v}.zip"
           --repo "$GITHUB_REPOSITORY" --clobber
 
   ctan:
@@ -145,12 +145,12 @@ jobs:
       - name: Download the package
         uses: actions/download-artifact@v4
         with:
-          name: cfflatex-ctan
+          name: import-citation-cff-ctan
 
       - name: Download release notes
         uses: actions/download-artifact@v4
         with:
-          name: cfflatex-release-notes
+          name: import-citation-cff-release-notes
 
       # Set update explicitly so l3build also handles the first submission
       # without an interactive prompt or a retry of a failed validation.
@@ -159,7 +159,7 @@ jobs:
           status=$(curl --silent --show-error --location \
             --connect-timeout 30 --max-time 60 \
             --output /dev/null --write-out '%{http_code}' \
-            https://ctan.org/json/2.0/pkg/cfflatex)
+            https://ctan.org/json/2.0/pkg/import-citation-cff)
           case "$status" in
             200) echo "CFFLATEX_CTAN_UPDATE=true" >> "$GITHUB_ENV" ;;
             404) echo "CFFLATEX_CTAN_UPDATE=false" >> "$GITHUB_ENV" ;;

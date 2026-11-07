@@ -5,7 +5,7 @@ Package luabridge Info: Writing a helper Lua script to file error-contact-mappin
 Package luabridge Info: Executing a helper Lua script from file error-contact-mapping.luabridge.lua
 (|TEXMF_OUTPUT_DIRECTORY=${TEXMF_OUTPUT_DIRECTORY:-.}
 texlua $TEXMF_OUTPUT_DIRECTORY/error-contact-mapping.luabridge.lua)
-! Fatal Package cfflatex Error: Cannot read CFF file: 'contact/1' must be a mapping.
+! Fatal Package import-citation-cff Error: Cannot read CFF file: 'contact/1' must be a mapping.
 Type <return> to continue.
  ...                                              
 l. ...\includecff{contact-item.cff}

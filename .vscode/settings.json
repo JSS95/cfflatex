@@ -1,6 +1,6 @@
 {
     // Build whenever a dependency of the document changes, not only when a
-    // .tex file is saved, so that editing CITATION.cff rebuilds cfflatex.pdf.
+    // .tex file is saved, so that editing CITATION.cff rebuilds import-citation-cff.pdf.
     // LaTeX Workshop finds the CFF file in the .fls file of the last build.
     "latex-workshop.latex.autoBuild.run": "onFileChange"
 }

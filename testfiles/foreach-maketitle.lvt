@@ -3,7 +3,7 @@
 \input{regression-test}
 \documentclass{article}
 \usepackage[T1]{fontenc}
-\usepackage{cfflatex}
+\usepackage{import-citation-cff}
 
 \includecff[source=preferred-citation]{mixed-authors.cff}
 \title{\cff{title}}

@@ -1,14 +1,14 @@
 cff-version: 1.2.0
-message: If you use cffLaTeX, please cite it using these metadata.
+message: If you use import-citation-cff, please cite it using these metadata.
 type: software
-title: "cffLaTeX: Import CFF metadata into LaTeX"
+title: "import-citation-cff: Import CFF metadata into LaTeX"
 abstract: >-
   Modern research software and datasets often include a CFF (Citation
   File Format) file to provide metadata for proper citation. When you
   write the manuscript that is to be cited, you need to ensure that the
-  manuscript and the CFF file have consistent metadata. cffLaTeX helps
-  with this process by reading the metadata from the CFF file and
-  incorporating it into the LaTeX document.
+  manuscript and the CFF file have consistent metadata.
+  import-citation-cff helps with this process by reading the metadata
+  from the CFF file and incorporating it into the LaTeX document.
 authors:
   - family-names: Song
     given-names: Jisoo

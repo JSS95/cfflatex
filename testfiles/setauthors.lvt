@@ -3,7 +3,7 @@
 \input{regression-test}
 \documentclass{article}
 \usepackage[T1]{fontenc}
-\usepackage{cfflatex}
+\usepackage{import-citation-cff}
 \begin{document}
 % \maketitle sets math in \large and \footnotesize; load those fonts here, because TeX Live 2025
 % logs them and 2026 does not.

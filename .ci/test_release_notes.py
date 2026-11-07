@@ -29,9 +29,9 @@ class ReleaseNotesTests(unittest.TestCase):
             + "\n## [1.2.2] - 2026-11-05\n\nOlder work.\n",
             encoding="utf-8",
         )
-        self.package = self.root / "cfflatex.sty"
+        self.package = self.root / "import-citation-cff.sty"
         self.package.write_text(
-            "\\ProvidesExplPackage{cfflatex}{2026-11-06}{1.2.3}\n",
+            "\\ProvidesExplPackage{import-citation-cff}{2026-11-06}{1.2.3}\n",
             encoding="utf-8",
         )
         self.citation = self.root / "CITATION.cff"
@@ -98,7 +98,9 @@ class ReleaseNotesTests(unittest.TestCase):
                 self.package.write_text(original.replace(old, new))
                 result = self.run_notes()
                 self.assertNotEqual(result.returncode, 0)
-                self.assertIn(f"cfflatex.sty {field} must match", result.stderr)
+                self.assertIn(
+                    f"import-citation-cff.sty {field} must match", result.stderr
+                )
                 self.assertEqual(result.stdout, "")
 
     def test_invalid_calendar_date_fails(self):

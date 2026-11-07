@@ -1,6 +1,6 @@
-# cffLaTeX: Import your CFF file into your LaTeX document
+# import-citation-cff: Import CFF metadata into LaTeX
 
-With cffLaTeX, you don't need to write your paper metadata twice.
+With `import-citation-cff`, you don't need to write your metadata twice.
 
 ## Requirements
 
@@ -10,8 +10,9 @@ With cffLaTeX, you don't need to write your paper metadata twice.
 
 ## Installation
 
-Install `cfflatex.sty`, `cfflatex-style-*.def`,`cfflatex.lua`, and `cfflatex-data.lua`
-in a local TeX tree such as `~/texmf/tex/latex/cfflatex/`.
+Install `import-citation-cff.sty`, `cfflatex-style-*.def`, `cfflatex.lua`, and `cfflatex-data.lua`
+in a local TeX tree such as `~/texmf/tex/latex/import-citation-cff/`.
+The support files use the short prefix `cfflatex`.
 Alternatively, you can put them next to your document.
 
 To install both the package and the `cfflatexpand` command from a source checkout:
@@ -20,19 +21,19 @@ To install both the package and the `cfflatexpand` command from a source checkou
 l3build install --texmfhome "$HOME/texmf"
 ```
 
-The CTAN archive also includes `cfflatex.tds.zip`.
+The CTAN archive also includes `import-citation-cff.tds.zip`.
 As an alternative to installing from source, extract that archive into your local TeX tree:
 
 ```sh
 mkdir -p "$HOME/texmf"
-unzip cfflatex.tds.zip -d "$HOME/texmf"
+unzip import-citation-cff.tds.zip -d "$HOME/texmf"
 ```
 
-Both methods place the package and Lua modules in `tex/latex/cfflatex/` and the command in `scripts/cfflatex/`.
+Both methods place the package and Lua modules in `tex/latex/import-citation-cff/` and the command in `scripts/import-citation-cff/`.
 To make the command available in a POSIX shell:
 
 ```sh
-export PATH="$HOME/texmf/scripts/cfflatex:$PATH"
+export PATH="$HOME/texmf/scripts/import-citation-cff:$PATH"
 cfflatexpand --help
 ```
 
@@ -67,7 +68,7 @@ Write:
 ```latex
 \documentclass{article}
 \usepackage[T1]{fontenc}
-\usepackage{cfflatex}
+\usepackage{import-citation-cff}
 
 %\includecff{CITATION.cff}  % reads fields in top level
 \includecff[source=preferred-citation]{CITATION.cff}  % reads fields in preferred-citation
@@ -104,7 +105,7 @@ cfflatexpand manuscript.tex > submission.tex
 
 The latest document can be found at:
 
-> https://jss95.github.io/cfflatex/cfflatex.pdf
+> https://jss95.github.io/cfflatex/import-citation-cff.pdf
 
 ### Building the document
 
@@ -114,7 +115,7 @@ Run:
 l3build doc
 ```
 
-The manual is `cfflatex.pdf`.
+The manual is `import-citation-cff.pdf`.
 
 ## Development
 
@@ -130,7 +131,7 @@ Requires:
 ```sh
 badness format .
 badness lint .
-explcheck --warnings-are-errors cfflatex.sty cfflatex-style-*.def
+explcheck --warnings-are-errors import-citation-cff.sty cfflatex-style-*.def
 luacheck . cfflatexpand
 ruff format .
 ruff check .
@@ -152,18 +153,18 @@ texlua tests/test_cfflatexpand.lua --installed  # temporary TeX-tree installatio
 [l3build](https://ctan.org/pkg/l3build) builds the manual and the CTAN archive:
 
 ```sh
-l3build doc     # cfflatex.pdf
-l3build ctan    # cfflatex-<version>.zip
+l3build doc     # import-citation-cff.pdf
+l3build ctan    # import-citation-cff-<version>.zip
 ```
 
-The CTAN archive includes the ready-to-install `cfflatex.tds.zip`, which is also
+The CTAN archive includes the ready-to-install `import-citation-cff.tds.zip`, which is also
 written beside it. Test that archive with:
 
 ```sh
-texlua tests/test_cfflatexpand.lua --tds cfflatex.tds.zip
+texlua tests/test_cfflatexpand.lua --tds import-citation-cff.tds.zip
 ```
 
 ## License
 
-cffLaTeX is distributed under the MIT License.
+import-citation-cff is distributed under the MIT License.
 Report bugs at <https://github.com/JSS95/cfflatex/issues>.

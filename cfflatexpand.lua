@@ -1,5 +1,5 @@
 -- SPDX-License-Identifier: MIT
--- Copyright (c) 2026 cffLaTeX contributors
+-- Copyright (c) 2026 import-citation-cff contributors
 -- Source-preserving expansion of CFF accessors and metadata loops.
 
 local data = require("cfflatex-data")
@@ -199,18 +199,18 @@ function Scanner:package(position, after)
   end
   local count = 0
   for _, entry in ipairs(entries) do
-    if entry.name == "cfflatex" then
+    if entry.name == "import-citation-cff" then
       count = count + 1
     end
   end
   if count > 1 then
-    self:fail(position, "cfflatex must be loaded only once")
+    self:fail(position, "import-citation-cff must be loaded only once")
   end
   for index, entry in ipairs(entries) do
-    if entry.name == "cfflatex" then
+    if entry.name == "import-citation-cff" then
       if self.package_loaded or self.depth > 0 or self.body
         or self.loop_depth > 0 or #self.conditions > 0 then
-        self:fail(position, "cfflatex must be loaded once at the top level of the preamble")
+        self:fail(position, "import-citation-cff must be loaded once at the top level of the preamble")
       end
       if options then
         -- The check does not affect the output; the style is the default of
@@ -250,7 +250,7 @@ end
 
 function Scanner:include(position, after)
   if not self.package_loaded then
-    self:fail(position, "load cfflatex before \\includecff")
+    self:fail(position, "load import-citation-cff before \\includecff")
   end
   if self.model then
     self:fail(position, "only one \\includecff is supported; reloading can change delayed expansion")
@@ -797,7 +797,7 @@ function Scanner:scan(first, last)
       elseif loops[name] then
         position = self:loop(name, position, after)
       elseif name:match("^cff") or (self.author_render and name:match("^__cfflatex")) then
-        self:fail(position, "unsupported cfflatex command: \\" .. name)
+        self:fail(position, "unsupported import-citation-cff command: \\" .. name)
       elseif name == "ifnum" or name == "ifodd" or name == "else" or name == "fi" then
         self:condition(name, position)
         position = after

@@ -14,14 +14,16 @@ RELEASE_HEADING = re.compile(r"\[(" + SEMVER + r")\] - (\d{4}-\d{2}-\d{2})")
 def check_metadata(root: Path, version: str, date: str) -> None:
     """Require package and citation metadata to match a dated release."""
     datetime.date.fromisoformat(date)
-    package = (root / "cfflatex.sty").read_text(encoding="utf-8")
+    package = (root / "import-citation-cff.sty").read_text(encoding="utf-8")
     declaration = re.search(
-        r"^[ \t]*\\ProvidesExplPackage\s*\{cfflatex\}\s*\{([^}]+)\}\s*\{([^}]+)\}",
+        r"^[ \t]*\\ProvidesExplPackage\s*\{import-citation-cff\}\s*\{([^}]+)\}\s*\{([^}]+)\}",
         package,
         flags=re.MULTILINE,
     )
     if declaration is None:
-        raise ValueError("Missing ProvidesExplPackage declaration in cfflatex.sty")
+        raise ValueError(
+            "Missing ProvidesExplPackage declaration in import-citation-cff.sty"
+        )
     package_date, package_version = (value.strip() for value in declaration.groups())
     for field, actual, expected in (
         ("version", package_version, version),
@@ -29,7 +31,7 @@ def check_metadata(root: Path, version: str, date: str) -> None:
     ):
         if actual != expected:
             raise ValueError(
-                f"cfflatex.sty {field} must match CHANGELOG.md: "
+                f"import-citation-cff.sty {field} must match CHANGELOG.md: "
                 f"expected {expected}, found {actual}"
             )
 

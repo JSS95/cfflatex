@@ -1,7 +1,7 @@
 % Public style registration, file loading, hooks, overrides and diagnostics.
 \input{regression-test}
 \documentclass{article}
-\usepackage{cfflatex}
+\usepackage{import-citation-cff}
 \includecff{authors-contacts.cff}
 \begingroup
 \cffdeclareauthorstyle{inline}{

@@ -1,6 +1,7 @@
 % SPDX-License-Identifier: MIT
-% Copyright (c) 2026 cffLaTeX contributors
-\ProvidesFile{cfflatex-style-rsc.def}[cffLaTeX RSC author style]
+% Copyright (c) 2026 import-citation-cff contributors
+\ProvidesFile{cfflatex-style-rsc.def}
+  [import-citation-cff RSC author style]
 \ExplSyntaxOn
 
 % The article template of the Royal Society of Chemistry typesets its title

@@ -1,6 +1,6 @@
 -- SPDX-License-Identifier: MIT
--- Copyright (c) 2026 cffLaTeX contributors
--- Shared CFF interpretation for cfflatex.sty and cfflatexpand.
+-- Copyright (c) 2026 import-citation-cff contributors
+-- Shared CFF interpretation for import-citation-cff.sty and cfflatexpand.
 
 local data = {}
 
@@ -45,7 +45,7 @@ function data.is_scalar(value)
   return kind == "string" or kind == "number" or kind == "boolean"
 end
 
--- CFF gives a person one affiliation. cffLaTeX accepts a semicolon-separated
+-- CFF gives a person one affiliation. import-citation-cff accepts a semicolon-separated
 -- string; a single trailing semicolon is allowed, but not blanks or repeats.
 local function split_affiliations(value, path)
   if data.kind(value) ~= "string" then

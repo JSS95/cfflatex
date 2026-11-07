@@ -5,7 +5,7 @@ Package luabridge Info: Writing a helper Lua script to file error-no-title.luabr
 Package luabridge Info: Executing a helper Lua script from file error-no-title.luabridge.lua
 (|TEXMF_OUTPUT_DIRECTORY=${TEXMF_OUTPUT_DIRECTORY:-.}
 texlua $TEXMF_OUTPUT_DIRECTORY/error-no-title.luabridge.lua)
-! Fatal Package cfflatex Error: Cannot read CFF file: 'title' must be a string.
+! Fatal Package import-citation-cff Error: Cannot read CFF file: 'title' must be a string.
 Type <return> to continue.
  ...                                              
 l. ...\includecff{no-title.cff}

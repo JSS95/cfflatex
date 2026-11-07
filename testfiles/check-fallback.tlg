@@ -7,6 +7,6 @@ TEST 1: \maketitle is not a region of the style
 ============================================================
 TEST 2: the whole document lacks the abstract
 ============================================================
-Package cfflatex Info: No check region of author style 'titleblock' was found; the whole document was checked.
-Package cfflatex Warning: The title page does not use 'abstract' of the citation. Load cfflatex with check=false to skip this check.
+Package import-citation-cff Info: No check region of author style 'titleblock' was found; the whole document was checked.
+Package import-citation-cff Warning: The title page does not use 'abstract' of the citation. Load import-citation-cff with check=false to skip this check.
 ============================================================

@@ -1,5 +1,5 @@
 -- SPDX-License-Identifier: MIT
--- Copyright (c) 2026 cffLaTeX contributors
+-- Copyright (c) 2026 import-citation-cff contributors
 -- Run with texlua tests/test_cfflatexpand.lua; no test framework is required.
 -- CLI and package checks run in separate processes with temporary files.
 -- --installed tests a temporary l3build installation; --tds ZIP tests an archive.
@@ -26,7 +26,7 @@ if tds and not tds:match("^[/\\]") and not tds:match("^%a:[/\\]") then
 end
 
 local citation = "title: Example Paper\nauthors:\n  - family-names: Doe\n"
-local preamble = "\\documentclass{article}\n\\usepackage{cfflatex}\n"
+local preamble = "\\documentclass{article}\n\\usepackage{import-citation-cff}\n"
   .. "\\includecff{CITATION.cff}\n"
 local document = preamble .. "\\title{\\cff{title}}\n\\author{Jane Doe}\n\\date{}\n"
   .. "\\begin{document}\n\\maketitle\n\\end{document}\n"
@@ -213,7 +213,7 @@ local function expansion(fixture, text, expected)
   write_file(fixture.input, preamble .. text)
   local result = fixture:cli(fixture.input)
   success(result)
-  local header = replace(preamble, "\\usepackage{cfflatex}", "")
+  local header = replace(preamble, "\\usepackage{import-citation-cff}", "")
   header = replace(header, "\\includecff{CITATION.cff}", "")
   equal(result.stdout, header .. expected)
 end
@@ -261,20 +261,20 @@ local ok, message = xpcall(function()
     local texmf = mkdir(temporary .. "/texmf")
     if tds then
       success(run_command({"unzip", "-q", tds, "-d", texmf}, temporary))
-      for _, filename in ipairs({"cfflatex.pdf", "README.md", "LICENSE"}) do
-        assert(lfs.isfile(texmf .. "/doc/latex/cfflatex/" .. filename),
+      for _, filename in ipairs({"import-citation-cff.pdf", "README.md", "LICENSE"}) do
+        assert(lfs.isfile(texmf .. "/doc/latex/import-citation-cff/" .. filename),
           "TDS archive is missing " .. filename)
       end
     else
       success(run_command({"l3build", "install", "--texmfhome", texmf}, root))
     end
     os.setenv("TEXMFHOME", texmf)
-    local command = texmf .. "/scripts/cfflatex/cfflatexpand"
+    local command = texmf .. "/scripts/import-citation-cff/cfflatexpand"
     equal(read_file(command), read_file(root .. "/cfflatexpand"))
-    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+    for _, filename in ipairs({"import-citation-cff.sty", "cfflatex.lua", "cfflatex-data.lua",
       "cfflatex-style-standard.def", "cfflatex-style-authblk.def",
       "cfflatexpand.lua", "cfflatexpand-authors.lua"}) do
-      local path = texmf .. "/tex/latex/cfflatex/" .. filename
+      local path = texmf .. "/tex/latex/import-citation-cff/" .. filename
       equal(read_file(path), read_file(root .. "/" .. filename))
       local located = run_command({"kpsewhich", filename}, temporary)
       success(located)
@@ -296,7 +296,7 @@ local ok, message = xpcall(function()
   test("stdout from another directory", function(f)
     local result = f:cli(f.input)
     success(result)
-    local expected = replace(document, "\\usepackage{cfflatex}", "")
+    local expected = replace(document, "\\usepackage{import-citation-cff}", "")
     expected = replace(expected, "\\includecff{CITATION.cff}", "")
     equal(result.stdout, replace(expected, "\\cff{title}", "Example Paper"))
     equal(read_file(f.input), document)
@@ -329,7 +329,7 @@ local ok, message = xpcall(function()
   end)
 
   test("help, version, and option errors", function(f)
-    for _, pair in ipairs({{"--help", "--output"}, {"--version", "cfflatex"}}) do
+    for _, pair in ipairs({{"--help", "--output"}, {"--version", "import-citation-cff"}}) do
       local result = f:cli(pair[1])
       success(result)
       contains(result.stdout, pair[2])
@@ -406,17 +406,17 @@ local ok, message = xpcall(function()
   end)
 
   test("mixed package lists preserve other packages and comments", function(f)
-    for _, pair in ipairs({{"cfflatex,fontenc", "fontenc"}, {"fontenc,cfflatex", "fontenc"},
-      {"fontenc, cfflatex, hyperref", "fontenc,  hyperref"},
-      {"fontenc,% keep\n cfflatex, hyperref", "fontenc,% keep\n  hyperref"}}) do
-      write_file(f.input, replace(document, "\\usepackage{cfflatex}",
+    for _, pair in ipairs({{"import-citation-cff,fontenc", "fontenc"}, {"fontenc,import-citation-cff", "fontenc"},
+      {"fontenc, import-citation-cff, hyperref", "fontenc,  hyperref"},
+      {"fontenc,% keep\n import-citation-cff, hyperref", "fontenc,% keep\n  hyperref"}}) do
+      write_file(f.input, replace(document, "\\usepackage{import-citation-cff}",
         "\\usepackage{" .. pair[1] .. "}"))
       local result = f:cli(f.input)
       success(result)
       contains(result.stdout, "\\usepackage{" .. pair[2] .. "}")
     end
-    write_file(f.input, replace(document, "\\usepackage{cfflatex}",
-      "\\RequirePackage[check=false]{cfflatex}[2026/11/06]"))
+    write_file(f.input, replace(document, "\\usepackage{import-citation-cff}",
+      "\\RequirePackage[check=false]{import-citation-cff}[2026/11/06]"))
     success(f:cli(f.input))
   end)
 
@@ -432,7 +432,7 @@ local ok, message = xpcall(function()
     write_file(f.input, source)
     local result = f:cli(f.input)
     success(result)
-    local expected = replace(source, "\\usepackage{cfflatex}", "")
+    local expected = replace(source, "\\usepackage{import-citation-cff}", "")
     expected = replace(expected, "\\includecff{CITATION.cff}", "")
     equal(result.stdout, replace(expected, "\\cff{title}", "Example Paper"))
     write_file(f.input, replace(preamble .. "한글 \\cffunknown", "\n", "\r\n"))
@@ -440,7 +440,7 @@ local ok, message = xpcall(function()
   end)
 
   test("invalid literal options and filenames", function(f)
-    for _, pair in ipairs({{"{cfflatex}", "[unknown=true]{cfflatex}"},
+    for _, pair in ipairs({{"{import-citation-cff}", "[unknown=true]{import-citation-cff}"},
       {"\\includecff{", "\\includecff[unknown=key]{"},
       {"\\includecff{", "\\includecff[source=a,source=b]{"},
       {"{CITATION.cff}", "{}"}, {"{CITATION.cff}", "{\\filename}"}}) do
@@ -484,8 +484,8 @@ local ok, message = xpcall(function()
       {replace(document, "\\title{", "\\includecff{CITATION.cff}\n\\title{"), "only one"},
       {replace(document, "\\includecff{CITATION.cff}", "{\\includecff{CITATION.cff}}"), "top level"},
       {replace(document, "\\includecff{CITATION.cff}\n", ""), "call \\includecff"},
-      {replace(document, "\\usepackage{cfflatex}\n", ""), "load cfflatex"},
-      {replace(document, "{cfflatex}", "{cfflatex,cfflatex}"), "only once"}}) do
+      {replace(document, "\\usepackage{import-citation-cff}\n", ""), "load import-citation-cff"},
+      {replace(document, "{import-citation-cff}", "{import-citation-cff,import-citation-cff}"), "only once"}}) do
       write_file(f.input, pair[1])
       failure(f:cli(f.input), pair[2])
     end
@@ -549,13 +549,13 @@ local ok, message = xpcall(function()
     equal(result.stdout:sub(-#trailing), trailing)
   end)
 
-  test("output compiles without cfflatex or CFF files", function(f)
+  test("output compiles without import-citation-cff or CFF files", function(f)
     local output = mkdir(f.directory .. "/submission")
     success(f:cli(f.input, "-o", output .. "/paper.tex"))
     assert(os.remove(f.input))
     assert(os.remove(f.cff))
-    write_file(output .. "/cfflatex.sty",
-      "\\errmessage{Export unexpectedly requires cfflatex}\\endinput\n")
+    write_file(output .. "/import-citation-cff.sty",
+      "\\errmessage{Export unexpectedly requires import-citation-cff}\\endinput\n")
     compile(output, "paper.tex")
   end, not executable("lualatex") and "lualatex is required" or nil)
 
@@ -645,7 +645,7 @@ local ok, message = xpcall(function()
       [[\cffauthoraffiliation{1}{1}]], [[\cffconvertaffiliationindex{1}{1}]],
       [[\cffforeachauthor{}]], [[\cffforeachcontact{}]], [[\cffforeachaffiliation{}]],
       [[\cffforeachauthoraffiliation{1}{}]]}) do
-      write_file(f.input, "\\usepackage{cfflatex}\n" .. command)
+      write_file(f.input, "\\usepackage{import-citation-cff}\n" .. command)
       failure(f:cli(f.input), "call \\includecff")
     end
   end)
@@ -737,7 +737,7 @@ local ok, message = xpcall(function()
   test("numeric conditions cannot hide CFF loads or cross loop boundaries", function(f)
     for _, source in ipairs({
       "\\ifnum1=1 " .. preamble .. "\\fi",
-      "\\usepackage{cfflatex}\n\\ifodd1 \\includecff{CITATION.cff}\\fi",
+      "\\usepackage{import-citation-cff}\n\\ifodd1 \\includecff{CITATION.cff}\\fi",
       preamble .. [[\cffforeachauthor{\ifnum\cffauthorindex>1 x}]],
       preamble .. [[\else]], preamble .. [[\fi]],
       preamble .. [[\ifnum1=1 x\else y\else z\fi]],
@@ -901,7 +901,7 @@ end={\cffemit{\journalEnd}},
   check-region={hooks={env/@twocolumnfalse/begin}{env/@twocolumnfalse/end},document},
 }
 ]])
-    local header = replace(preamble, "{cfflatex}", "[check, style=titleblock]{cfflatex}")
+    local header = replace(preamble, "{import-citation-cff}", "[check, style=titleblock]{import-citation-cff}")
     write_file(f.input, header .. "\\cffsetauthors\n")
     local result = f:cli(f.input)
     success(result)
@@ -916,7 +916,7 @@ end={\cffemit{\journalEnd}},
     for _, pair in ipairs({{"style=../titleblock", "invalid author style name"},
       {"style=titleblock,unknown", "style=NAME options are supported"},
       {"style={titleblock}", "without TeX commands"}}) do
-      write_file(f.input, replace(preamble, "{cfflatex}", "[" .. pair[1] .. "]{cfflatex}"))
+      write_file(f.input, replace(preamble, "{import-citation-cff}", "[" .. pair[1] .. "]{import-citation-cff}"))
       local rejected = f:cli(f.input)
       failure(rejected, pair[2])
       contains(rejected.stderr, f.input .. ":2:")
@@ -925,7 +925,7 @@ end={\cffemit{\journalEnd}},
 
   test("the rsc style exports the commands of its title block", function(f)
     write_file(f.cff, rich_citation)
-    local header = replace(preamble, "{cfflatex}", "[style=rsc]{cfflatex}")
+    local header = replace(preamble, "{import-citation-cff}", "[style=rsc]{import-citation-cff}")
     write_file(f.input, header .. [=[\cffsetauthors[name={#1{family-names}#1{name}},note={1}{Equal.}]
 \begin{document}
 \begin{@twocolumnfalse}\cff{title}\par\rscauthors\end{@twocolumnfalse}
@@ -942,8 +942,8 @@ end={\cffemit{\journalEnd}},
       .. [[\footnotetext {\textit {$^{a}$\nobreakspace Univ A}}]]
       .. [[\footnotetext {\textit {$^{b}$\nobreakspace Univ B}}]]
       .. [[\footnotetext {\textit {$^{\ddag }$\nobreakspace Equal.}}}]])
-    assert(not result.stdout:find("\\cff", 1, true), "export retained a cfflatex command")
-    -- The output compiles without cfflatex or the CFF file.
+    assert(not result.stdout:find("\\cff", 1, true), "export retained an import-citation-cff command")
+    -- The output compiles without import-citation-cff or the CFF file.
     write_file(f.input, result.stdout)
     assert(os.remove(f.cff))
     compile(f.directory, "manuscript.tex")
@@ -1027,7 +1027,7 @@ exit 1
   for _, style in ipairs({"standard", "authblk", "journal"}) do
     test(style .. " author export matches native rendering and footnotes", function(f)
       write_file(f.cff, rich_citation)
-      for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+      for _, filename in ipairs({"import-citation-cff.sty", "cfflatex.lua", "cfflatex-data.lua",
         "cfflatex-style-standard.def", "cfflatex-style-authblk.def"}) do
         write_file(f.directory .. "/" .. filename, read_file(root .. "/" .. filename))
       end
@@ -1076,7 +1076,7 @@ end, 'cfflatexpand-test')
 ]]
       write_file(f.directory .. "/observer.sty", observer)
       write_file(f.directory .. "/observer.lua", observation)
-      local header = replace(preamble, "{cfflatex}", "[check=false]{cfflatex}")
+      local header = replace(preamble, "{import-citation-cff}", "[check=false]{import-citation-cff}")
       header = replace(header, "\\usepackage[check=false]",
         "\\usepackage{authblk}\n\\usepackage[check=false]")
       write_file(f.input, header .. "\\usepackage{observer}\n\\cffsetauthors[style=" .. style .. [=[,
@@ -1096,7 +1096,7 @@ note={1}{First \cff{title}},note={1}{Second},note={\cffcount{authors}}{Team note
       success(f:cli(f.input, "-o", output .. "/paper.tex"))
       write_file(output .. "/observer.sty", observer)
       write_file(output .. "/observer.lua", observation)
-      write_file(output .. "/cfflatex.sty", "\\errmessage{Unexpected cfflatex load}\\endinput\n")
+      write_file(output .. "/import-citation-cff.sty", "\\errmessage{Unexpected import-citation-cff load}\\endinput\n")
       assert(os.remove(f.input))
       assert(os.remove(f.cff))
       compile(output, "paper.tex")
@@ -1116,7 +1116,7 @@ note={1}{First \cff{title}},note={1}{Second},note={\cffcount{authors}}{Team note
 
   test("metadata export agrees with native TeX and compiles independently", function(f)
     write_file(f.cff, rich_citation)
-    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+    for _, filename in ipairs({"import-citation-cff.sty", "cfflatex.lua", "cfflatex-data.lua",
       "cfflatex-style-standard.def", "cfflatex-style-authblk.def"}) do
       write_file(f.directory .. "/" .. filename, read_file(root .. "/" .. filename))
     end
@@ -1153,7 +1153,7 @@ End}
     success(f:cli(f.input, "-o", output .. "/paper.tex"))
     assert(os.remove(f.input))
     assert(os.remove(f.cff))
-    write_file(output .. "/cfflatex.sty", "\\errmessage{Unexpected cfflatex load}\\endinput\n")
+    write_file(output .. "/import-citation-cff.sty", "\\errmessage{Unexpected import-citation-cff load}\\endinput\n")
     compile(output, "paper.tex")
     local function records(log)
       local result = {}
@@ -1169,12 +1169,12 @@ End}
 
   test("native package finds its sibling data module outside cwd", function(f)
     local package_directory = mkdir(f.directory .. "/package")
-    for _, filename in ipairs({"cfflatex.sty", "cfflatex.lua", "cfflatex-data.lua",
+    for _, filename in ipairs({"import-citation-cff.sty", "cfflatex.lua", "cfflatex-data.lua",
       "cfflatex-style-standard.def", "cfflatex-style-authblk.def"}) do
       write_file(package_directory .. "/" .. filename, read_file(root .. "/" .. filename))
     end
-    write_file(f.input, replace(replace(document, "{cfflatex}",
-      "{" .. package_directory .. "/cfflatex}"), "\\author{Jane Doe}", "\\cffsetauthors"))
+    write_file(f.input, replace(replace(document, "{import-citation-cff}",
+      "{" .. package_directory .. "/import-citation-cff}"), "\\author{Jane Doe}", "\\cffsetauthors"))
     compile(f.directory, "manuscript.tex")
   end, not executable("lualatex") and "lualatex is required" or nil)
 end, debug.traceback)
