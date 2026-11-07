@@ -1,0 +1,66 @@
+% SPDX-License-Identifier: MIT
+% Copyright (c) 2026 import-citation-cff contributors
+\ProvidesFile{cfflatex-style-revtex.def}
+  [import-citation-cff REVTeX author style]
+\ExplSyntaxOn
+
+\int_new:N \l__cfflatex_revtex_author_int
+\cs_new_protected:Npn \__cfflatex_revtex_prepare:n #1
+  { \int_set:Nn \l__cfflatex_revtex_author_int {#1} }
+\cs_new_protected:Npn \__cfflatex_revtex_email:n #1
+  { \cffemit { \email {#1} } }
+\cs_new_protected:Npn \__cfflatex_revtex_note:nn #1#2
+  {
+    \int_compare:nNnT { \l__cfflatex_revtex_author_int } = {#1}
+      { \cffemit { \thanks {#2} } }
+  }
+\cs_new_protected:Npn \__cfflatex_revtex_author:n #1
+  {
+    \cffemit { \author {#1} }
+    \bool_if:NT \l__cfflatex_contacts_bool
+      {
+        \tl_set:Ne \l__cfflatex_author_who_tl
+          {
+            \__cfflatex_names:nn { authors }
+              { \int_use:N \l__cfflatex_revtex_author_int }
+          }
+        \int_step_inline:nn { \__cfflatex_count:n { contact-count } }
+          {
+            \tl_set:Ne \l__cfflatex_contact_who_tl
+              { \__cfflatex_names:nn { contact } {##1} }
+            \tl_if_eq:NNT \l__cfflatex_author_who_tl \l__cfflatex_contact_who_tl
+              {
+                \tl_set:No \l__cfflatex_contact_tl
+                  { \__cfflatex_contact:n { \cffcontact {##1} } }
+                \exp_args:NV \__cfflatex_revtex_email:n \l__cfflatex_contact_tl
+              }
+          }
+      }
+    \seq_map_inline:Nn \l__cfflatex_notes_seq
+      { \__cfflatex_revtex_note:nn ##1 }
+    \int_step_inline:nn
+      { \cffauthoraffiliationcount { \int_use:N \l__cfflatex_revtex_author_int } }
+      {
+        \exp_args:Ne \cffemit
+          {
+            \exp_not:N \affiliation
+              {
+                \exp_not:N \cffauthoraffiliation
+                  { \int_use:N \l__cfflatex_revtex_author_int } {##1}
+              }
+          }
+      }
+  }
+
+\cffdeclareauthorstyle { revtex }
+  {
+    contact = { #1 { email } },
+    affiliation = {},
+    prepare-author = { \__cfflatex_revtex_prepare:n {#1} },
+    author-code = { \__cfflatex_revtex_author:n {#2} },
+    check-fields = { title, authors },
+    check-region = { maketitle },
+  }
+
+\ExplSyntaxOff
+\endinput

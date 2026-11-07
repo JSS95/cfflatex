@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: m
+title: REVTeX title
+abstract: The abstract.
+authors:
+  - family-names: Curie
+    given-names: Marie
+    affiliation: "Department of Physics, Univ A; Institute B"
+  - family-names: Einstein
+    given-names: Albert
+    affiliation: Department of Physics, Univ A
+  - family-names: Feynman
+    given-names: Richard
+    affiliation: Institute B
+contact:
+  - family-names: Curie
+    given-names: Marie
+    email: marie@example.org
+  - family-names: Feynman
+    given-names: Richard
+    email: richard@example.org

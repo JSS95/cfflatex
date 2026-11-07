@@ -1,0 +1,12 @@
+This is a generated file for the l3build validation system.
+Don't change this file in any respect.
+============================================================
+TEST 1: revtex declarations
+============================================================
+[author:\protect \cffauthor {1}{given-names}\nobreakspace \protect \cffauthor {1}{family-names}][email:\cffcontact {1}{email}][thanks:Equal contribution.][affiliation:\cffauthoraffiliation {1}{1}][affiliation:\cffauthoraffiliation {1}{2}][author:\protect \cffauthor {2}{given-names}\nobreakspace \protect \cffauthor {2}{family-names}][thanks:Equal contribution.][affiliation:\cffauthoraffiliation {2}{1}][author:\protect \cffauthor {3}{given-names}\nobreakspace \protect \cffauthor {3}{family-names}][email:\cffcontact {2}{email}][affiliation:\cffauthoraffiliation {3}{1}]
+============================================================
+============================================================
+TEST 2: contact template override
+============================================================
+[author:\protect \cffauthor {1}{given-names}\nobreakspace \protect \cffauthor {1}{family-names}][email:Corresponding:~\cffcontact {1}{email}][affiliation:\cffauthoraffiliation {1}{1}][affiliation:\cffauthoraffiliation {1}{2}][author:\protect \cffauthor {2}{given-names}\nobreakspace \protect \cffauthor {2}{family-names}][affiliation:\cffauthoraffiliation {2}{1}][author:\protect \cffauthor {3}{given-names}\nobreakspace \protect \cffauthor {3}{family-names}][email:Corresponding:~\cffcontact {2}{email}][affiliation:\cffauthoraffiliation {3}{1}]
+============================================================

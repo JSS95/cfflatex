@@ -270,6 +270,23 @@ the footnotes of the contacts and the notes. Load \pkg{authblk} before
 \hypersetup{pdfauthor={\cffauthornames}}
 \end{Verbatim}
 
+\subsection{\texttt{revtex}}
+
+The style is for the APS/AIP REV\TeX{} family (\texttt{revtex}): it declares
+each author with \cs{author}, each matching contact with \cs{email}, each note
+with \cs{thanks}, and each affiliation of the author with \cs{affiliation}.
+\begin{Verbatim}
+\usepackage[style=revtex]{import-citation-cff}
+\includecff{CITATION.cff}
+\cffsetauthors[
+  note = {1}{These authors contributed equally to this work.},
+  note = {2}{These authors contributed equally to this work.},
+]
+\end{Verbatim}
+The default contact template is |#1{email}|, so \cs{email} receives only the
+address unless |contact=| overrides it. The check is that of |standard|
+(Section~\ref{sec:style-standard}).
+
 \subsection{\texttt{rsc}}
 \label{sec:style-rsc}
 

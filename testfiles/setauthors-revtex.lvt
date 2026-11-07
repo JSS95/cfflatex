@@ -1,0 +1,29 @@
+% style=revtex declares each author with \author, their contacts with \email,
+% notes with \thanks, and each author affiliation with \affiliation.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[style=revtex,check=false]{import-citation-cff}
+\includecff{revtex.cff}
+\newcommand\revtexlog{}
+\newcommand\revtexappend[1]{\g@addto@macro\revtexlog{[#1]}}
+\renewcommand\author[1]{\revtexappend{author:#1}}
+\newcommand\email[1]{\revtexappend{email:#1}}
+\newcommand\affiliation[1]{\revtexappend{affiliation:#1}}
+\renewcommand\thanks[1]{\revtexappend{thanks:#1}}
+
+\begin{document}
+\START
+\TEST{revtex declarations}{
+  \cffsetauthors[
+    note = {1}{Equal contribution.},
+    note = {2}{Equal contribution.},
+  ]
+  \TYPE{\detokenize\expandafter{\revtexlog}}
+}
+\TEST{contact template override}{
+  \gdef\revtexlog{}
+  \cffsetauthors[contact={Corresponding:~#1{email}}]
+  \TYPE{\detokenize\expandafter{\revtexlog}}
+}
+\END

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 The package is renamed from cffLaTeX to import-citation-cff.
 
+### Added
+
+- Built-in `revtex` author style for APS/AIP REVTeX templates. It emits
+  `\author`, `\email`, `\thanks`, and per-author `\affiliation` declarations.
+
 ### Changed
 
 - `cfflatex.sty` is renamed to `import-citation-cff.sty`. Load the package
