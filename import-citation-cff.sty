@@ -415,8 +415,8 @@
         \bool_lazy_or:nnTF { \int_compare_p:nNn {#1} < { 1 } }
           { \int_compare_p:nNn {#1} > { \g__cfflatex_author_count_int } }
           {
-            \msg_expandable_error:nnn { import-citation-cff }
-              { author-index } {#1}
+            \msg_expandable_error:nnn { import-citation-cff } { author-index }
+              {#1}
           }
           {#2}
       }
@@ -462,7 +462,8 @@
             \prop_if_in:NnT \g__cfflatex_kinds_prop {#1}
               {
                 \msg_expandable_error:nnn { import-citation-cff }
-                  { not-a-value } {#1}
+                  { not-a-value }
+                  {#1}
               }
           }
       }
@@ -477,16 +478,16 @@
             \str_if_eq:eeTF { \prop_item:Nn \g__cfflatex_kinds_prop {#1} }
               { map }
               {
-                \msg_expandable_error:nnn { import-citation-cff }
-                  { not-a-list } {#1}
+                \msg_expandable_error:nnn { import-citation-cff } { not-a-list }
+                  {#1}
               }
               { \prop_item:Nn \g__cfflatex_kinds_prop {#1} }
           }
           {
             \prop_if_in:NnTF \g__cfflatex_fields_prop {#1}
               {
-                \msg_expandable_error:nnn { import-citation-cff }
-                  { not-a-list } {#1}
+                \msg_expandable_error:nnn { import-citation-cff } { not-a-list }
+                  {#1}
               }
               { 0 }
           }
@@ -531,8 +532,8 @@
     \bool_lazy_or:nnTF { \int_compare_p:nNn {#1} < { 1 } }
       { \int_compare_p:nNn {#1} > {#2} }
       {
-        \msg_expandable_error:nnn { import-citation-cff }
-          { affiliation-index } {#1}
+        \msg_expandable_error:nnn { import-citation-cff } { affiliation-index }
+          {#1}
       }
       {#3}
   }
@@ -608,8 +609,8 @@
             \int_compare_p:nNn {#1} > { \__cfflatex_count:n { contact-count } }
           }
           {
-            \msg_expandable_error:nnn { import-citation-cff }
-              { contact-index } {#1}
+            \msg_expandable_error:nnn { import-citation-cff } { contact-index }
+              {#1}
           }
           {
             \prop_item:Ne \g__cfflatex_values_prop
@@ -703,8 +704,8 @@
         \bool_lazy_or:nnTF { \int_compare_p:nNn {#1} < { 1 } }
           { \int_compare_p:nNn {#1} > { \g__cfflatex_author_count_int } }
           {
-            \msg_error:nne { import-citation-cff }
-              { author-index } { \int_eval:n {#1} }
+            \msg_error:nne { import-citation-cff } { author-index }
+              { \int_eval:n {#1} }
           }
           {
             \exp_args:Ne \__cfflatex_foreach_author_affiliation:nn
@@ -785,8 +786,7 @@
   {
     \__cfflatex_loop_state:Nn \g__cfflatex_contact_index_int
       {
-        \msg_expandable_error:nn { import-citation-cff }
-          { not-in-contact-loop }
+        \msg_expandable_error:nn { import-citation-cff } { not-in-contact-loop }
       }
   }
 
@@ -1032,7 +1032,7 @@
   {
     \seq_clear:N \l__cfflatex_notes_seq
     \keys_set:nV { import-citation-cff / authors }
-      \c__cfflatex_author_defaults_tl
+    \c__cfflatex_author_defaults_tl
     % The style of the document is the default, or else standard.
     \tl_if_empty:NTF \g__cfflatex_document_style_tl
       { \tl_set:Nn \l__cfflatex_style_tl { standard } }
@@ -1047,10 +1047,10 @@
         \tl_gset_eq:NN \g__cfflatex_last_style_tl \l__cfflatex_style_tl
         \bool_set_true:N \l__cfflatex_style_keys_bool
         \keys_set:nV { import-citation-cff / authors }
-          \l__cfflatex_style_keys_tl
+        \l__cfflatex_style_keys_tl
         \bool_set_false:N \l__cfflatex_style_keys_bool
         \keys_set:nV { import-citation-cff / authors }
-          \l__cfflatex_author_options_tl
+        \l__cfflatex_author_options_tl
         \bool_set_true:N \l__cfflatex_style_valid_bool
         \bool_if:NF \g__cfflatex_export_bool
           {

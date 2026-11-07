@@ -58,11 +58,10 @@ in the subsection of the CFF file such as \texttt{preferred-citation}.
 
 \pkg{import-citation-cff} relieves this burden by keeping the CFF file as the
 single source of metadata and importing it into the \LaTeX{} document. The
-metadata, such as
-the title, abstract, and authors, are imported as \LaTeX{} macros that
-dynamically expand whenever the CFF file changes. This ensures that the metadata
-are synced across the repository, allowing for easier maintenance and automation
-of the development process.
+metadata, such as the title, abstract, and authors, are imported as \LaTeX{}
+macros that dynamically expand whenever the CFF file changes. This ensures that
+the metadata are synced across the repository, allowing for easier maintenance
+and automation of the development process.
 
 \section{Requirements}
 
@@ -143,10 +142,10 @@ author list of \cs{maketitle}, with \cs{and} between the authors:
 CFF gives each person one \texttt{affiliation} which is a nonempty string, and
 does not natively support multiple affiliations per author.
 \pkg{import-citation-cff}, allows multiple affiliations per author by separating
-them with semicolons in
-the \texttt{affiliation} field of the author. Affiliations of each author can be
-accessed individually by \cs{cffauthoraffiliation} and related commands. Refer
-to Section~\ref{sec:reference} for details.
+them with semicolons in the \texttt{affiliation} field of the author.
+Affiliations of each author can be accessed individually by
+\cs{cffauthoraffiliation} and related commands. Refer to
+Section~\ref{sec:reference} for details.
 
 \subsection{Author style}
 \label{sec:setauthors}
@@ -158,9 +157,8 @@ citation, and with a footnote for each contact of the citation that has the same
 names. Section~\ref{sec:builtin-styles} lists the styles that come with
 \pkg{import-citation-cff}, and Section~\ref{sec:author-styles} explains how to
 write others. The other keys of \cs{cffsetauthors} change how a name is made,
-how the
-authors and the affiliations are declared, and the marks and the footnotes
-(Section~\ref{sec:reference}).
+how the authors and the affiliations are declared, and the marks and the
+footnotes (Section~\ref{sec:reference}).
 
 \subsection{Text in the metadata}
 
@@ -183,12 +181,11 @@ when the CFF file changes.
 
 By default, \pkg{import-citation-cff} checks that \cs{maketitle} typesets the
 metadata of the citation. The \cs{title} command should use |\cff{title}|, and
-the
-\cs{author} command should use \cs{cffauthor}, or \cs{cff} with a path such as
-|authors/1/family-names|, for every author of the citation. The check cannot see
-metadata that is expanded before \cs{maketitle}, such as an author list built
-with \cs{xdef} in the preamble, and it needs a class that keeps the title and
-the authors in \cs{@title} and \cs{@author}, as the standard classes do.
+the \cs{author} command should use \cs{cffauthor}, or \cs{cff} with a path such
+as |authors/1/family-names|, for every author of the citation. The check cannot
+see metadata that is expanded before \cs{maketitle}, such as an author list
+built with \cs{xdef} in the preamble, and it needs a class that keeps the title
+and the authors in \cs{@title} and \cs{@author}, as the standard classes do.
 
 What the check looks for, and where, depends on the author style of the
 document. A style for a journal template that typesets its title block without
@@ -246,9 +243,8 @@ cfflatexpand manuscript-flat.tex --output submission.tex
 
 \pkg{import-citation-cff} comes with the following author styles. A document
 selects one with the |style| key of \cs{cffsetauthors} or the |style| option of
-the package
-(Sections~\ref{sec:setauthors} and~\ref{sec:check}). The other keys of
-\cs{cffsetauthors} override the defaults of the style.
+the package (Sections~\ref{sec:setauthors} and~\ref{sec:check}). The other keys
+of \cs{cffsetauthors} override the defaults of the style.
 
 \subsection{\texttt{standard}}
 \label{sec:style-standard}
@@ -323,9 +319,8 @@ The support files of \pkg{import-citation-cff} share the short prefix
 \texttt{cfflatex}. A style named \meta{name} lives in the file
 \texttt{cfflatex-style-}\meta{name}\texttt{.def}, beside the manuscript or in a
 TeX tree, and registers itself with \cs{cffdeclareauthorstyle}. For example, the
-following style uses the
-\cs{author} and \cs{affil} commands of \pkg{authblk} with numeric affiliation
-marks:
+following style uses the \cs{author} and \cs{affil} commands of \pkg{authblk}
+with numeric affiliation marks:
 \begin{Verbatim}
 % cfflatex-style-authblk-arabic.def
 \cffdeclareauthorstyle{authblk-arabic}{
@@ -489,9 +484,8 @@ A style therefore works with \texttt{cfflatexpand} if it follows these rules.
   \item Use only commands of the final class and its packages in the
         declarations. The output is compiled without \pkg{import-citation-cff}
         and without the definition file, so helper commands of the style are
-        undefined
-        there. A declaration can define a command for the document with
-        \cs{newcommand}, as the |rsc| style does.
+        undefined there. A declaration can define a command for the document
+        with \cs{newcommand}, as the |rsc| style does.
   \item Keep the marks and the names unexpanded. They contain the footnotes and
         the metadata commands, which must run when the title page is typeset. To
         accumulate declarations, append the arguments with \cs{tl_put_right:Nn}
@@ -705,8 +699,8 @@ The following errors stop compilation.
         key does not hold a mapping, or the selected citation has incorrect
         structure, or an affiliation breaks the rules of
         Section~\ref{sec:affiliations}.
-  \item[Install cfflatex.lua alongside import-citation-cff.sty.]
-        \pkg{import-citation-cff} is incompletely installed.
+  \item[Install cfflatex.lua alongside import-citation-cff.sty.] \pkg{import-citation-cff}
+        is incompletely installed.
 \end{description}
 
 The following errors are reported while using the commands of
