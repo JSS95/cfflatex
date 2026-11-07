@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v4
 
       # badness checks the .sty, .tex, and .bib files it discovers; in
-      # cfflatex.bib, for example, missing required fields and duplicate keys.
+      # import-citation-cff.bib, for example, missing required fields and duplicate keys.
       # The .lvt tests end with l3build's \END instead of \end{document},
       # which it cannot parse, and it does not discover them.
       - name: Check formatting
@@ -58,7 +58,7 @@ jobs:
 
       # Settings are in .explcheckrc.
       - name: Lint
-        run: explcheck --warnings-are-errors cfflatex.sty cfflatex-style-*.def
+        run: explcheck --warnings-are-errors import-citation-cff.sty cfflatex-style-*.def
 
   luacheck:
     name: Lint Lua (luacheck)
@@ -188,21 +188,21 @@ jobs:
           echo "CFFLATEX_DOC_VERSION=$version" >> "$GITHUB_ENV"
           echo "CFFLATEX_DOC_DATE=$date" >> "$GITHUB_ENV"
 
-      # Typesets cfflatex.tex into cfflatex.pdf with LuaLaTeX (see build.lua).
+      # Typesets import-citation-cff.tex into import-citation-cff.pdf with LuaLaTeX (see build.lua).
       - name: Build the manual
         run: l3build doc
 
       - name: Upload the manual
         uses: actions/upload-artifact@v4
         with:
-          name: cfflatex-manual
-          path: cfflatex.pdf
+          name: import-citation-cff-manual
+          path: import-citation-cff.pdf
 
       - name: Upload the log
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: cfflatex-manual-log
+          name: import-citation-cff-manual-log
           path: build/doc/*.log
 
   # Deploy stage: publish the manual of the head of master to GitHub Pages.
@@ -245,7 +245,7 @@ jobs:
         if: steps.head.outputs.current == 'true'
         uses: actions/download-artifact@v4
         with:
-          name: cfflatex-manual
+          name: import-citation-cff-manual
           path: site
 
       # The site root opens the manual.
@@ -257,11 +257,11 @@ jobs:
           <html lang="en">
           <head>
             <meta charset="utf-8">
-            <title>cffLaTeX manual</title>
-            <meta http-equiv="refresh" content="0; url=cfflatex.pdf">
+            <title>import-citation-cff manual</title>
+            <meta http-equiv="refresh" content="0; url=import-citation-cff.pdf">
           </head>
           <body>
-            <p><a href="cfflatex.pdf">cffLaTeX manual (PDF)</a></p>
+            <p><a href="import-citation-cff.pdf">import-citation-cff manual (PDF)</a></p>
           </body>
           </html>
           HTML

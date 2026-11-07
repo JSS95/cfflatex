@@ -4,7 +4,7 @@
 \input{regression-test}
 \documentclass{article}
 \usepackage[T1]{fontenc}
-\usepackage[style=rsc]{cfflatex}
+\usepackage[style=rsc]{import-citation-cff}
 \includecff{rsc.cff}
 \cffsetauthors[
   note = {1}{Equal contribution.},

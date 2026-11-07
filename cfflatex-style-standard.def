@@ -1,6 +1,7 @@
 % SPDX-License-Identifier: MIT
-% Copyright (c) 2026 cffLaTeX contributors
-\ProvidesFile{cfflatex-style-standard.def}[cffLaTeX standard author style]
+% Copyright (c) 2026 import-citation-cff contributors
+\ProvidesFile{cfflatex-style-standard.def}
+  [import-citation-cff standard author style]
 \ExplSyntaxOn
 
 \tl_new:N \l__cfflatex_standard_authors_tl

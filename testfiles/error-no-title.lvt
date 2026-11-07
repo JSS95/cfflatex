@@ -4,7 +4,7 @@
 \input{regression-test}
 \documentclass{article}
 \usepackage[T1]{fontenc}
-\usepackage{cfflatex}
+\usepackage{import-citation-cff}
 \begin{document}
 \START
 \includecff{no-title.cff}

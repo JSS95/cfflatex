@@ -1,6 +1,7 @@
 % SPDX-License-Identifier: MIT
-% Copyright (c) 2026 cffLaTeX contributors
-\ProvidesFile{cfflatex-style-authblk.def}[cffLaTeX authblk author style]
+% Copyright (c) 2026 import-citation-cff contributors
+\ProvidesFile{cfflatex-style-authblk.def}
+  [import-citation-cff authblk author style]
 \ExplSyntaxOn
 
 \cffdeclareauthorstyle { authblk }

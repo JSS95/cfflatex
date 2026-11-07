@@ -5,7 +5,7 @@ Package luabridge Info: Writing a helper Lua script to file error-source-quote.l
 Package luabridge Info: Executing a helper Lua script from file error-source-quote.luabridge.lua
 (|TEXMF_OUTPUT_DIRECTORY=${TEXMF_OUTPUT_DIRECTORY:-.}
 texlua $TEXMF_OUTPUT_DIRECTORY/error-source-quote.luabridge.lua)
-! Fatal Package cfflatex Error: Cannot read CFF file: the CFF file has no 'a"b'c\textbackslash {}\textbackslash {}'.
+! Fatal Package import-citation-cff Error: Cannot read CFF file: the CFF file has no 'a"b'c\textbackslash {}\textbackslash {}'.
 Type <return> to continue.
  ...                                              
 l. ...\includecff[source={a"b'c\\}]{paper.cff}

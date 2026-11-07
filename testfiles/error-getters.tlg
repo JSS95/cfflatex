@@ -5,7 +5,7 @@ TEST 1: \cffauthor before \includecff
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Call \includecff first.
+                 ! Package import-citation-cff Error: Call \includecff first.
 l. ......decff}{\TYPE{[\cffauthor{1}{given-names}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -16,7 +16,7 @@ followed by the required stuff, so I'm ignoring it.
 ============================================================
 TEST 2: \cffforeachauthor before \includecff 
 ============================================================
-! Package cfflatex Error: Call \includecff first.
+! Package import-citation-cff Error: Call \includecff first.
 Type <return> to continue.
  ...                                              
 l. ......ncludecff}{\cffforeachauthor{\TYPE{never}}}
@@ -29,7 +29,7 @@ TEST 3: \cffaffiliationcount before \includecff
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Call \includecff first.
+                 ! Package import-citation-cff Error: Call \includecff first.
 l. ......includecff}{\TYPE{[\cffaffiliationcount]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -40,7 +40,7 @@ followed by the required stuff, so I'm ignoring it.
 ============================================================
 TEST 4: \cffforeachaffiliation before \includecff 
 ============================================================
-! Package cfflatex Error: Call \includecff first.
+! Package import-citation-cff Error: Call \includecff first.
 Type <return> to continue.
  ...                                              
 l. ......cff}{\cffforeachaffiliation{\TYPE{never}}}
@@ -53,7 +53,7 @@ TEST 5: \cffconvertaffiliationindex before \includecff
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Call \includecff first.
+                 ! Package import-citation-cff Error: Call \includecff first.
 l. ......TYPE{[\cffconvertaffiliationindex{1}{1}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -66,7 +66,7 @@ TEST 6: \cffcontact before \includecff
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Call \includecff first.
+                 ! Package import-citation-cff Error: Call \includecff first.
 l. ......includecff}{\TYPE{[\cffcontact{1}{name}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -77,7 +77,7 @@ followed by the required stuff, so I'm ignoring it.
 ============================================================
 TEST 7: \cffforeachcontact before \includecff 
 ============================================================
-! Package cfflatex Error: Call \includecff first.
+! Package import-citation-cff Error: Call \includecff first.
 Type <return> to continue.
  ...                                              
 l. ......ludecff}{\cffforeachcontact{\TYPE{never}}}
@@ -90,7 +90,7 @@ TEST 8: \cff before \includecff
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Call \includecff first.
+                 ! Package import-citation-cff Error: Call \includecff first.
 l. ...... before \includecff}{\TYPE{[\cff{title}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -103,7 +103,7 @@ TEST 9: \cffcount before \includecff
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Call \includecff first.
+                 ! Package import-citation-cff Error: Call \includecff first.
 l. ...... \includecff}{\TYPE{[\cffcount{authors}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -116,7 +116,7 @@ TEST 10: \cff of a sequence
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not a value: authors.
+                 ! Package import-citation-cff Error: Not a value: authors.
 l. ......cff of a sequence}{\TYPE{[\cff{authors}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -129,7 +129,7 @@ TEST 11: \cff of a mapping
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not a value: authors/1.
+                 ! Package import-citation-cff Error: Not a value: authors/1.
 l. ......ff of a mapping}{\TYPE{[\cff{authors/1}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -142,7 +142,7 @@ TEST 12: \cffcount of a value
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not a list: title.
+                 ! Package import-citation-cff Error: Not a list: title.
 l. ......unt of a value}{\TYPE{[\cffcount{title}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -155,7 +155,7 @@ TEST 13: \cffcount of a mapping
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not a list: authors/1.
+                 ! Package import-citation-cff Error: Not a list: authors/1.
 l. ...... a mapping}{\TYPE{[\cffcount{authors/1}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -168,7 +168,7 @@ TEST 14: contact index past the last contact
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Contact '1' is out of range.
+                 ! Package import-citation-cff Error: Contact '1' is out of ...
 l. ......st contact}{\TYPE{[\cffcontact{1}{name}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -181,7 +181,7 @@ TEST 15: \cffcontactindex outside \cffforeachcontact
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not inside \cffforeachcontact.
+                 ! Package import-citation-cff Error: Not inside \cffforeach...
 l. ......foreachcontact}{\TYPE{[\cffcontactindex]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -194,7 +194,7 @@ TEST 16: affiliation index of \cffconvertaffiliationindex
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Affiliation '1' is out of range.
+                 ! Package import-citation-cff Error: Affiliation '1' is out...
 l. ......TYPE{[\cffconvertaffiliationindex{1}{1}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -207,7 +207,7 @@ TEST 17: author index of \cffconvertaffiliationindex
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Author index '2' is out of range.
+                 ! Package import-citation-cff Error: Author index '2' is ou...
 l. ......TYPE{[\cffconvertaffiliationindex{2}{1}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -220,7 +220,7 @@ TEST 18: \cffaffiliationindex outside an affiliation loop
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not inside an affiliation loop.
+                 ! Package import-citation-cff Error: Not inside an affiliat...
 l. ......ation loop}{\TYPE{[\cffaffiliationindex]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -233,7 +233,7 @@ TEST 19: \cffauthoraffiliationindex outside an affiliation loop
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not in an author affiliation loop.
+                 ! Package import-citation-cff Error: Not in an author affil...
 l. ...  {\TYPE{[\cffauthoraffiliationindex]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -244,7 +244,7 @@ followed by the required stuff, so I'm ignoring it.
 ============================================================
 TEST 20: author index of foreach author affiliation
 ============================================================
-! Package cfflatex Error: Author index '2' is out of range.
+! Package import-citation-cff Error: Author index '2' is out of range.
 Type <return> to continue.
  ...                                              
 l. ......foreachauthoraffiliation{2}{\TYPE{never}}}
@@ -257,7 +257,7 @@ TEST 21: affiliation index past the last affiliation of an author
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Affiliation '1' is out of range.
+                 ! Package import-citation-cff Error: Affiliation '1' is out...
 l. ...  {\TYPE{[\cffauthoraffiliation{1}{1}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -270,7 +270,7 @@ TEST 22: affiliation index past the last affiliation
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Affiliation '1' is out of range.
+                 ! Package import-citation-cff Error: Affiliation '1' is out...
 l. ...... affiliation}{\TYPE{[\cffaffiliation{1}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -283,7 +283,7 @@ TEST 23: author index of an affiliation count
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Author index '2' is out of range.
+                 ! Package import-citation-cff Error: Author index '2' is ou...
 l. ......t}{\TYPE{[\cffauthoraffiliationcount{2}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -296,7 +296,7 @@ TEST 24: \cffauthorindex outside \cffforeachauthor
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not inside \cffforeachauthor.
+                 ! Package import-citation-cff Error: Not inside \cffforeach...
 l. ......ffforeachauthor}{\TYPE{[\cffauthorindex]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -309,7 +309,7 @@ TEST 25: author index 0
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Author index '0' is out of range.
+                 ! Package import-citation-cff Error: Author index '0' is ou...
 l. ......ex 0}{\TYPE{[\cffauthor{0}{given-names}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -322,7 +322,7 @@ TEST 26: author index past the last author
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Author index '3' is out of range.
+                 ! Package import-citation-cff Error: Author index '3' is ou...
 l. ......thor}{\TYPE{[\cffauthor{3}{given-names}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -335,7 +335,7 @@ TEST 27: \cffaffiliationindex in \cffforeachauthoraffiliation
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not inside an affiliation loop.
+                 ! Package import-citation-cff Error: Not inside an affiliat...
 l. ......liation{2}{\TYPE{[\cffaffiliationindex]}}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -344,7 +344,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not inside an affiliation loop.
+                 ! Package import-citation-cff Error: Not inside an affiliat...
 l. ......liation{2}{\TYPE{[\cffaffiliationindex]}}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -353,7 +353,7 @@ followed by the required stuff, so I'm ignoring it.
 []
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not inside an affiliation loop.
+                 ! Package import-citation-cff Error: Not inside an affiliat...
 l. ......liation{2}{\TYPE{[\cffaffiliationindex]}}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -366,7 +366,7 @@ TEST 28: \cffauthoraffiliationindex in \cffforeachaffiliation
 ============================================================
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not in an author affiliation loop.
+                 ! Package import-citation-cff Error: Not in an author affil...
 l. ......iationindex:\cffauthoraffiliationindex]}}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -375,7 +375,7 @@ followed by the required stuff, so I'm ignoring it.
 [1:]
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not in an author affiliation loop.
+                 ! Package import-citation-cff Error: Not in an author affil...
 l. ......iationindex:\cffauthoraffiliationindex]}}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
@@ -384,7 +384,7 @@ followed by the required stuff, so I'm ignoring it.
 [2:]
 ! Use of \??? doesn't match its definition.
 <argument> \???  
-                 ! Package cfflatex Error: Not in an author affiliation loop.
+                 ! Package import-citation-cff Error: Not in an author affil...
 l. ......iationindex:\cffauthoraffiliationindex]}}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are

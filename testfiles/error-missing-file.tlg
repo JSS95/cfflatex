@@ -1,6 +1,6 @@
 This is a generated file for the l3build validation system.
 Don't change this file in any respect.
-! Fatal Package cfflatex Error: CFF file 'missing.cff' was not found.
+! Fatal Package import-citation-cff Error: CFF file 'missing.cff' was not found.
 Type <return> to continue.
  ...                                              
 l. ...\includecff{missing.cff}

@@ -24,14 +24,14 @@ end/One, Two
 ============================================================
 TEST 3: check keys outside a style definition
 ============================================================
-! Package cfflatex Error: The key 'check-fields' is only allowed in an author style definition.
+! Package import-citation-cff Error: The key 'check-fields' is only allowed in an author style definition.
 Type <return> to continue.
  ...                                              
 l. ...}
 LaTeX does not know anything more about this error, sorry.
 Try typing <return> to proceed.
 If that doesn't work, type X <return> to quit.
-! Package cfflatex Error: The key 'check-region' is only allowed in an author style definition.
+! Package import-citation-cff Error: The key 'check-region' is only allowed in an author style definition.
 Type <return> to continue.
  ...                                              
 l. ...}
@@ -44,14 +44,14 @@ badregion/\protect Two
 ============================================================
 TEST 4: invalid regions
 ============================================================
-! Package cfflatex Error: Invalid check region 'hooks = cmd/maketitle/before'.
+! Package import-citation-cff Error: Invalid check region 'hooks = cmd/maketitle/before'.
 Type <return> to continue.
  ...                                              
 l. ...\TEST{invalid regions}{\OMIT\begin{document}}
 LaTeX does not know anything more about this error, sorry.
 Try typing <return> to proceed.
 If that doesn't work, type X <return> to quit.
-! Package cfflatex Error: Invalid check region 'nowhere'.
+! Package import-citation-cff Error: Invalid check region 'nowhere'.
 Type <return> to continue.
  ...                                              
 l. ...\TEST{invalid regions}{\OMIT\begin{document}}

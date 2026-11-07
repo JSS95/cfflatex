@@ -1,8 +1,8 @@
 -- SPDX-License-Identifier: MIT
--- Copyright (c) 2026 cffLaTeX contributors
--- Turns the shared CFF model into the storage commands of cfflatex.sty.
+-- Copyright (c) 2026 import-citation-cff contributors
+-- Turns the shared CFF model into the storage commands of import-citation-cff.sty.
 
--- Match the helper selected by cfflatex.sty, including an explicit package
+-- Match the helper selected by import-citation-cff.sty, including an explicit package
 -- path outside the current directory or the installed TeX tree.
 local helper = ... or "cfflatex.lua"
 local directory = helper:match("^(.*[/\\])") or ""

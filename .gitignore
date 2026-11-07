@@ -336,7 +336,7 @@ TSWLatexianTemp*
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
 
-## cffLaTeX
+## import-citation-cff
 # lt3luabridge writes these when pdfLaTeX runs cfflatex.lua via shell escape.
 *.luabridge.lua
 *.luabridge.err
@@ -344,7 +344,7 @@ TSWLatexianTemp*
 *.pdf
 # l3build test and build output, and the CTAN archives from `l3build ctan`.
 build/
-cfflatex-*.zip
+import-citation-cff-*.zip
 *.tds.zip
 
 # Byte-compiled / optimized / DLL files

@@ -3,7 +3,7 @@ Don't change this file in any respect.
 ============================================================
 TEST 1: \cffsetauthors before \includecff 
 ============================================================
-! Package cfflatex Error: Call \includecff first.
+! Package import-citation-cff Error: Call \includecff first.
 Type <return> to continue.
  ...                                              
 l. ......uthors before \includecff}{\cffsetauthors}
@@ -14,7 +14,7 @@ If that doesn't work, type X <return> to quit.
 ============================================================
 TEST 2: style=authblk without authblk
 ============================================================
-! Package cfflatex Error: style=authblk needs the authblk package.
+! Package import-citation-cff Error: style=authblk needs the authblk package.
 Type <return> to continue.
  ...                                              
 l. ......ut authblk}{\cffsetauthors[style=authblk]}
@@ -47,7 +47,7 @@ TEST 6: notes
 ============================================================
 TEST 7: note for an author out of range
 ============================================================
-! Package cfflatex Error: Author index '3' is out of range.
+! Package import-citation-cff Error: Author index '3' is out of range.
 Type <return> to continue.
  ...                                              
 l. ...}

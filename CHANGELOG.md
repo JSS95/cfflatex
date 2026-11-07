@@ -1,9 +1,22 @@
 # Changelog
 
-All notable changes to cffLaTeX are documented in this file.
+All notable changes to import-citation-cff are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## Unreleased
+
+The package is renamed from cffLaTeX to import-citation-cff.
+
+### Changed
+
+- `cfflatex.sty` is renamed to `import-citation-cff.sty`. Load the package
+  with `\usepackage{import-citation-cff}`. Messages, the key and hook labels,
+  and the manual (`import-citation-cff.pdf`) use the new name.
+- The CTAN and TDS archives install into `import-citation-cff` directories.
+- Support files keep the prefix `cfflatex`: `cfflatex.lua`, `cfflatex-data.lua`,
+  and `cfflatex-style-NAME.def`. The `cfflatexpand` command is unchanged.
 
 ## [0.2.0] - 2026-11-07
 

@@ -2,7 +2,7 @@
 % of the -recorder option, so that latexmk and LaTeX Workshop rebuild the
 % document when one of them changes. See test_types in build.lua.
 \documentclass{article}
-\usepackage{cfflatex}
+\usepackage{import-citation-cff}
 \includecff[source=preferred-citation]{paper.cff}
 \includecff{data/citation file.cff}
 \begin{document}

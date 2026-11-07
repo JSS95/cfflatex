@@ -1,11 +1,11 @@
 % SPDX-License-Identifier: MIT
-% Copyright (c) 2026 cffLaTeX contributors
+% Copyright (c) 2026 import-citation-cff contributors
 %
-% The cffLaTeX manual. Typeset it with `l3build doc`, or with
-% `lualatex cfflatex.tex` next to cfflatex.sty, its built-in style .def files,
-% cfflatex.lua, cfflatex-data.lua, and CITATION.cff.
+% The import-citation-cff manual. Typeset it with `l3build doc`, or with
+% `lualatex import-citation-cff.tex` next to import-citation-cff.sty, its
+% built-in style .def files, cfflatex.lua, cfflatex-data.lua, and CITATION.cff.
 \documentclass{l3doc}
-\usepackage{cfflatex}
+\usepackage{import-citation-cff}
 \usepackage{authblk}
 
 % l3doc strips two characters from each verbatim line, which in .dtx files
@@ -22,10 +22,10 @@
 % hyperref cannot take the PDF author from the \author of authblk.
 \hypersetup{pdfauthor={\cffauthornames}}
 
-% The version and date of cfflatex.sty, unless the build defines others: CI
-% shows the commit or the release that the manual was built from. See
+% The version and date of import-citation-cff.sty, unless the build defines
+% others: CI shows the commit or the release that the manual was built from. See
 % CFFLATEX_DOC_VERSION in build.lua.
-\GetFileInfo{cfflatex.sty}
+\GetFileInfo{import-citation-cff.sty}
 \providecommand\cfflatexdocversion{\fileversion}
 \providecommand\cfflatexdocdate{\filedate}
 \date{Version \cfflatexdocversion\ (\cfflatexdocdate)}
@@ -56,8 +56,9 @@ the software and the manuscript are developed in parallel, the former metadata
 being kept in the top level of the CFF file while the latter metadata being kept
 in the subsection of the CFF file such as \texttt{preferred-citation}.
 
-\pkg{cfflatex} relieves this burden by keeping the CFF file as the single source
-of metadata and importing it into the \LaTeX{} document. The metadata, such as
+\pkg{import-citation-cff} relieves this burden by keeping the CFF file as the
+single source of metadata and importing it into the \LaTeX{} document. The
+metadata, such as
 the title, abstract, and authors, are imported as \LaTeX{} macros that
 dynamically expand whenever the CFF file changes. This ensures that the metadata
 are synced across the repository, allowing for easier maintenance and automation
@@ -65,8 +66,8 @@ of the development process.
 
 \section{Requirements}
 
-\pkg{cfflatex} parses the CFF file in Lua using the \pkg{lt3luabridge} and
-\pkg{lua-tinyyaml} packages. It needs either
+\pkg{import-citation-cff} parses the CFF file in Lua using the
+\pkg{lt3luabridge} and \pkg{lua-tinyyaml} packages. It needs either
 \begin{itemize}
   \item Lua\LaTeX{}, which runs the Lua code directly, or
   \item pdf\LaTeX{} with unrestricted shell escape (|--shell-escape|), which
@@ -76,14 +77,14 @@ It supports \TeX{} Live 2025 and later.
 
 \section{Usage}
 
-This manuscript itself is an example of using \pkg{cfflatex}. Its |CITATION.cff|
-is
+This manuscript itself is an example of using \pkg{import-citation-cff}. Its
+|CITATION.cff| is
 \VerbatimInput{CITATION.cff}
 
 The \LaTeX{} manuscript then imports and accesses the metadata by
 \begin{Verbatim}
 \documentclass{l3doc}
-\usepackage{cfflatex}
+\usepackage{import-citation-cff}
 \includecff{CITATION.cff}
 \title{\cff{title}}
 \author{\cffauthor{1}{given-names}~\cffauthor{1}{family-names}}
@@ -140,8 +141,9 @@ author list of \cs{maketitle}, with \cs{and} between the authors:
 \label{sec:affiliations}
 
 CFF gives each person one \texttt{affiliation} which is a nonempty string, and
-does not natively support multiple affiliations per author. \pkg{cfflatex},
-allows multiple affiliations per author by separating them with semicolons in
+does not natively support multiple affiliations per author.
+\pkg{import-citation-cff}, allows multiple affiliations per author by separating
+them with semicolons in
 the \texttt{affiliation} field of the author. Affiliations of each author can be
 accessed individually by \cs{cffauthoraffiliation} and related commands. Refer
 to Section~\ref{sec:reference} for details.
@@ -154,8 +156,9 @@ author style, which |\cffsetauthors[style=|\meta{name}|]| selects. It marks each
 author with their affiliations, numbered among the distinct affiliations of the
 citation, and with a footnote for each contact of the citation that has the same
 names. Section~\ref{sec:builtin-styles} lists the styles that come with
-\pkg{cfflatex}, and Section~\ref{sec:author-styles} explains how to write
-others. The other keys of \cs{cffsetauthors} change how a name is made, how the
+\pkg{import-citation-cff}, and Section~\ref{sec:author-styles} explains how to
+write others. The other keys of \cs{cffsetauthors} change how a name is made,
+how the
 authors and the affiliations are declared, and the marks and the footnotes
 (Section~\ref{sec:reference}).
 
@@ -178,8 +181,9 @@ when the CFF file changes.
 \subsection{Checking the title page}
 \label{sec:check}
 
-By default, \pkg{cfflatex} checks that \cs{maketitle} typesets the metadata of
-the citation. The \cs{title} command should use |\cff{title}|, and the
+By default, \pkg{import-citation-cff} checks that \cs{maketitle} typesets the
+metadata of the citation. The \cs{title} command should use |\cff{title}|, and
+the
 \cs{author} command should use \cs{cffauthor}, or \cs{cff} with a path such as
 |authors/1/family-names|, for every author of the citation. The check cannot see
 metadata that is expanded before \cs{maketitle}, such as an author list built
@@ -193,7 +197,7 @@ document. A style for a journal template that typesets its title block without
 author style of the document, and also makes it the default style of
 \cs{cffsetauthors}:
 \begin{Verbatim}
-\usepackage[style=authblk]{cfflatex}
+\usepackage[style=authblk]{import-citation-cff}
 \end{Verbatim}
 The check uses this style even if \cs{cffsetauthors} selects another one.
 Without the option, the check uses the style of the last \cs{cffsetauthors} in
@@ -203,15 +207,16 @@ each built-in style checks.
 When the check does not fit the document, load the package with the
 |check=false| option:
 \begin{Verbatim}
-\usepackage[check=false]{cfflatex}
+\usepackage[check=false]{import-citation-cff}
 \end{Verbatim}
 
 \subsection{Expanding metadata}
 
 The Lua command-line tool \texttt{cfflatexpand} replaces metadata commands with
-their values and removes the cfflatex package load and \cs{includecff}. The
-resulting source can be compiled without cfflatex or the CFF file. Install the
-command as described in the README, then run either
+their values and removes the \pkg{import-citation-cff} package load and
+\cs{includecff}. The resulting source can be compiled without
+\pkg{import-citation-cff} or the CFF file. Install the command as described in
+the README, then run either
 \begin{Verbatim}
 cfflatexpand manuscript.tex > submission.tex
 cfflatexpand manuscript.tex --output submission.tex
@@ -239,8 +244,9 @@ cfflatexpand manuscript-flat.tex --output submission.tex
 \section{Built-in author styles}
 \label{sec:builtin-styles}
 
-\pkg{cfflatex} comes with the following author styles. A document selects one
-with the |style| key of \cs{cffsetauthors} or the |style| option of the package
+\pkg{import-citation-cff} comes with the following author styles. A document
+selects one with the |style| key of \cs{cffsetauthors} or the |style| option of
+the package
 (Sections~\ref{sec:setauthors} and~\ref{sec:check}). The other keys of
 \cs{cffsetauthors} override the defaults of the style.
 
@@ -277,7 +283,7 @@ Chemistry~\cite{rsc2019}, which typesets its title block by hand in a
 for the template: \cs{rscauthors}, the line of the authors, and
 \cs{rscfootnotes}, the footnotes that the template lists after the block.
 \begin{Verbatim}
-\usepackage[style=rsc]{cfflatex}
+\usepackage[style=rsc]{import-citation-cff}
 \includecff{CITATION.cff}
 \cffsetauthors[
   note = {1}{These authors contributed equally to this work.},
@@ -313,9 +319,11 @@ plugins written with the same interface.
 
 \subsection{Writing a definition file}
 
-A style named \meta{name} lives in the file \texttt{cfflatex-style-}\meta{name}%
-\texttt{.def}, beside the manuscript or in a TeX tree, and registers itself with
-\cs{cffdeclareauthorstyle}. For example, the following style uses the
+The support files of \pkg{import-citation-cff} share the short prefix
+\texttt{cfflatex}. A style named \meta{name} lives in the file
+\texttt{cfflatex-style-}\meta{name}\texttt{.def}, beside the manuscript or in a
+TeX tree, and registers itself with \cs{cffdeclareauthorstyle}. For example, the
+following style uses the
 \cs{author} and \cs{affil} commands of \pkg{authblk} with numeric affiliation
 marks:
 \begin{Verbatim}
@@ -330,7 +338,7 @@ marks:
 The manuscript selects it by name:
 \begin{Verbatim}
 \usepackage{authblk}
-\usepackage{cfflatex}
+\usepackage{import-citation-cff}
 \includecff{CITATION.cff}
 \cffsetauthors[style=authblk-arabic]
 \end{Verbatim}
@@ -453,8 +461,8 @@ The check does not run during export, so these keys do not affect
 reading it. It
 \begin{enumerate}
   \item starts a separate Lua\LaTeX{} run of an empty \texttt{article} document
-        that loads \pkg{cfflatex} and the metadata, but none of the manuscript's
-        preamble;
+        that loads \pkg{import-citation-cff} and the metadata, but none of the
+        manuscript's preamble;
   \item calls \cs{cffsetauthors} there with the options of the manuscript, and
         the |style| option of the package as the default, loading the definition
         file from the directory of the manuscript or the TeX search path, and
@@ -479,8 +487,9 @@ A style therefore works with \texttt{cfflatexpand} if it follows these rules.
         also runs in the isolated document, where the class and the packages of
         the manuscript, including those in |requires|, are not loaded.
   \item Use only commands of the final class and its packages in the
-        declarations. The output is compiled without \pkg{cfflatex} and without
-        the definition file, so helper commands of the style are undefined
+        declarations. The output is compiled without \pkg{import-citation-cff}
+        and without the definition file, so helper commands of the style are
+        undefined
         there. A declaration can define a command for the document with
         \cs{newcommand}, as the |rsc| style does.
   \item Keep the marks and the names unexpanded. They contain the footnotes and
@@ -696,8 +705,8 @@ The following errors stop compilation.
         key does not hold a mapping, or the selected citation has incorrect
         structure, or an affiliation breaks the rules of
         Section~\ref{sec:affiliations}.
-  \item[Install cfflatex.lua alongside cfflatex.sty.] \pkg{cfflatex} is
-        incompletely installed.
+  \item[Install cfflatex.lua alongside import-citation-cff.sty.]
+        \pkg{import-citation-cff} is incompletely installed.
 \end{description}
 
 The following errors are reported while using the commands of
@@ -755,13 +764,13 @@ the region it checks, such as \cs{maketitle}.
 
 \section{License}
 
-\pkg{cfflatex} is distributed under the MIT License. Its source code is at
-\url{https://github.com/JSS95/cfflatex}, where bugs can be reported.
+\pkg{import-citation-cff} is distributed under the MIT License. Its source code
+is at \url{https://github.com/JSS95/cfflatex}, where bugs can be reported.
 
 % Long URLs leave ragged lines rather than stretched spaces.
 \raggedright
 % Number the references in the order they are first cited.
 \bibliographystyle{unsrt}
-\bibliography{cfflatex}
+\bibliography{import-citation-cff}
 
 \end{document}

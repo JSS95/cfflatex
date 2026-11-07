@@ -1,6 +1,6 @@
 This is a generated file for the l3build validation system.
 Don't change this file in any respect.
-! Fatal Package cfflatex Error: Cannot read CFF file: the CFF file has no 'preferred-citation'.
+! Fatal Package import-citation-cff Error: Cannot read CFF file: the CFF file has no 'preferred-citation'.
 Type <return> to continue.
  ...                                              
 l. ......[source=preferred-citation]{root-only.cff}

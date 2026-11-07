@@ -1,13 +1,13 @@
 -- l3build configuration.
 --   l3build check        run the tests
---   l3build doc          typeset the manual, cfflatex.pdf
+--   l3build doc          typeset the manual, import-citation-cff.pdf
 --   l3build tag VERSION  set the version and today's date in the sources
 --   l3build ctan         run the tests and build the CTAN archive
 --   l3build upload       submit the CTAN archive (asks for your email)
-module = "cfflatex"
+module = "import-citation-cff"
 
 sourcefiles = {
-  "cfflatex.sty", "cfflatex-style-*.def", "cfflatex.lua", "cfflatex-data.lua",
+  "import-citation-cff.sty", "cfflatex-style-*.def", "cfflatex.lua", "cfflatex-data.lua",
   "cfflatexpand", "cfflatexpand.lua", "cfflatexpand-authors.lua",
 }
 -- l3build separates scriptfiles from the TeX runtime files during installation.
@@ -57,17 +57,17 @@ test_order = {"log", "pdf", "fls"}
 
 -- Documentation -------------------------------------------------------------
 
--- The manual reads its metadata from CITATION.cff with cfflatex.
+-- The manual reads its metadata from CITATION.cff with import-citation-cff.
 -- LuaLaTeX runs cfflatex.lua without shell escape.
-typesetfiles = {"cfflatex.tex"}
+typesetfiles = {"import-citation-cff.tex"}
 typesetexe = "lualatex"
-docfiles = {"CITATION.cff", "cfflatex.bib"}
+docfiles = {"CITATION.cff", "import-citation-cff.bib"}
 -- l3build defaults to bibtex8, which is not in every TeX Live installation.
 bibtexexe = "bibtex"
 bibtexopts = ""
 textfiles = {"README.md", "CHANGELOG.md", "LICENSE"}
 
--- The manual shows the version and date of cfflatex.sty, unless the
+-- The manual shows the version and date of import-citation-cff.sty, unless the
 -- environment variables CFFLATEX_DOC_VERSION and CFFLATEX_DOC_DATE give
 -- others. CI sets them to the commit hash and commit date for a push, and to
 -- the tag and publication date for a release (see .github/workflows/ci.yml).
@@ -89,24 +89,24 @@ typesetcmds = (doc_version and ("\\def\\cfflatexdocversion{" .. doc_version .. "
 
 -- Release -------------------------------------------------------------------
 
--- The version and date live in \ProvidesExplPackage in cfflatex.sty; the
+-- The version and date live in \ProvidesExplPackage in import-citation-cff.sty; the
 -- manual reads them from there with \GetFileInfo.
 local function package_version()
-  local file = assert(io.open("cfflatex.sty", "r"))
+  local file = assert(io.open("import-citation-cff.sty", "r"))
   local content = file:read("a")
   file:close()
-  return content:match("\\ProvidesExplPackage{cfflatex}{[^}]*}{([^}]*)}")
+  return content:match("\\ProvidesExplPackage{import%-citation%-cff}{[^}]*}{([^}]*)}")
 end
 
-local version = assert(package_version(), "Missing package version in cfflatex.sty")
+local version = assert(package_version(), "Missing package version in import-citation-cff.sty")
 ctanzip = module .. "-" .. version
 
-tagfiles = {"cfflatex.sty", "CITATION.cff"}
+tagfiles = {"import-citation-cff.sty", "CITATION.cff"}
 
 function update_tag(file, content, tagname, tagdate)
-  if file == "cfflatex.sty" then
+  if file == "import-citation-cff.sty" then
     return (content:gsub(
-      "(\\ProvidesExplPackage{cfflatex}){[^}]*}{[^}]*}",
+      "(\\ProvidesExplPackage{import%-citation%-cff}){[^}]*}{[^}]*}",
       "%1{" .. tagdate .. "}{" .. tagname .. "}"))
   elseif file == "CITATION.cff" then
     content = content:gsub("\nversion: [^\n]*", "\nversion: " .. tagname)
@@ -119,7 +119,7 @@ end
 -- l3build asks for the uploader's email, or takes it from --email. CD passes
 -- --file with the CHANGELOG entry shared with GitHub as the CTAN announcement.
 uploadconfig = {
-  pkg = "cfflatex",
+  pkg = "import-citation-cff",
   version = version,
   author = "Jisoo Song",
   uploader = "Jisoo Song",
@@ -130,7 +130,7 @@ uploadconfig = {
     research software repository, into a LaTeX document.
     It works with LuaLaTeX, and with pdfLaTeX when shell escape is enabled.
   ]],
-  ctanPath = "/macros/latex/contrib/cfflatex",
+  ctanPath = "/macros/latex/contrib/import-citation-cff",
   topic = {"metadata", "data-import"},
   home = "https://github.com/JSS95/cfflatex",
   repository = "https://github.com/JSS95/cfflatex",

@@ -9,7 +9,7 @@ TEST 1: contacts, letters, and shared notes
 ============================================================
 TEST 2: the block lacks the abstract
 ============================================================
-Package cfflatex Warning: The title page does not use 'abstract' of the citation. Load cfflatex with check=false to skip this check.
+Package import-citation-cff Warning: The title page does not use 'abstract' of the citation. Load import-citation-cff with check=false to skip this check.
 ============================================================
 ============================================================
 TEST 3: two authors with one address need no letter

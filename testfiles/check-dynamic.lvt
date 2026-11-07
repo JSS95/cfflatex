@@ -2,7 +2,7 @@
 \input{regression-test}
 \documentclass{article}
 \usepackage[T1]{fontenc}
-\usepackage{cfflatex}
+\usepackage{import-citation-cff}
 \usepackage{pgffor}
 \includecff[source=preferred-citation]{paper.cff}
 \title{\MakeUppercase{\cff{title}}}

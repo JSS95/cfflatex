@@ -1,6 +1,6 @@
 #!/usr/bin/env texlua
 -- SPDX-License-Identifier: MIT
--- Copyright (c) 2026 cffLaTeX contributors
+-- Copyright (c) 2026 import-citation-cff contributors
 
 local kpse = require("kpse")
 kpse.set_program_name("luatex")
@@ -21,7 +21,7 @@ end
 local help = [[Usage: cfflatexpand [OPTIONS] manuscript.tex
 
 Expand CFF fields, counts, author/affiliation/contact accessors, metadata
-loops, \cffsetauthors, and \cffauthornames, and remove cfflatex loading commands.
+loops, \cffsetauthors, and \cffauthornames, and remove import-citation-cff loading commands.
 Author declarations support built-in and file-based styles and custom templates.
 The current version supports one literal \includecff in a single TeX file.
 CFF filenames are relative to the input TeX file. \cffsetauthors requires
@@ -34,7 +34,7 @@ conditionals are preserved; both branches must contain supported input.
 
   -o, --output FILE  Write to FILE instead of stdout; '-' also means stdout
   -h, --help         Show this help
-      --version      Show the version shared with cfflatex
+      --version      Show the version shared with import-citation-cff
       --             End option parsing
 
 Diagnostics go to stderr. Unsupported or invalid input produces no TeX output.
@@ -169,16 +169,16 @@ local function main()
     return
   end
   if selected.version then
-    local filename = script_directory .. "cfflatex.sty"
+    local filename = script_directory .. "import-citation-cff.sty"
     if not lfs.isfile(filename) then
-      filename = kpse.find_file("cfflatex.sty", "tex") or filename
+      filename = kpse.find_file("import-citation-cff.sty", "tex") or filename
     end
     local version = read_file(filename):match(
-      "\\ProvidesExplPackage%s*{cfflatex}%s*{[^}]*}%s*{([^}]+)}")
+      "\\ProvidesExplPackage%s*{import%-citation%-cff}%s*{[^}]*}%s*{([^}]+)}")
     if not version then
-      error("cannot read the cfflatex version from " .. filename, 0)
+      error("cannot read the import-citation-cff version from " .. filename, 0)
     end
-    io.stdout:write("cfflatexpand (cfflatex) " .. version .. "\n")
+    io.stdout:write("cfflatexpand (import-citation-cff) " .. version .. "\n")
     return
   end
   if selected.output and selected.output ~= "-" then

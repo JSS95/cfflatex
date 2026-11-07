@@ -81,7 +81,7 @@ end/One, Two
 ============================================================
 TEST 8: duplicate registration preserves the original
 ============================================================
-! Package cfflatex Error: Author style 'inline' is already registered.
+! Package import-citation-cff Error: Author style 'inline' is already registered.
 Type <return> to continue.
  ...                                              
 l. ...}
@@ -94,7 +94,7 @@ inline//\protect Ben
 ============================================================
 TEST 9: built-in names are registered
 ============================================================
-! Package cfflatex Error: Author style 'authblk' is already registered.
+! Package import-citation-cff Error: Author style 'authblk' is already registered.
 Type <return> to continue.
  ...                                              
 l. ......stered}{\cffdeclareauthorstyle{authblk}{}}
@@ -105,7 +105,7 @@ If that doesn't work, type X <return> to quit.
 ============================================================
 TEST 10: invalid registration name
 ============================================================
-! Package cfflatex Error: Invalid author style name '../invalid'.
+! Package import-citation-cff Error: Invalid author style name '../invalid'.
 Type <return> to continue.
  ...                                              
 l. ......ame}{\cffdeclareauthorstyle{../invalid}{}}
@@ -116,7 +116,7 @@ If that doesn't work, type X <return> to quit.
 ============================================================
 TEST 11: invalid selection name
 ============================================================
-! Package cfflatex Error: Invalid author style name '../invalid'.
+! Package import-citation-cff Error: Invalid author style name '../invalid'.
 Type <return> to continue.
  ...                                              
 l. ......on name}{\cffsetauthors[style=../invalid]}
@@ -127,7 +127,7 @@ If that doesn't work, type X <return> to quit.
 ============================================================
 TEST 12: missing plugin
 ============================================================
-! Package cfflatex Error: Author style 'absent' is not registered; cannot find cfflatex-style-absent.def.
+! Package import-citation-cff Error: Author style 'absent' is not registered; cannot find cfflatex-style-absent.def.
 Type <return> to continue.
  ...                                              
 l. ......sing plugin}{\cffsetauthors[style=absent]}
@@ -139,7 +139,7 @@ If that doesn't work, type X <return> to quit.
 TEST 13: file does not register the requested style
 ============================================================
 (cfflatex-style-unregistered.def)
-! Package cfflatex Error: Author style 'unregistered' was not registered by its file.
+! Package import-citation-cff Error: Author style 'unregistered' was not registered by its file.
 Type <return> to continue.
  ...                                              
 l. ......style}{\cffsetauthors[style=unregistered]}
@@ -150,7 +150,7 @@ If that doesn't work, type X <return> to quit.
 ============================================================
 TEST 14: missing package prevents declarations
 ============================================================
-! Package cfflatex Error: style=inline needs the cfflatex-nonexistent package.
+! Package import-citation-cff Error: style=inline needs the cfflatex-nonexistent package.
 Type <return> to continue.
  ...                                              
 l. ...}

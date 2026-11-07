@@ -3,7 +3,7 @@
 % reported when the check is set up at \begin{document}.
 \input{regression-test}
 \documentclass{article}
-\usepackage[style=badregion]{cfflatex}
+\usepackage[style=badregion]{import-citation-cff}
 \includecff{authors-contacts.cff}
 \cffdeclareauthorstyle{badregion}{
   name = {#1{family-names}},
@@ -14,7 +14,7 @@
 % Omit what \begin{document} logs before the check is set up, which depends on
 % the TeX Live version.
 \AddToHook{begindocument}[regression]{\TIMO}
-\DeclareHookRule{begindocument}{regression}{before}{cfflatex}
+\DeclareHookRule{begindocument}{regression}{before}{import-citation-cff}
 \START
 \TEST{default style from the package}{\cffsetauthors}
 \TEST{explicit style overrides the package}{\cffsetauthors[style=regression]}
