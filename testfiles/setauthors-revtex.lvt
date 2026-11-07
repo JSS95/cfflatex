@@ -6,7 +6,9 @@
 \usepackage[style=revtex,check=false]{import-citation-cff}
 \includecff{revtex.cff}
 \newcommand\revtexlog{}
+\makeatletter
 \newcommand\revtexappend[1]{\g@addto@macro\revtexlog{[#1]}}
+\makeatother
 \renewcommand\author[1]{\revtexappend{author:#1}}
 \newcommand\email[1]{\revtexappend{email:#1}}
 \newcommand\affiliation[1]{\revtexappend{affiliation:#1}}

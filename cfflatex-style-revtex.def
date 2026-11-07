@@ -39,7 +39,10 @@
     \seq_map_inline:Nn \l__cfflatex_notes_seq
       { \__cfflatex_revtex_note:nn ##1 }
     \int_step_inline:nn
-      { \cffauthoraffiliationcount { \int_use:N \l__cfflatex_revtex_author_int } }
+      {
+        \cffauthoraffiliationcount
+          { \int_use:N \l__cfflatex_revtex_author_int }
+      }
       {
         \exp_args:Ne \cffemit
           {
