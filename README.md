@@ -104,6 +104,12 @@ Open the document of locally installed package:
 texdoc import-citation-cff
 ```
 
+On Unix, the man page of the `cfflatexpand` command is also available:
+
+```sh
+man cfflatexpand
+```
+
 ### Building the document
 
 Run:
@@ -122,6 +128,7 @@ Requires:
 
 * [badness](https://pypi.org/project/badness/)
 * [expltools](https://ctan.org/pkg/expltools)
+* [groff](https://www.gnu.org/software/groff/)
 * [lua-check](https://github.com/lunarmodules/luacheck)
 * [Ruff](https://docs.astral.sh/ruff/)
 
@@ -129,6 +136,7 @@ Requires:
 badness format .
 badness lint .
 explcheck --warnings-are-errors import-citation-cff.sty cfflatex-style-*.def
+groff -man -ww -z cfflatexpand.1  # prints nothing when the man page is clean
 luacheck . cfflatexpand
 ruff format .
 ruff check .

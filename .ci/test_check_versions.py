@@ -31,6 +31,13 @@ class VersionCheckTests(unittest.TestCase):
             "cff-version: 1.2.0\npreferred-citation:\n  version: 9.9.9\n",
             encoding="utf-8",
         )
+        self.man_page = self.root / "cfflatexpand.1"
+        self.man_page.write_text(
+            '.\\" A comment\n'
+            '.TH CFFLATEXPAND 1 "2026-11-06" "import-citation-cff 1.2.3" "User Commands"\n'
+            ".SH NAME\n",
+            encoding="utf-8",
+        )
 
     def run_check(self):
         # Resolve the repository from the script, independently of the cwd.
@@ -61,6 +68,24 @@ class VersionCheckTests(unittest.TestCase):
                     f"import-citation-cff.sty {field} must match", result.stderr
                 )
 
+    def test_man_page_version_and_date_mismatches_fail(self):
+        original = self.man_page.read_text()
+        for old, new, field in (
+            ("1.2.3", "1.2.2", "version"),
+            ("2026-11-06", "2026-11-05", "date"),
+        ):
+            with self.subTest(field=field):
+                self.man_page.write_text(original.replace(old, new))
+                result = self.run_check()
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(f"cfflatexpand.1 {field} must match", result.stderr)
+
+    def test_missing_man_page_title_fails(self):
+        self.man_page.write_text(".SH NAME\n")
+        result = self.run_check()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Missing .TH title line", result.stderr)
+
     def test_missing_or_commented_package_declaration_fails(self):
         for package in ("", "% " + self.package.read_text()):
             with self.subTest(package=package):
@@ -80,6 +105,7 @@ class VersionCheckTests(unittest.TestCase):
         released = self.changelog.read_text()
         self.package.unlink()
         self.citation.unlink()
+        self.man_page.unlink()
         for heading in (
             "Unreleased",
             "[Unreleased]",

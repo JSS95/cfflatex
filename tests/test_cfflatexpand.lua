@@ -284,6 +284,7 @@ local ok, message = xpcall(function()
         assert(lfs.isfile(texmf .. "/doc/latex/import-citation-cff/" .. filename),
           "TDS archive is missing " .. filename)
       end
+      equal(read_file(texmf .. "/doc/man/man1/cfflatexpand.1"), read_file(root .. "/cfflatexpand.1"))
     else
       os.setenv("CFFLATEXPAND_BINDIR", link_directory)
       success(run_command({"l3build", "install", "--texmfhome", texmf}, root))
@@ -386,6 +387,24 @@ local ok, message = xpcall(function()
       {f.input, f.input}, {f.input, "-o", "a", "-o", "b"}}) do
       failure(f:cli(table.unpack(arguments)), "cfflatexpand:")
     end
+  end)
+
+  test("the man page documents every option of --help", function(f)
+    local help = f:cli("--help")
+    success(help)
+    -- The man page writes - as \- and changes fonts with \fB, \fI, and \fR.
+    local page = read_file(root .. "/cfflatexpand.1"):gsub("\\f[BIRP]", ""):gsub("\\%-", "-")
+    local documented = 0
+    for line in help.stdout:gmatch("[^\r\n]+") do
+      local options = line:match("^%s+(%-.-)%s%s+%S")
+      for option in (options or ""):gmatch("%-%-?[%w-]*") do
+        documented = documented + 1
+        assert(page:find("[^%w-]" .. option:gsub("%-", "%%-") .. "[^%w-]"),
+          "the man page does not document " .. option)
+      end
+    end
+    -- -o, --output, -h, --help, --version, and --.
+    equal(documented, 6)
   end)
 
   test("end of options", function(f)
