@@ -22,8 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `cfflatexpand` now correctly expands metadata while ignoring other commands.
-- On Windows, `cfflatexpand` writes line endings to standard output unchanged,
-  and finds the author style plugins beside an input file in another directory.
 
 ## [0.3.0] - 2026-11-08
 

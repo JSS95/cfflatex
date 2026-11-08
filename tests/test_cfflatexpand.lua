@@ -298,7 +298,17 @@ local ok, message = xpcall(function()
       equal(read_file(path), read_file(root .. "/" .. filename))
       local located = run_command({"kpsewhich", filename}, temporary)
       success(located)
-      equal(located.stdout:gsub("[\r\n]+$", ""):gsub("\\", "/"), path:gsub("\\", "/"))
+      local found = located.stdout:gsub("[\r\n]+$", ""):gsub("\\", "/")
+      if windows then
+        -- Windows names a directory by its long name or its short 8.3 name,
+        -- such as RUNNER~1, with a drive letter in either case. The unique
+        -- temporary directory and the path below it identify the file.
+        local tail = (temporary:match("[^/\\]+$") .. "/texmf/tex/latex/import-citation-cff/"
+          .. filename):lower()
+        equal(found:lower():sub(-#tail), tail)
+      else
+        equal(found, path)
+      end
     end
     if windows then
       -- texlua runs the command, and the batch file runs it by name.
