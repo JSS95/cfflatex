@@ -56,8 +56,8 @@ the software and the manuscript are developed in parallel, the former metadata
 being kept in the top level of the CFF file while the latter metadata being kept
 in the subsection of the CFF file such as \texttt{preferred-citation}.
 
-\pkg{import-citation-cff} relieves this burden by keeping the CFF file as the
-single source of metadata and importing it into the \LaTeX{} document. The
+\pkg{import-citation-cff} relieves this complication by keeping the CFF file as
+the single source of metadata and importing it into the \LaTeX{} document. The
 metadata, such as the title, abstract, and authors, are imported as \LaTeX{}
 macros that dynamically expand whenever the CFF file changes. This ensures that
 the metadata are synced across the repository, allowing for easier maintenance
@@ -94,8 +94,8 @@ A manual installation puts the files in the personal \TeX{} tree,
 \begin{Verbatim}
 kpsewhich -var-value TEXMFHOME
 \end{Verbatim}
-which is \texttt{\string~/texmf} by default in \TeX{} Live.
-The distributed files should be put inside \texttt{TEXMFHOME} as follows:
+which is \texttt{\string~/texmf} by default in \TeX{} Live. The distributed
+files should be put inside \texttt{TEXMFHOME} as follows:
 \begin{Verbatim}
 tex/latex/import-citation-cff/
   import-citation-cff.sty
@@ -113,29 +113,23 @@ which can be achieved through one of the following methods.
 
 \subsubsection{From a release archive}
 
-Each release at source repository\footnote{\url{https://github.com/JSS95/cfflatex/releases}} attaches
+Each release at source
+repository\footnote{\url{https://github.com/JSS95/cfflatex/releases}} attaches
 \texttt{import-citation-cff.tds.zip}, which has this arrangement. Extract it
 into the personal tree:
 \begin{Verbatim}
 unzip import-citation-cff.tds.zip -d "$(kpsewhich -var-value TEXMFHOME)"
 \end{Verbatim}
 
-\subsubsection{From a source checkout.}
+\subsubsection{From a source checkout}
 
-In a checkout of the repository, l3build installs the same files into the
-personal tree:
+In a checkout of the repository, \texttt{l3build} installs the same files into
+the personal tree:
 \begin{Verbatim}
 l3build install
 \end{Verbatim}
-Add |--texmfhome| \meta{directory} to install them into another tree.
 
-\subsubsection{Next to a document.}
-
-Copying \texttt{import-citation-cff.sty}, \texttt{cfflatex-style-*.def},
-\texttt{cfflatex.lua}, and \texttt{cfflatex-data.lua} into the directory of a
-document is enough to compile that document, but does not install the command.
-
-\subsection{Running the command.}
+\subsection{Installing the command}
 
 A manual installation does not put \texttt{cfflatexpand} where the shell finds
 it. In a POSIX shell, either add its directory to |PATH|, or link the command
@@ -294,7 +288,6 @@ When the check does not fit the document, load the package with the
 \end{Verbatim}
 
 \subsection{Expanding metadata}
-\label{sec:expanding}
 
 The Lua command-line tool \texttt{cfflatexpand} replaces metadata commands with
 their values and removes the \pkg{import-citation-cff} package load and
