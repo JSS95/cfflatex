@@ -71,21 +71,26 @@ local function options(arguments)
 end
 
 local function absolute(filename)
-  if package.config:sub(1, 1) == "\\" then
+  local windows = package.config:sub(1, 1) == "\\"
+  if windows then
+    if not filename:match("^[/\\]") and not filename:match("^%a:[/\\]") then
+      filename = lfs.currentdir() .. "/" .. filename
+    end
     filename = filename:gsub("\\", "/")
-  end
-  if not filename:match("^/") and not filename:match("^%a:/") then
+  elseif not filename:match("^/") then
     filename = lfs.currentdir() .. "/" .. filename
   end
+  -- A Windows path keeps its drive, as in C:/Users, without a leading slash.
+  local drive = windows and filename:match("^%a:") or ""
   local parts = {}
-  for part in filename:gmatch("[^/]+") do
+  for part in filename:sub(#drive + 1):gmatch("[^/]+") do
     if part == ".." then
       parts[#parts] = nil
     elseif part ~= "." then
       parts[#parts + 1] = part
     end
   end
-  return "/" .. table.concat(parts, "/")
+  return drive .. "/" .. table.concat(parts, "/")
 end
 
 local function protect_input(input, output)
@@ -175,6 +180,9 @@ local function main()
   if selected.output and selected.output ~= "-" then
     write_output(selected.output, result)
   else
+    -- Windows would write each line feed as CR LF, and CR LF as CR CR LF,
+    -- which TeX reads as an extra empty line. Write the bytes unchanged.
+    lfs.setmode(io.stdout, "binary")
     local success, message = io.stdout:write(result)
     if success then
       success, message = io.stdout:flush()

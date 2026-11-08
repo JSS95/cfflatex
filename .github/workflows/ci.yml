@@ -88,17 +88,30 @@ jobs:
 
   # Test stage.
 
+  # The test jobs run on Linux and Windows. Windows checks the batch file that
+  # l3build install writes in place of the command link, and the commands
+  # that the tests run through cmd.exe. Bash runs the steps on both.
   l3build:
-    name: l3build (TeX Live ${{ matrix.texlive }})
+    name: l3build (${{ matrix.os }}, TeX Live ${{ matrix.texlive }})
     needs: [versions, badness, explcheck, luacheck, ruff]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest]
         # Supported TeX Live releases. Both share the same .tlg files; when
         # adding a release, check that they still match.
         texlive: [2025, 2026]
     steps:
+      # Check out the files with line feeds as on Linux, which the expected
+      # test results assume.
+      - name: Keep line endings
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
+
       - uses: actions/checkout@v4
 
       # pgf and preprint (authblk) are only for the tests that use them:
@@ -128,27 +141,46 @@ jobs:
       - name: Test the installed export CLI
         run: texlua tests/test_cfflatexpand.lua --installed
 
+      # l3build compares with diff into .diff files, and on Windows with fc
+      # into .fc files.
       - name: Show differences from the expected logs
         if: failure()
-        run: cat build/test*/*.diff
+        run: |
+          shopt -s nullglob
+          for file in build/test*/*.diff build/test*/*.fc; do
+            echo "== $file"
+            cat "$file"
+          done
 
       - name: Upload test logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: l3build-test-results-texlive-${{ matrix.texlive }}
+          name: l3build-test-results-${{ matrix.os }}-texlive-${{ matrix.texlive }}
           path: |
             build/test*/*.diff
+            build/test*/*.fc
             build/test*/*.log
 
   # The manual uses import-citation-cff like any document, so it also tests
   # cfflatexpand on a real document: the expanded manual must compile without
   # the package.
   expand:
-    name: Expand the manual with cfflatexpand
+    name: Expand the manual with cfflatexpand (${{ matrix.os }})
     needs: [versions, badness, explcheck, luacheck, ruff]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
+      - name: Keep line endings
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
+
       - uses: actions/checkout@v4
 
       # The packages of the manual, as in the doc job; preprint provides

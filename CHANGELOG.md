@@ -10,7 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `l3build install` links the `cfflatexpand` command into `~/.local/bin`, or into `$CFFLATEXPAND_BINDIR`.
+  On Windows, it writes a batch file `cfflatexpand.cmd` instead, by default into `%USERPROFILE%\.local\bin`.
 - `l3build uninstall` removes the link.
+- CI and CD also run the tests on Windows.
 
 ### Changed
 
@@ -20,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `cfflatexpand` now correctly expands metadata while ignoring other commands.
+- On Windows, `cfflatexpand` writes line endings to standard output unchanged,
+  and finds the author style plugins beside an input file in another directory.
 
 ## [0.3.0] - 2026-11-08
 

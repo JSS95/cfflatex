@@ -135,7 +135,9 @@ The |--full| option also typesets this manual and installs it with the other
 documentation. Without the option, only the package and the command are
 installed. This installation links the \texttt{cfflatexpand} command into the
 directory specified by the environment variable |CFFLATEXPAND_BINDIR|, which
-defaults to \texttt{\string~/.local/bin}.
+defaults to \texttt{\string~/.local/bin}. On Windows, the link is a batch file
+\texttt{cfflatexpand.cmd} that runs the command with \texttt{texlua}, and the
+directory defaults to |%USERPROFILE%\.local\bin|.
 
 \subsubsection{From a release archive}
 \label{sec:release-archive}
@@ -160,6 +162,13 @@ link the command yourself:
 \begin{Verbatim}
 dir="$(kpsewhich -var-value TEXMFHOME)/scripts/import-citation-cff"
 ln -s "$dir/cfflatexpand" ~/.local/bin/cfflatexpand
+\end{Verbatim}
+On Windows, write a batch file \texttt{cfflatexpand.cmd} instead, with the path
+of the command in your \texttt{TEXMFHOME}:
+\begin{Verbatim}
+@echo off
+texlua "C:\Users\me\texmf\scripts\import-citation-cff\cfflatexpand" %*
+exit /b %errorlevel%
 \end{Verbatim}
 This link needs to be removed manually when uninstalling the command.
 

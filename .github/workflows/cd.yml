@@ -92,9 +92,46 @@ jobs:
             build/test*/*.log
             build/doc/*.log
 
+  # The build job tests the archive on Linux; this job tests the same archive
+  # on Windows, where a batch file stands for the command link.
+  windows:
+    name: Test the package on Windows
+    needs: build
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Keep line endings
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v4
+
+      # The test dependencies of the l3build job in ci.yml, without l3build.
+      - name: Install TeX Live
+        uses: zauguin/install-texlive@c9f3ea3d51b2e04d092c4f9d208a19542d5dabcf # v4.5.0
+        with:
+          texlive_version: 2026
+          packages: >-
+            scheme-basic
+            lt3luabridge
+            lua-tinyyaml
+            lm
+            cm-super
+            pgf
+            preprint
+
+      - name: Download the package
+        uses: actions/download-artifact@v4
+        with:
+          name: import-citation-cff-ctan
+
+      - name: Test the packaged export CLI
+        run: texlua tests/test_cfflatexpand.lua --tds import-citation-cff.tds.zip
+
   release:
     name: Attach the package to the GitHub Release
-    needs: build
+    needs: [build, windows]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
@@ -129,7 +166,7 @@ jobs:
 
   ctan:
     name: Submit the package to CTAN
-    needs: build
+    needs: [build, windows]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:

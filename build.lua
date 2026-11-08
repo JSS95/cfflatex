@@ -30,20 +30,33 @@ packtdszip = false
 -- uninstall removes that link; an empty CFFLATEXPAND_BINDIR makes no link.
 -- An environment variable, because l3build reads its command-line options
 -- before this file and rejects unknown ones.
+--
+-- Windows runs neither symbolic links, which need privileges, nor scripts
+-- without an extension, so the link there is cfflatexpand.cmd, a batch file
+-- that runs the command with texlua. The default directory is
+-- %USERPROFILE%\.local\bin.
 local lfs = require("lfs")
 local windows = package.config:sub(1, 1) == "\\"
 
 local function absolute(path)
-  return path:match("^/") and path or lfs.currentdir() .. "/" .. path
+  if path:match("^[/\\]") or path:match("^%a:[/\\]") then
+    return path
+  end
+  return lfs.currentdir() .. "/" .. path
+end
+
+local function native(path)
+  return windows and (path:gsub("/", "\\")) or path
 end
 
 -- The link and the installed command it points to, or nil for no link.
 local function command_link()
   local bindir = os.getenv("CFFLATEXPAND_BINDIR")
   if bindir == nil then
-    bindir = os.getenv("HOME") and os.getenv("HOME") .. "/.local/bin" or ""
+    local home = os.getenv(windows and "USERPROFILE" or "HOME")
+    bindir = home and home .. "/.local/bin" or ""
   end
-  if bindir == "" or windows then
+  if bindir == "" then
     return nil
   end
   -- The tree that l3build installs into: --texmfhome, or else TEXMFHOME.
@@ -53,25 +66,61 @@ local function command_link()
     kpse.set_program_name("latex")
     texmfhome = kpse.var_value("TEXMFHOME")
   end
-  return absolute(bindir) .. "/cfflatexpand",
-    absolute(texmfhome) .. "/scripts/" .. module .. "/cfflatexpand"
+  return native(absolute(bindir) .. "/cfflatexpand" .. (windows and ".cmd" or "")),
+    native(absolute(texmfhome) .. "/scripts/" .. module .. "/cfflatexpand")
 end
 
-local function is_link_to(link, target)
-  return lfs.symlinkattributes(link, "mode") == "link" and lfs.readlink(link) == target
+-- The batch file stands for the link on Windows. %% is a literal % in batch
+-- files; exit /b passes the exit status of texlua to the caller.
+local function batch_file(command)
+  return "@echo off\r\ntexlua \"" .. command:gsub("%%", "%%%%")
+    .. "\" %*\r\nexit /b %errorlevel%\r\n"
+end
+
+local function is_link_to(link, command)
+  if windows then
+    local file = io.open(link, "rb")
+    local text = file and file:read("a")
+    if file then
+      file:close()
+    end
+    return text == batch_file(command)
+  end
+  return lfs.symlinkattributes(link, "mode") == "link" and lfs.readlink(link) == command
+end
+
+local function make_link(link, command)
+  if windows then
+    local file = io.open(link, "wb")
+    if file then
+      file:write(batch_file(command))
+      file:close()
+    end
+  else
+    lfs.link(command, link, true)
+  end
+end
+
+local function parent(path)
+  return path:match("^(.*)[/\\][^/\\]*$")
 end
 
 local function make_directory(path)
   if path == "" or lfs.attributes(path, "mode") == "directory" then
     return
   end
-  make_directory(path:match("^(.*)/[^/]*$") or "")
+  make_directory(parent(path) or "")
   lfs.mkdir(path)
 end
 
 local function in_path(directory)
-  for entry in ((os.getenv("PATH") or "") .. ":"):gmatch("([^:]*):") do
-    if entry:gsub("/$", "") == directory then
+  local function normalize(path)
+    path = path:gsub("[/\\]+$", "")
+    return windows and native(path):lower() or path
+  end
+  local separator = windows and ";" or ":"
+  for entry in ((os.getenv("PATH") or "") .. separator):gmatch("([^" .. separator .. "]*)" .. separator) do
+    if normalize(entry) == normalize(directory) then
       return true
     end
   end
@@ -82,18 +131,13 @@ local install_files_target = target_list.install.func
 target_list.install.func = function(names)
   local errorlevel = install_files_target(names)
   local link, command = command_link()
-  if errorlevel ~= 0 then
+  if errorlevel ~= 0 or not link then
     return errorlevel
-  elseif windows then
-    print("\nRun cfflatexpand with texlua and its full path; it is not linked on Windows.")
-    return 0
-  elseif not link then
-    return 0
   elseif options["dry-run"] then
     print("\nFor linking the command:\n- " .. link .. " -> " .. command)
     return 0
   end
-  local directory = link:match("^(.*)/[^/]*$")
+  local directory = parent(link)
   if not is_link_to(link, command) then
     if lfs.symlinkattributes(link, "mode") then
       print("\nWarning: " .. link .. " exists, so cfflatexpand is not linked there."
@@ -101,7 +145,7 @@ target_list.install.func = function(names)
       return 0
     end
     make_directory(directory)
-    lfs.link(command, link, true)
+    make_link(link, command)
     if not is_link_to(link, command) then
       print("\nError: cannot link " .. link .. " to " .. command)
       return 1
