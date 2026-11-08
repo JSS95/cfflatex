@@ -135,10 +135,14 @@ jobs:
       - name: Run tests
         run: l3build check
 
+      # The CLI tests do not depend on the l3build tests, so they run and
+      # report their failures even after those fail.
       - name: Test the export CLI
+        if: ${{ !cancelled() }}
         run: texlua tests/test_cfflatexpand.lua
 
       - name: Test the installed export CLI
+        if: ${{ !cancelled() }}
         run: texlua tests/test_cfflatexpand.lua --installed
 
       # l3build compares with diff into .diff files, and on Windows with fc

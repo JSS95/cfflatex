@@ -6,9 +6,9 @@ std = "lua53"
 -- never read themselves, so unused globals (131) are expected.
 local l3build_config = {allow_defined_top = true, ignore = {"131"}}
 -- build.lua also wraps l3build's install and uninstall targets, reading the
--- command-line options of l3build.
+-- command-line options of l3build, and its log rewrite and comparison.
 files["build.lua"] = {allow_defined_top = true, ignore = {"131"},
-  globals = {"target_list"}, read_globals = {"options"}}
+  globals = {"target_list"}, read_globals = {"options", "rewrite_log", "compare_tlg"}}
 files["config-*.lua"] = l3build_config
 
 -- The CLI tests use texlua's environment setter to isolate the TeX cache.

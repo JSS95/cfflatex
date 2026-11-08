@@ -205,7 +205,50 @@ local function rewrite_fls(source, result)
   output:close()
 end
 
+-- With pdfTeX, lt3luabridge reads the result of Lua from a shell command, and
+-- the log of a fatal error shows that command as an input file, (|COMMAND).
+-- The command is a sh script on Unix and a cmd.exe one on Windows, so it is
+-- replaced with (|...) after l3build's own normalization, and one .tlg file
+-- serves both. The command can contain parentheses, so the replacement
+-- reaches the parenthesis that balances the opening one.
+local function hide_shell_commands(text)
+  local pieces, cursor = {}, 1
+  while true do
+    local start = text:find("(|", cursor, true)
+    if not start then
+      break
+    end
+    local depth, position = 0, start
+    repeat
+      local character = text:sub(position, position)
+      if character == "(" then
+        depth = depth + 1
+      elseif character == ")" then
+        depth = depth - 1
+      end
+      position = position + 1
+    until depth == 0 or position > #text
+    pieces[#pieces + 1] = text:sub(cursor, start - 1) .. "(|...)"
+    cursor = position
+  end
+  pieces[#pieces + 1] = text:sub(cursor)
+  return table.concat(pieces)
+end
+
+local function rewrite_log_without_shell(source, result, engine, errlevels)
+  rewrite_log(source, result, engine, errlevels)
+  local file = assert(io.open(result, "rb"))
+  local content = file:read("a"):gsub("\r\n", "\n")
+  file:close()
+  file = assert(io.open(result, "w"))
+  file:write(hide_shell_commands(content))
+  file:close()
+end
+
 test_types = {
+  -- l3build's defaults, except for the rewrite.
+  log = {test = ".lvt", generated = ".log", reference = ".tlg", expectation = ".lve",
+    compare = compare_tlg, rewrite = rewrite_log_without_shell},
   fls = {test = ".fvt", generated = ".fls", reference = ".tfl",
     rewrite = rewrite_fls},
 }
