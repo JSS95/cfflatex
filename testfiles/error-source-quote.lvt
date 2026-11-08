@@ -1,11 +1,14 @@
 % Quotes in the source key reach Lua as text, not as code.
 % With pdfTeX the log also shows the lt3luabridge shell call, which cannot be
 % hidden before a fatal error, hence a separate .luatex.tlg.
+% The final d keeps the error line from being exactly 127 characters long:
+% fc, which l3build compares with on Windows, splits lines at 127 characters
+% and then sees an extra empty line in a log with CR LF line endings.
 \input{regression-test}
 \documentclass{article}
 \usepackage[T1]{fontenc}
 \usepackage{import-citation-cff}
 \begin{document}
 \START
-\includecff[source={a"b'c\\}]{paper.cff}
+\includecff[source={a"b'c\\d}]{paper.cff}
 \END
