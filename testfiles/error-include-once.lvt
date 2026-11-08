@@ -1,0 +1,12 @@
+% A document reads one CFF file: a second \includecff is an error and is
+% ignored, so the metadata of the first call stay.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{import-citation-cff}
+\includecff{paper.cff}
+\begin{document}
+\START
+\includecff{generic.cff}
+\TYPE{[\cff{title}]}
+\END

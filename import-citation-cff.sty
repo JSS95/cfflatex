@@ -31,6 +31,8 @@
 \msg_new:nnn { import-citation-cff } { invalid } { Cannot~read~CFF~file:~#1. }
 \msg_new:nnn { import-citation-cff } { not-loaded }
   { Call~\iow_char:N\\includecff~first. }
+\msg_new:nnn { import-citation-cff } { include-once }
+  { \iow_char:N\\includecff~can~be~used~only~once. }
 \msg_new:nnn { import-citation-cff } { author-index }
   { Author~index~'#1'~is~out~of~range. }
 \msg_new:nnn { import-citation-cff } { affiliation-index }
@@ -179,8 +181,16 @@
 
 % \includecff[source=<key>]{<file>}
 % Reads the top level of <file>, or the mapping under its top-level <key>, such
-% as preferred-citation. Each call replaces the previously loaded metadata.
+% as preferred-citation. A document reads one CFF file: \title and similar
+% commands store \cff and expand it later, so reading another file would
+% change values given before it. A second call is an error and is ignored.
 \NewDocumentCommand \includecff {O{} m}
+  {
+    \bool_if:NTF \g__cfflatex_loaded_bool
+      { \msg_error:nn { import-citation-cff } { include-once } }
+      { \__cfflatex_include:nn {#1} {#2} }
+  }
+\cs_new_protected:Npn \__cfflatex_include:nn #1#2
   {
     \group_begin:
     \tl_clear:N \l__cfflatex_source_tl

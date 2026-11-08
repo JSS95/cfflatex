@@ -121,11 +121,11 @@ python3 .ci/check_versions.py
 
 ### Test
 
-After installation, run the LaTeX regression tests and the standalone export CLI tests:
+Run the LaTeX regression tests and the standalone export CLI tests.
 
 ```sh
 l3build check
-texlua tests/test_cfflatexpand.lua --installed
+texlua tests/test_cfflatexpand.lua --installed  # installs the package into a temporary TeX tree and tests the command there
 texlua tests/test_expand_manual.lua
 ```
 

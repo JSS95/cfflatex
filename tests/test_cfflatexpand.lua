@@ -534,7 +534,7 @@ local ok, message = xpcall(function()
 
   test("reloaded, nested, or late CFF includes are rejected", function(f)
     for _, pair in ipairs({
-      {replace(document, "\\title{", "\\includecff{CITATION.cff}\n\\title{"), "only one"},
+      {replace(document, "\\title{", "\\includecff{CITATION.cff}\n\\title{"), "only once"},
       {replace(document, "\\includecff{CITATION.cff}", "{\\includecff{CITATION.cff}}"), "top level"},
       {replace(document, "\\includecff{CITATION.cff}\n", ""), "call \\includecff"},
       {replace(document, "\\usepackage{import-citation-cff}\n", ""), "load import-citation-cff"},

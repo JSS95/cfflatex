@@ -267,7 +267,7 @@ function Scanner:include(position, after)
     self:fail(position, "load import-citation-cff before \\includecff")
   end
   if self.model then
-    self:fail(position, "only one \\includecff is supported; reloading can change delayed expansion")
+    self:fail(position, "\\includecff can be used only once")
   end
   if self.depth > 0 or self.body or self.loop_depth > 0 or #self.conditions > 0 then
     self:fail(position, "\\includecff must be at the top level of the preamble")

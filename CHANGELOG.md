@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The CTAN archive no longer includes `import-citation-cff.tds.zip`. GitHub
   releases attach it instead.
+- `\includecff` can be used only once in a document. A second call is an error and is ignored.
+
 ### Fixed
 
 - `cfflatexpand` now correctly expands metadata while ignoring other commands.
