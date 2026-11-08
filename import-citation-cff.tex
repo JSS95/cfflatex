@@ -45,23 +45,35 @@ Software is a product of research and should be cited like one~\cite{smith2016}.
 The Citation File Format (CFF)~\cite{druskat2021} makes this practical by
 keeping a YAML-format file with |cff| extension, typically named |CITATION.cff|,
 in the software repository. The CFF file holds the metadata needed to cite the
-software which an be read by both people and programs. This practice allows
+software which can be read by both people and programs. This practice allows
 automated tools to easily discover and use the citation metadata.
 
 The CFF file and the cited manuscript are often kept and developed together in a
 single repository, the latter usually written in \LaTeX{}. Developers need to
 keep duplicate metadata in sync between the CFF file and the manuscript, which
-can be tedious and error-prone. This complication is even more pronounced when
-the software and the manuscript are developed in parallel, the former metadata
-being kept in the top level of the CFF file while the latter metadata being kept
-in the subsection of the CFF file such as \texttt{preferred-citation}.
+can be tedious and prone to errors. This complication is even more pronounced
+when the software and the manuscript are developed in parallel, the former
+metadata being kept in the top level of the CFF file while the latter metadata
+being kept in the subsection of the CFF file such as
+\texttt{preferred-citation}.
 
 \pkg{import-citation-cff} relieves this complication by keeping the CFF file as
 the single source of metadata and importing it into the \LaTeX{} document. The
-metadata, such as the title, abstract, and authors, are imported as \LaTeX{}
-macros that dynamically expand whenever the CFF file changes. This ensures that
-the metadata are synced across the repository, allowing for easier maintenance
-and automation of the development process.
+package imports the CFF file by \texttt{\textbackslash includecff} and provides
+three tools:
+\begin{itemize}
+  \item \LaTeX{} macros, e.g., \texttt{\textbackslash cff}, to access the
+        imported metadata. The list of authors and their affiliations are
+        specially handled. See Section~\ref{sec:reference} for details.
+  \item \LaTeX{} macro \texttt{\textbackslash setauthors[style=\dots]} to
+        typeset the list of authors in desired style. See
+        Section~\ref{sec:builtin-styles} for the list of supported styles.
+  \item Command line tool \texttt{cfflatexpand} to expand the CFF metadata into
+        \LaTeX{} code. Useful when your document needs to be built without the
+        \pkg{import-citation-cff} package.
+\end{itemize}
+These tools ensure that the metadata are synced across the repository, allowing
+for easier maintenance and automation of the development process.
 
 \section{Requirements}
 
