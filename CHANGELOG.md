@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- `l3build install` links the `cfflatexpand` command into `~/.local/bin`, or into `$CFFLATEXPAND_BINDIR`.
+  On Windows, it writes a batch file `cfflatexpand.cmd` instead, by default into `%USERPROFILE%\.local\bin`.
+- `l3build uninstall` removes the link.
+- CI and CD also run the tests on Windows.
+
 ### Changed
 
-- The CTAN archive no longer includes `import-citation-cff.tds.zip`. GitHub
-  releases attach it instead.
+- The CTAN archive no longer includes `import-citation-cff.tds.zip`. GitHub releases attach it instead.
 - `\includecff` can be used only once in a document. A second call is an error and is ignored.
 
 ### Fixed

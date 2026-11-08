@@ -3,8 +3,7 @@ Don't change this file in any respect.
 \g_tmpa_iow=\write...
 Package luabridge Info: Writing a helper Lua script to file error-contact-sequence.luabridge.lua
 Package luabridge Info: Executing a helper Lua script from file error-contact-sequence.luabridge.lua
-(|TEXMF_OUTPUT_DIRECTORY=${TEXMF_OUTPUT_DIRECTORY:-.}
-texlua $TEXMF_OUTPUT_DIRECTORY/error-contact-sequence.luabridge.lua)
+(|...)
 ! Fatal Package import-citation-cff Error: Cannot read CFF file: 'contact' must be a nonempty sequence.
 Type <return> to continue.
  ...                                              

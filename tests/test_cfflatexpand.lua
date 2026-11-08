@@ -141,7 +141,8 @@ local function quote(value)
   if windows then
     -- These characters require additional cmd.exe expansion rules and are
     -- not used in the test arguments. Refuse them instead of misquoting.
-    assert(not value:find('["%%!\r\n]'), "unsupported cmd.exe argument")
+    -- texlua's os.execute also turns ' into " on Windows.
+    assert(not value:find('["%%!\'\r\n]'), "unsupported cmd.exe argument")
     return '"' .. value .. '"'
   end
   return "'" .. value:gsub("'", "'\\''") .. "'"
@@ -170,6 +171,7 @@ end
 local cache = mkdir(temporary .. "/tex-cache")
 local old_texmfvar, old_texmfcache = os.getenv("TEXMFVAR"), os.getenv("TEXMFCACHE")
 local old_texmfhome, old_path = os.getenv("TEXMFHOME"), os.getenv("PATH")
+local old_bindir = os.getenv("CFFLATEXPAND_BINDIR")
 os.setenv("TEXMFVAR", cache)
 os.setenv("TEXMFCACHE", cache)
 
@@ -177,6 +179,11 @@ local function run_command(arguments, directory, redirected_stdout)
   local quoted = {}
   for index, value in ipairs(arguments) do
     quoted[index] = quote(value)
+  end
+  if windows and arguments[1]:match("^[%w_.:/\\-]+$") then
+    -- cmd.exe drops the first and the last quote of a command that starts
+    -- with a quote, so leave a program without spaces unquoted.
+    quoted[1] = arguments[1]
   end
   local stdout = redirected_stdout or temporary .. "/stdout"
   local stderr = temporary .. "/stderr"
@@ -257,20 +264,33 @@ local function test(name, body, skip)
 end
 
 local ok, message = xpcall(function()
+  local texmf, installed_command
+  -- l3build install links the command here, a directory that it creates.
+  -- The link is a batch file on Windows.
+  local link_directory = temporary .. "/bin"
+  local link = link_directory .. (windows and "/cfflatexpand.cmd" or "/cfflatexpand")
   if installed then
-    local texmf = mkdir(temporary .. "/texmf")
+    texmf = mkdir(temporary .. "/texmf")
     if tds then
-      success(run_command({"unzip", "-q", tds, "-d", texmf}, temporary))
+      if windows then
+        -- The tar of Windows extracts zip archives; a tar found first in
+        -- PATH, such as the GNU tar of Git Bash, may not.
+        success(run_command({(os.getenv("SystemRoot") or "C:\\Windows") .. "\\System32\\tar.exe",
+          "-xf", tds, "-C", texmf}, temporary))
+      else
+        success(run_command({"unzip", "-q", tds, "-d", texmf}, temporary))
+      end
       for _, filename in ipairs({"import-citation-cff.pdf", "README.md", "LICENSE"}) do
         assert(lfs.isfile(texmf .. "/doc/latex/import-citation-cff/" .. filename),
           "TDS archive is missing " .. filename)
       end
     else
+      os.setenv("CFFLATEXPAND_BINDIR", link_directory)
       success(run_command({"l3build", "install", "--texmfhome", texmf}, root))
     end
     os.setenv("TEXMFHOME", texmf)
-    local command = texmf .. "/scripts/import-citation-cff/cfflatexpand"
-    equal(read_file(command), read_file(root .. "/cfflatexpand"))
+    installed_command = texmf .. "/scripts/import-citation-cff/cfflatexpand"
+    equal(read_file(installed_command), read_file(root .. "/cfflatexpand"))
     for _, filename in ipairs({"import-citation-cff.sty", "cfflatex.lua", "cfflatex-data.lua",
       "cfflatex-style-standard.def", "cfflatex-style-authblk.def",
       "cfflatexpand.lua", "cfflatexpand-authors.lua"}) do
@@ -278,17 +298,42 @@ local ok, message = xpcall(function()
       equal(read_file(path), read_file(root .. "/" .. filename))
       local located = run_command({"kpsewhich", filename}, temporary)
       success(located)
-      equal(located.stdout:gsub("[\r\n]+$", ""):gsub("\\", "/"), path:gsub("\\", "/"))
+      local found = located.stdout:gsub("[\r\n]+$", ""):gsub("\\", "/")
+      if windows then
+        -- Windows names a directory by its long name or its short 8.3 name,
+        -- such as RUNNER~1, with a drive letter in either case. The unique
+        -- temporary directory and the path below it identify the file.
+        local tail = (temporary:match("[^/\\]+$") .. "/texmf/tex/latex/import-citation-cff/"
+          .. filename):lower()
+        equal(found:lower():sub(-#tail), tail)
+      else
+        equal(found, path)
+      end
     end
     if windows then
-      cli = command
+      -- texlua runs the command, and the batch file runs it by name.
+      cli = installed_command
+      local native_command = installed_command:gsub("/", "\\")
+      if tds then
+        -- An unpacked archive is not linked: write the batch file as a user would.
+        mkdir(link_directory)
+        write_file(link, "@echo off\r\ntexlua \"" .. native_command .. "\" %*\r\n"
+          .. "exit /b %errorlevel%\r\n")
+      end
+      contains(read_file(link), "texlua \"" .. native_command .. "\" %*")
+      os.setenv("PATH", link_directory .. ";" .. old_path)
     else
-      assert(lfs.attributes(command, "permissions"):sub(3, 3) == "x",
+      assert(lfs.attributes(installed_command, "permissions"):sub(3, 3) == "x",
         "installed cfflatexpand is not executable")
-      local bin = mkdir(temporary .. "/bin")
-      cli = bin .. "/cfflatexpand"
-      assert(lfs.link(command, cli, true))
-      os.setenv("PATH", bin .. ":" .. old_path)
+      cli = link
+      if tds then
+        -- An unpacked archive is not linked: link it as a user would.
+        mkdir(link_directory)
+        assert(lfs.link(installed_command, cli, true))
+      end
+      assert(lfs.symlinkattributes(cli, "mode") == "link" and lfs.readlink(cli) == installed_command,
+        "the command is not linked to " .. cli)
+      os.setenv("PATH", link_directory .. ":" .. old_path)
     end
     io.write(tds and "Testing the TDS archive\n" or "Testing l3build install\n")
   end
@@ -303,8 +348,11 @@ local ok, message = xpcall(function()
   end)
 
   test("executable entry point", function(f)
-    success(run_command({installed and "cfflatexpand" or cli, f.input}, f.directory))
-  end, windows and "POSIX shebang" or nil)
+    local command = installed and "cfflatexpand" or cli
+    success(run_command({command, f.input}, f.directory))
+    -- The exit status of a failure reaches the caller.
+    failure(run_command({command, "--wat"}, f.directory), "unknown option")
+  end, windows and not installed and "POSIX shebang" or nil)
 
   test("output options and stdout alias", function(f)
     local output = f.directory .. "/submission.tex"
@@ -347,7 +395,8 @@ local ok, message = xpcall(function()
 
   test("CFF paths relative to the input directory", function(f)
     local folder = mkdir(f.directory .. "/papers with spaces")
-    local manuscript = folder .. "/paper's draft.tex"
+    -- os.execute cannot pass ' on Windows (see quote).
+    local manuscript = folder .. (windows and "/paper draft.tex" or "/paper's draft.tex")
     write_file(manuscript, replace(document, "CITATION.cff", "data file.cff"))
     write_file(folder .. "/data file.cff", replace(citation, "Example Paper", "Right"))
     local result = f:cli(manuscript)
@@ -1046,15 +1095,27 @@ end={\cffemit{\journalEnd}},
   test("only author declarations invoke the isolated TeX engine", function(f)
     local bin = mkdir(f.directory .. "/bin")
     local marker = f.directory .. "/engine-call"
-    write_file(bin .. "/lualatex", [[#!/bin/sh
-printf '%s\n' "$PWD" "$@" > "$CFFLATEXPAND_TEST_ENGINE_CALL"
-cat options.tex >> "$CFFLATEXPAND_TEST_ENGINE_CALL"
-printf 'engine failure\n'
-exit 1
+    -- The engine stub records its directory, its arguments, and the options.
+    write_file(bin .. "/engine.lua", [[
+local call = assert(io.open(os.getenv("CFFLATEXPAND_TEST_ENGINE_CALL"), "wb"))
+call:write(lfs.currentdir(), "\n", table.concat(arg, "\n"), "\n")
+local options = assert(io.open("options.tex", "rb"))
+call:write(options:read("a"))
+options:close()
+call:close()
+print("engine failure")
+os.exit(1)
 ]])
-    success(run_command({"chmod", "+x", bin .. "/lualatex"}, f.directory))
+    if windows then
+      write_file(bin .. "/lualatex.cmd", "@texlua \"" .. bin .. "/engine.lua\" %*\r\n"
+        .. "@exit /b %errorlevel%\r\n")
+    else
+      write_file(bin .. "/lualatex", "#!/bin/sh\nexec texlua " .. quote(bin .. "/engine.lua")
+        .. " \"$@\"\n")
+      success(run_command({"chmod", "+x", bin .. "/lualatex"}, f.directory))
+    end
     local engine_path = os.getenv("PATH")
-    os.setenv("PATH", bin .. ":" .. engine_path)
+    os.setenv("PATH", bin .. (windows and ";" or ":") .. engine_path)
     os.setenv("CFFLATEXPAND_TEST_ENGINE_CALL", marker)
     local worked, detail = pcall(function()
       success(f:cli(f.input))
@@ -1079,7 +1140,7 @@ exit 1
     os.setenv("PATH", engine_path)
     os.setenv("CFFLATEXPAND_TEST_ENGINE_CALL", nil)
     assert(worked, detail)
-  end, windows and "POSIX engine stub" or nil)
+  end)
 
   for _, style in ipairs({"standard", "authblk", "journal"}) do
     test(style .. " author export matches native rendering and footnotes", function(f)
@@ -1230,10 +1291,21 @@ End}
       "cfflatex-style-standard.def", "cfflatex-style-authblk.def"}) do
       write_file(package_directory .. "/" .. filename, read_file(root .. "/" .. filename))
     end
+    -- TeX reads \ as a command, so a Windows path uses / instead.
     write_file(f.input, replace(replace(document, "{import-citation-cff}",
-      "{" .. package_directory .. "/import-citation-cff}"), "\\author{Jane Doe}", "\\cffsetauthors"))
+      "{" .. package_directory:gsub("\\", "/") .. "/import-citation-cff}"),
+      "\\author{Jane Doe}", "\\cffsetauthors"))
     compile(f.directory, "manuscript.tex")
   end, not executable("lualatex") and "lualatex is required" or nil)
+
+  -- Last, because it removes the installation that the other tests use.
+  if installed and not tds then
+    test("l3build uninstall removes the command link", function()
+      success(run_command({"l3build", "uninstall", "--texmfhome", texmf}, root))
+      assert(not lfs.symlinkattributes(link, "mode"), "the command link was not removed")
+      assert(not lfs.attributes(installed_command), "the installed command was not removed")
+    end)
+  end
 end, debug.traceback)
 
 assert(lfs.chdir(initial_directory))
@@ -1241,6 +1313,7 @@ os.setenv("TEXMFVAR", old_texmfvar)
 os.setenv("TEXMFCACHE", old_texmfcache)
 os.setenv("TEXMFHOME", old_texmfhome)
 os.setenv("PATH", old_path)
+os.setenv("CFFLATEXPAND_BINDIR", old_bindir)
 remove_tree(temporary)
 if not ok then
   io.stderr:write(message, "\n")

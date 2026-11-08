@@ -4,6 +4,8 @@
 --   l3build tag VERSION  set the version and today's date in the sources
 --   l3build ctan         run the tests and build the CTAN archive
 --   l3build upload       submit the CTAN archive (asks for your email)
+--   l3build install      install into TEXMFHOME and link the command
+--   l3build uninstall    remove the installation and the command link
 module = "import-citation-cff"
 
 sourcefiles = {
@@ -19,6 +21,157 @@ exefiles = scriptfiles
 -- archive leaves it out. l3build still writes it to build/distrib/tds/, where
 -- CD tests it and attaches it to the GitHub release.
 packtdszip = false
+
+-- Command link --------------------------------------------------------------
+
+-- TeX Live links cfflatexpand into its binary directory, and tlmgr removes the
+-- link with the package. For the personal tree, l3build install links the
+-- command into $CFFLATEXPAND_BINDIR, by default ~/.local/bin, and l3build
+-- uninstall removes that link; an empty CFFLATEXPAND_BINDIR makes no link.
+-- An environment variable, because l3build reads its command-line options
+-- before this file and rejects unknown ones.
+--
+-- Windows runs neither symbolic links, which need privileges, nor scripts
+-- without an extension, so the link there is cfflatexpand.cmd, a batch file
+-- that runs the command with texlua. The default directory is
+-- %USERPROFILE%\.local\bin.
+local lfs = require("lfs")
+local windows = package.config:sub(1, 1) == "\\"
+
+local function absolute(path)
+  if path:match("^[/\\]") or path:match("^%a:[/\\]") then
+    return path
+  end
+  return lfs.currentdir() .. "/" .. path
+end
+
+local function native(path)
+  return windows and (path:gsub("/", "\\")) or path
+end
+
+-- The link and the installed command it points to, or nil for no link.
+local function command_link()
+  local bindir = os.getenv("CFFLATEXPAND_BINDIR")
+  if bindir == nil then
+    local home = os.getenv(windows and "USERPROFILE" or "HOME")
+    bindir = home and home .. "/.local/bin" or ""
+  end
+  if bindir == "" then
+    return nil
+  end
+  -- The tree that l3build installs into: --texmfhome, or else TEXMFHOME.
+  local texmfhome = options["texmfhome"]
+  if not texmfhome then
+    local kpse = require("kpse")
+    kpse.set_program_name("latex")
+    texmfhome = kpse.var_value("TEXMFHOME")
+  end
+  return native(absolute(bindir) .. "/cfflatexpand" .. (windows and ".cmd" or "")),
+    native(absolute(texmfhome) .. "/scripts/" .. module .. "/cfflatexpand")
+end
+
+-- The batch file stands for the link on Windows. %% is a literal % in batch
+-- files; exit /b passes the exit status of texlua to the caller.
+local function batch_file(command)
+  return "@echo off\r\ntexlua \"" .. command:gsub("%%", "%%%%")
+    .. "\" %*\r\nexit /b %errorlevel%\r\n"
+end
+
+local function is_link_to(link, command)
+  if windows then
+    local file = io.open(link, "rb")
+    local text = file and file:read("a")
+    if file then
+      file:close()
+    end
+    return text == batch_file(command)
+  end
+  return lfs.symlinkattributes(link, "mode") == "link" and lfs.readlink(link) == command
+end
+
+local function make_link(link, command)
+  if windows then
+    local file = io.open(link, "wb")
+    if file then
+      file:write(batch_file(command))
+      file:close()
+    end
+  else
+    lfs.link(command, link, true)
+  end
+end
+
+local function parent(path)
+  return path:match("^(.*)[/\\][^/\\]*$")
+end
+
+local function make_directory(path)
+  if path == "" or lfs.attributes(path, "mode") == "directory" then
+    return
+  end
+  make_directory(parent(path) or "")
+  lfs.mkdir(path)
+end
+
+local function in_path(directory)
+  local function normalize(path)
+    path = path:gsub("[/\\]+$", "")
+    return windows and native(path):lower() or path
+  end
+  local separator = windows and ";" or ":"
+  for entry in ((os.getenv("PATH") or "") .. separator):gmatch("([^" .. separator .. "]*)" .. separator) do
+    if normalize(entry) == normalize(directory) then
+      return true
+    end
+  end
+  return false
+end
+
+local install_files_target = target_list.install.func
+target_list.install.func = function(names)
+  local errorlevel = install_files_target(names)
+  local link, command = command_link()
+  if errorlevel ~= 0 or not link then
+    return errorlevel
+  elseif options["dry-run"] then
+    print("\nFor linking the command:\n- " .. link .. " -> " .. command)
+    return 0
+  end
+  local directory = parent(link)
+  if not is_link_to(link, command) then
+    if lfs.symlinkattributes(link, "mode") then
+      print("\nWarning: " .. link .. " exists, so cfflatexpand is not linked there."
+        .. " Set CFFLATEXPAND_BINDIR to link it elsewhere.")
+      return 0
+    end
+    make_directory(directory)
+    make_link(link, command)
+    if not is_link_to(link, command) then
+      print("\nError: cannot link " .. link .. " to " .. command)
+      return 1
+    end
+  end
+  print("\nLinked " .. link .. " -> " .. command)
+  if not in_path(directory) then
+    print("Add " .. directory .. " to PATH to run cfflatexpand by name.")
+  end
+  return 0
+end
+
+-- Only a link to the command of this tree is removed, never another file.
+local uninstall_files_target = target_list.uninstall.func
+target_list.uninstall.func = function(names)
+  local link, command = command_link()
+  if link and is_link_to(link, command) then
+    if options["dry-run"] then
+      print("\nFor removal of the command link:\n- " .. link)
+    else
+      assert(os.remove(link))
+      print("\nRemoved the link " .. link)
+    end
+  end
+  return uninstall_files_target(names)
+end
 
 -- Tests ---------------------------------------------------------------------
 
@@ -52,7 +205,50 @@ local function rewrite_fls(source, result)
   output:close()
 end
 
+-- With pdfTeX, lt3luabridge reads the result of Lua from a shell command, and
+-- the log of a fatal error shows that command as an input file, (|COMMAND).
+-- The command is a sh script on Unix and a cmd.exe one on Windows, so it is
+-- replaced with (|...) after l3build's own normalization, and one .tlg file
+-- serves both. The command can contain parentheses, so the replacement
+-- reaches the parenthesis that balances the opening one.
+local function hide_shell_commands(text)
+  local pieces, cursor = {}, 1
+  while true do
+    local start = text:find("(|", cursor, true)
+    if not start then
+      break
+    end
+    local depth, position = 0, start
+    repeat
+      local character = text:sub(position, position)
+      if character == "(" then
+        depth = depth + 1
+      elseif character == ")" then
+        depth = depth - 1
+      end
+      position = position + 1
+    until depth == 0 or position > #text
+    pieces[#pieces + 1] = text:sub(cursor, start - 1) .. "(|...)"
+    cursor = position
+  end
+  pieces[#pieces + 1] = text:sub(cursor)
+  return table.concat(pieces)
+end
+
+local function rewrite_log_without_shell(source, result, engine, errlevels)
+  rewrite_log(source, result, engine, errlevels)
+  local file = assert(io.open(result, "rb"))
+  local content = file:read("a"):gsub("\r\n", "\n")
+  file:close()
+  file = assert(io.open(result, "w"))
+  file:write(hide_shell_commands(content))
+  file:close()
+end
+
 test_types = {
+  -- l3build's defaults, except for the rewrite.
+  log = {test = ".lvt", generated = ".log", reference = ".tlg", expectation = ".lve",
+    compare = compare_tlg, rewrite = rewrite_log_without_shell},
   fls = {test = ".fvt", generated = ".fls", reference = ".tfl",
     rewrite = rewrite_fls},
 }

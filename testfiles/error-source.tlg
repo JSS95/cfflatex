@@ -3,8 +3,7 @@ Don't change this file in any respect.
 \g_tmpa_iow=\write...
 Package luabridge Info: Writing a helper Lua script to file error-source.luabridge.lua
 Package luabridge Info: Executing a helper Lua script from file error-source.luabridge.lua
-(|TEXMF_OUTPUT_DIRECTORY=${TEXMF_OUTPUT_DIRECTORY:-.}
-texlua $TEXMF_OUTPUT_DIRECTORY/error-source.luabridge.lua)
+(|...)
 ! Fatal Package import-citation-cff Error: Cannot read CFF file: 'authors' must be a mapping.
 Type <return> to continue.
  ...                                              

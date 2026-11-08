@@ -124,16 +124,6 @@ doc/latex/import-citation-cff/
 \end{Verbatim}
 which can be achieved through one of the following methods.
 
-\subsubsection{From a release archive}
-
-Each release at source
-repository\footnote{\url{https://github.com/JSS95/cfflatex/releases}} attaches
-\texttt{import-citation-cff.tds.zip}, which has this arrangement. Extract it
-into the personal tree:
-\begin{Verbatim}
-unzip import-citation-cff.tds.zip -d "$(kpsewhich -var-value TEXMFHOME)"
-\end{Verbatim}
-
 \subsubsection{From a source checkout}
 
 In a checkout of the repository, \texttt{l3build} installs the same files into
@@ -143,17 +133,44 @@ l3build install --full
 \end{Verbatim}
 The |--full| option also typesets this manual and installs it with the other
 documentation. Without the option, only the package and the command are
-installed.
+installed. This installation links the \texttt{cfflatexpand} command into the
+directory specified by the environment variable |CFFLATEXPAND_BINDIR|, which
+defaults to \texttt{\string~/.local/bin}. On Windows, the link is a batch file
+\texttt{cfflatexpand.cmd} that runs the command with \texttt{texlua}, and the
+directory defaults to |%USERPROFILE%\.local\bin|.
+
+\subsubsection{From a release archive}
+\label{sec:release-archive}
+
+If you cannot use \texttt{l3build} in your environment, you can manually extract
+\texttt{import-citation-cff.tds.zip} into \texttt{TEXMFHOME}. Download the
+archive from release
+assets\footnote{\url{https://github.com/JSS95/cfflatex/releases}} and run:
+\begin{Verbatim}
+unzip import-citation-cff.tds.zip -d "$(kpsewhich -var-value TEXMFHOME)"
+\end{Verbatim}
+However, this installation does not link the \texttt{cfflatexpand} command and
+you need to link it manually as described in Section~\ref{sect:link-command}.
+You also need to manually remove the files when uninstalling, as described in
+Section~\ref{sect:uninstall}.
 
 \subsection{Installing the command}
+\label{sect:link-command}
 
-A manual installation does not put \texttt{cfflatexpand} where the shell finds
-it. After installation, link the command into a directory that is already in
-|PATH|, such as \texttt{\string~/.local/bin}:
+After extracting a release archive following Section~\ref{sec:release-archive},
+link the command yourself:
 \begin{Verbatim}
 dir="$(kpsewhich -var-value TEXMFHOME)/scripts/import-citation-cff"
 ln -s "$dir/cfflatexpand" ~/.local/bin/cfflatexpand
 \end{Verbatim}
+On Windows, write a batch file \texttt{cfflatexpand.cmd} instead, with the path
+of the command in your \texttt{TEXMFHOME}:
+\begin{Verbatim}
+@echo off
+texlua "C:\Users\me\texmf\scripts\import-citation-cff\cfflatexpand" %*
+exit /b %errorlevel%
+\end{Verbatim}
+This link needs to be removed manually when uninstalling the command.
 
 \subsection{Checking the installation}
 
@@ -163,6 +180,23 @@ command:
 kpsewhich import-citation-cff.sty
 cfflatexpand --version
 \end{Verbatim}
+
+\subsection{Uninstalling}
+\label{sect:uninstall}
+
+If you used \texttt{tlmgr} to install the package, you can uninstall it with
+\begin{Verbatim}
+tlmgr uninstall import-citation-cff
+\end{Verbatim}
+And if you used \texttt{l3build} to install the package, you can uninstall it
+with
+\begin{Verbatim}
+l3build uninstall
+\end{Verbatim}
+If you set the environment variable |CFFLATEXPAND_BINDIR| when installing with
+\texttt{l3build}, you should also set the same variable when removing the link.
+If you manually extracted a release archive into \texttt{TEXMFHOME},
+uninstalling should be done manually.
 
 \section{Tutorial}
 
@@ -292,30 +326,27 @@ package and its commands effectively.
 \subsection{Checking the title page}
 \label{sec:check}
 
-By default, \pkg{import-citation-cff} checks that \cs{maketitle} typesets the
-metadata of the citation. The \cs{title} command should use |\cff{title}|, and
-the \cs{author} command should use \cs{cffauthor}, or \cs{cff} with a path such
-as |authors/1/family-names|, for every author of the citation. The check cannot
-see metadata that is expanded before \cs{maketitle}, such as an author list
-built with \cs{xdef} in the preamble, and it needs a class that keeps the title
-and the authors in \cs{@title} and \cs{@author}, as the standard classes do.
-
-What the check looks for, and where, depends on the author style of the
-document. A style for a journal template that typesets its title block without
+By default, \pkg{import-citation-cff} checks that all required metadata fields
+are present and correctly formatted in the \LaTeX{} document. What the check
+looks for, and where, depends on the author style specified by the |style|
+option of the package or the |style| key of \cs{cffsetauthors}. Default setting
+is to check that \cs{maketitle} typesets the metadata of the citation by using
+|\cff{title}| in the \cs{title} command and using either \cs{cffauthor} or
+\cs{cff} with a path such as |authors/1/family-names| in the \cs{author}
+command. A style for a journal template that typesets its title block without
 \cs{maketitle} can check other fields in that block
-(Section~\ref{sec:check-styles}). The |style| option of the package names the
-author style of the document, and also makes it the default style of
-\cs{cffsetauthors}:
+(Section~\ref{sec:check-styles}).
+
+The |style| option of the package names the author style of the document, and
+also makes it the default style of \cs{cffsetauthors}:
 \begin{Verbatim}
 \usepackage[style=authblk]{import-citation-cff}
 \end{Verbatim}
 The check uses this style even if \cs{cffsetauthors} selects another one.
 Without the option, the check uses the style of the last \cs{cffsetauthors} in
 the preamble, or else |standard|. Section~\ref{sec:builtin-styles} tells what
-each built-in style checks.
-
-When the check does not fit the document, load the package with the
-|check=false| option:
+each built-in style checks. When the check does not fit the document, load the
+package with the |check=false| option:
 \begin{Verbatim}
 \usepackage[check=false]{import-citation-cff}
 \end{Verbatim}
@@ -331,8 +362,7 @@ plugins written with the same interface.
 
 \subsubsection{Writing a definition file}
 
-The support files of \pkg{import-citation-cff} share the short prefix
-\texttt{cfflatex}. A style named \meta{name} lives in the file
+A style named \meta{name} lives in the file
 \texttt{cfflatex-style-}\meta{name}\texttt{.def}, beside the manuscript or in a
 TeX tree, and registers itself with \cs{cffdeclareauthorstyle}. For example, the
 following style uses the \cs{author} and \cs{affil} commands of \pkg{authblk}
@@ -511,6 +541,8 @@ A style therefore works with \texttt{cfflatexpand} if it follows these rules.
 \end{itemize}
 
 \section{Explanation}
+
+This section explains the design details of \texttt{import-citation-cff}.
 
 \subsection{Text in the metadata}
 

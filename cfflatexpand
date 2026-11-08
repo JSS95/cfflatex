@@ -6,6 +6,7 @@ local kpse = require("kpse")
 kpse.set_program_name("luatex")
 local script_directory = arg[0]:match("^(.*[/\\])") or "./"
 local lfs = require("lfs")
+local windows = package.config:sub(1, 1) == "\\"
 
 -- Kpathsea's Lua searcher does not use package.path. Prefer sibling files in
 -- a source checkout; installed modules can fall back to the TeX search path.
@@ -71,21 +72,25 @@ local function options(arguments)
 end
 
 local function absolute(filename)
-  if package.config:sub(1, 1) == "\\" then
+  if windows then
+    if not filename:match("^[/\\]") and not filename:match("^%a:[/\\]") then
+      filename = lfs.currentdir() .. "/" .. filename
+    end
     filename = filename:gsub("\\", "/")
-  end
-  if not filename:match("^/") and not filename:match("^%a:/") then
+  elseif not filename:match("^/") then
     filename = lfs.currentdir() .. "/" .. filename
   end
+  -- A Windows path keeps its drive, as in C:/Users, without a leading slash.
+  local drive = windows and filename:match("^%a:") or ""
   local parts = {}
-  for part in filename:gmatch("[^/]+") do
+  for part in filename:sub(#drive + 1):gmatch("[^/]+") do
     if part == ".." then
       parts[#parts] = nil
     elseif part ~= "." then
       parts[#parts + 1] = part
     end
   end
-  return "/" .. table.concat(parts, "/")
+  return drive .. "/" .. table.concat(parts, "/")
 end
 
 local function protect_input(input, output)
@@ -129,6 +134,20 @@ local function write_output(filename, text)
       error(write_error or close_error, 0)
     end
     local renamed, rename_error = os.rename(staged, filename)
+    -- Windows does not rename a file onto an existing one. Move the old
+    -- destination into the private directory, and back if the new file
+    -- cannot take its place.
+    if not renamed and windows and lfs.attributes(filename, "mode") == "file" then
+      local previous = temporary .. "/previous.tex"
+      if os.rename(filename, previous) then
+        renamed, rename_error = os.rename(staged, filename)
+        if renamed then
+          os.remove(previous)
+        else
+          os.rename(previous, filename)
+        end
+      end
+    end
     if not renamed then
       error(rename_error, 0)
     end
@@ -175,6 +194,9 @@ local function main()
   if selected.output and selected.output ~= "-" then
     write_output(selected.output, result)
   else
+    -- Windows would write each line feed as CR LF, and CR LF as CR CR LF,
+    -- which TeX reads as an extra empty line. Write the bytes unchanged.
+    lfs.setmode(io.stdout, "binary")
     local success, message = io.stdout:write(result)
     if success then
       success, message = io.stdout:flush()

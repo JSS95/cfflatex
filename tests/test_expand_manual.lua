@@ -7,12 +7,13 @@
 local kpse = require("kpse")
 kpse.set_program_name("luatex")
 local lfs = require("lfs")
+local windows = package.config:sub(1, 1) == "\\"
 
 local script = arg[0]
-if not script:match("^/") then
+if not script:match("^[/\\]") and not script:match("^%a:[/\\]") then
   script = assert(lfs.currentdir()) .. "/" .. script
 end
-local root = assert(script:match("^(.*)/tests/[^/]+$"))
+local root = assert(script:match("^(.*)[/\\]tests[/\\][^/\\]+$"))
 local manual = "import-citation-cff.tex"
 
 local function read_file(filename)
@@ -29,16 +30,26 @@ local function write_file(filename, text)
 end
 
 local function quote(value)
+  if windows then
+    -- cmd.exe expands these characters, and texlua's os.execute turns ' into ".
+    assert(not value:find('["%%!\'\r\n]'), "unsupported cmd.exe argument: " .. value)
+    return '"' .. value .. '"'
+  end
   return "'" .. value:gsub("'", "'\\''") .. "'"
 end
 
-local function run(directory, ...)
-  local quoted = {}
-  for index, value in ipairs({...}) do
-    quoted[index] = quote(value)
+-- Run a program in a directory. The program name is left unquoted: cmd.exe
+-- drops the first and the last quote of a command that starts with a quote.
+local function run(directory, program, ...)
+  local words = {program}
+  for _, value in ipairs({...}) do
+    words[#words + 1] = quote(value)
   end
-  local status = os.execute("cd " .. quote(directory) .. " && "
-    .. table.concat(quoted, " ") .. " > " .. quote(directory .. "/command.log") .. " 2>&1")
+  local previous = assert(lfs.currentdir())
+  assert(lfs.chdir(directory))
+  local status = os.execute(table.concat(words, " ")
+    .. " > " .. quote(directory .. "/command.log") .. " 2>&1")
+  assert(lfs.chdir(previous))
   return status == 0 or status == true, read_file(directory .. "/command.log")
 end
 
