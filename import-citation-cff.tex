@@ -76,17 +76,6 @@ three tools:
 These tools ensure that the metadata are synced across the repository, allowing
 for easier maintenance and automation of the development process.
 
-\section{Requirements}
-
-\pkg{import-citation-cff} parses the CFF file in Lua using the
-\pkg{lt3luabridge} and \pkg{lua-tinyyaml} packages. It needs either
-\begin{itemize}
-  \item Lua\LaTeX{}, which runs the Lua code directly, or
-  \item pdf\LaTeX{} with unrestricted shell escape (|--shell-escape|), which
-        runs the Lua code with |texlua|.
-\end{itemize}
-It supports \TeX{} Live 2025 and later.
-
 \section{Installation}
 \label{sec:installation}
 
@@ -98,6 +87,17 @@ tlmgr install import-citation-cff
 \end{Verbatim}
 Alternatively, you can install it manually from the source as described in
 Section~\ref{sec:manual-installation}.
+
+\subsection{Requirements}
+
+\pkg{import-citation-cff} parses the CFF file in Lua using the
+\pkg{lt3luabridge} and \pkg{lua-tinyyaml} packages. It needs either
+\begin{itemize}
+  \item Lua\LaTeX{}, which runs the Lua code directly, or
+  \item pdf\LaTeX{} with unrestricted shell escape (|--shell-escape|), which
+        runs the Lua code with |texlua|.
+\end{itemize}
+It supports \TeX{} Live 2025 and later.
 
 \subsection{Manual installation}
 \label{sec:manual-installation}
