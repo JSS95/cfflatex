@@ -5,6 +5,21 @@ All notable changes to import-citation-cff are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- An expl3 interface for the `prepare-author` code of author styles:
+  `\cfflatex_marks_map_inline:n` maps over the marks of the author by kind (`affiliation`, `contact`, or `note`),
+  `\cfflatex_marks_get:N` and `\cfflatex_marks_set:n` read and replace the marks that the author template receives,
+  `\cfflatex_marks_separator:` expands to the separator,
+  and `\cfflatex_author_footnote:n` makes a footnote mark.
+  Styles outside the package no longer need internal names.
+
+### Changed
+
+- The footnotes in the marks of an author are `\cfflatex_author_footnote:n`, formerly the internal `\__cfflatex_thanks:n`.
+
 ## [0.4.0] - 2026-11-09
 
 ### Added

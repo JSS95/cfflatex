@@ -25,18 +25,17 @@
 \prop_new:N \l__cfflatex_rsc_symbols_prop
 \int_new:N \l__cfflatex_rsc_contact_count_int
 \int_new:N \l__cfflatex_rsc_note_count_int
-% The marks of the current author by kind, its footnotes so far, and how many
-% of its footnotes are contacts.
+% The marks of the current author by kind, and the text of its current
+% footnote.
 \seq_new:N \l__cfflatex_rsc_letters_seq
 \tl_new:N \l__cfflatex_rsc_contact_marks_tl
 \tl_new:N \l__cfflatex_rsc_note_marks_tl
-\int_new:N \l__cfflatex_rsc_thanks_int
-\int_new:N \l__cfflatex_rsc_contacts_int
 \tl_new:N \l__cfflatex_rsc_text_tl
 \tl_new:N \l__cfflatex_rsc_symbol_tl
 \tl_new:N \l__cfflatex_rsc_authors_tl
 \tl_new:N \l__cfflatex_rsc_footnotes_tl
 \cs_generate_variant:Nn \prop_put:Nnn { NVV }
+\cs_generate_variant:Nn \seq_use:Nn { Ne }
 
 \cs_new_protected:Npn \__cfflatex_rsc_begin:
   {
@@ -49,52 +48,43 @@
     \int_zero:N \l__cfflatex_rsc_note_count_int
   }
 
-% The marks of author #1 are the letters of its affiliations, then the
-% footnotes of its contacts, then those of its notes. Footnotes are
-% \__cfflatex_thanks:n, which only \maketitle sets, so they become symbols
-% with footnotes of their own. The notes of the author tell how many of its
-% footnotes are contacts.
-\cs_new_protected:Npn \__cfflatex_rsc_prepare:n #1
+% The marks of the current author are the symbols of its contacts, then the
+% letters of its affiliations, then the symbols of its notes. The symbols
+% replace the footnotes of \maketitle: \rscfootnotes typesets their texts.
+\cs_new_protected:Npn \__cfflatex_rsc_prepare:
   {
-    \int_zero:N \l__cfflatex_rsc_contacts_int
-    \seq_map_inline:Nn \l__cfflatex_marks_seq
-      {
-        \tl_if_head_eq_meaning:nNT {##1} \__cfflatex_thanks:n
-          { \int_incr:N \l__cfflatex_rsc_contacts_int }
-      }
-    \seq_map_inline:Nn \l__cfflatex_notes_seq
-      { \__cfflatex_rsc_count_note:nnn {#1} ##1 }
     \seq_clear:N \l__cfflatex_rsc_letters_seq
     \tl_clear:N \l__cfflatex_rsc_contact_marks_tl
     \tl_clear:N \l__cfflatex_rsc_note_marks_tl
-    \int_zero:N \l__cfflatex_rsc_thanks_int
-    \seq_map_inline:Nn \l__cfflatex_marks_seq
-      {
-        \tl_if_head_eq_meaning:nNTF {##1} \__cfflatex_thanks:n
-          {
-            \int_incr:N \l__cfflatex_rsc_thanks_int
-            \tl_set:No \l__cfflatex_rsc_text_tl { \use_ii:nn ##1 }
-            \int_compare:nNnTF { \l__cfflatex_rsc_thanks_int }
-              > { \l__cfflatex_rsc_contacts_int }
-              { \__cfflatex_rsc_note: }
-              { \__cfflatex_rsc_contact: }
-          }
-          {
-            \int_compare:nNnT { \cffaffiliationcount } > { 1 }
-              { \seq_put_right:Nn \l__cfflatex_rsc_letters_seq {##1} }
-          }
-      }
-    \tl_set:Ne \l__cfflatex_marks_tl
+    \cfflatex_marks_map_inline:n { \__cfflatex_rsc_mark:nn {##1} {##2} }
+    \cfflatex_marks_set:e
       {
         \exp_not:V \l__cfflatex_rsc_contact_marks_tl
-        \seq_use:NV \l__cfflatex_rsc_letters_seq \l__cfflatex_separator_tl
+        \seq_use:Ne \l__cfflatex_rsc_letters_seq
+          { \cfflatex_marks_separator: }
         \exp_not:V \l__cfflatex_rsc_note_marks_tl
       }
   }
-\cs_new_protected:Npn \__cfflatex_rsc_count_note:nnn #1#2#3
+\cs_new_protected:Npn \__cfflatex_rsc_mark:nn #1#2
   {
-    \int_compare:nNnT {#1} = {#2}
-      { \int_decr:N \l__cfflatex_rsc_contacts_int }
+    \str_case:nn {#1}
+      {
+        { affiliation }
+          {
+            \int_compare:nNnT { \cffaffiliationcount } > { 1 }
+              { \seq_put_right:Nn \l__cfflatex_rsc_letters_seq {#2} }
+          }
+        { contact }
+          {
+            \tl_set:Nn \l__cfflatex_rsc_text_tl {#2}
+            \__cfflatex_rsc_contact:
+          }
+        { note }
+          {
+            \tl_set:Nn \l__cfflatex_rsc_text_tl {#2}
+            \__cfflatex_rsc_note:
+          }
+      }
   }
 % Contacts are marked *, **, and so on.
 \cs_new_protected:Npn \__cfflatex_rsc_contact:
@@ -229,7 +219,7 @@
     contact = { Corresponding~author.~E-mail:~#1 { email } },
     separator = { },
     begin = { \__cfflatex_rsc_begin: },
-    prepare-author = { \__cfflatex_rsc_prepare:n {#1} },
+    prepare-author = { \__cfflatex_rsc_prepare: },
     author-code = { \__cfflatex_rsc_author:nn {#1} {#2} },
     affiliation-code = { \__cfflatex_rsc_affiliation:nn {#1} {#2} },
     end = { \__cfflatex_rsc_end: },

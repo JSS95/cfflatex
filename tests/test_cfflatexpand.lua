@@ -940,6 +940,7 @@ note={3}{Team note}]
     contains(result.stdout, [[\textsc {Team \& Co}]])
     assert(not result.stdout:find("help", 1, true), "non-author contact was rendered")
     assert(not result.stdout:find("__cfflatex", 1, true))
+    assert(not result.stdout:find("cfflatex_author_footnote", 1, true))
     assert(not result.stdout:find("\\protect \\cff", 1, true))
   end)
 

@@ -1,0 +1,24 @@
+\ProvidesFile{cfflatex-style-api.def}[Public style interface test style]
+% Prints the marks of each author by kind, then replaces them.
+\ExplSyntaxOn
+\tl_new:N \l__apitest_marks_tl
+\cffdeclareauthorstyle { api }
+  {
+    separator = { ; },
+    prepare-author =
+      {
+        \TYPE { author~#1 }
+        \cfflatex_marks_map_inline:n
+          { \TYPE { \space ##1 = \detokenize {##2} } }
+        \cfflatex_marks_get:N \l__apitest_marks_tl
+        \cfflatex_marks_set:e
+          {
+            < \exp_not:V \l__apitest_marks_tl >
+            \cfflatex_marks_separator:
+          }
+      },
+    author-code = { \TYPE { \space marks = \detokenize {#1} } },
+    affiliation-code = { \TYPE { affiliation~#1 } },
+  }
+\ExplSyntaxOff
+\endinput

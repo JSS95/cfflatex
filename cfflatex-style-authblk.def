@@ -4,6 +4,7 @@
   [import-citation-cff authblk author style]
 \ExplSyntaxOn
 
+\tl_new:N \l__cfflatex_authblk_marks_tl
 \cffdeclareauthorstyle { authblk }
   {
     requires = { authblk },
@@ -11,9 +12,13 @@
       {
         % authblk expands the first mark in an \if test. An empty group
         % prevents a leading footnote from executing in the preamble.
-        \exp_args:NV \tl_if_head_eq_meaning:nNT \l__cfflatex_marks_tl
-          \__cfflatex_thanks:n
-          { \tl_put_left:Nn \l__cfflatex_marks_tl { {} } }
+        \cfflatex_marks_get:N \l__cfflatex_authblk_marks_tl
+        \exp_args:NV \tl_if_head_eq_meaning:nNT \l__cfflatex_authblk_marks_tl
+          \cfflatex_author_footnote:n
+          {
+            \cfflatex_marks_set:e
+              { { } \exp_not:V \l__cfflatex_authblk_marks_tl }
+          }
       },
     author = { \author [{#1}] {#2} },
     affiliation = { \affil [#1] {#2} },
