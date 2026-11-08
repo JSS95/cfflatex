@@ -201,7 +201,8 @@ path. The keys and the indices, counting from~1, that lead to it, are separated
 by slashes. \cs{cffcount} gives the length of a list. With the |CITATION.cff| of
 this manual,
 \begin{center}
-  \begin{tabular}{ll}             \\
+  \begin{tabular}{ll}
+                                                                  \\
     |\cff{authors/1/family-names}| & \cff{authors/1/family-names} \\
     |\cff{keywords/2}|             & \cff{keywords/2}             \\
     |\cffcount{keywords}|          & \cffcount{keywords}          \\
@@ -230,10 +231,9 @@ following prints the list of authors separated by ``and'' between their names:
 CFF gives each person one \texttt{affiliation} which is a nonempty string, and
 does not natively support multiple affiliations per author.
 \pkg{import-citation-cff} allows multiple affiliations per author by separating
-them with semicolons in the \texttt{affiliation} field.
-Affiliations of each author can be accessed individually by
-\cs{cffauthoraffiliation} and related commands. Refer to
-Section~\ref{sec:reference} for details.
+them with semicolons in the \texttt{affiliation} field. Affiliations of each
+author can be accessed individually by \cs{cffauthoraffiliation} and related
+commands. Refer to Section~\ref{sec:reference} for details.
 
 \subsection{Author style}
 \label{sec:setauthors}
