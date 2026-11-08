@@ -1,0 +1,105 @@
+.\" SPDX-License-Identifier: MIT
+.\" Copyright (c) 2026 import-citation-cff contributors
+.\" l3build tag sets the date and the version of the title line.
+.TH CFFLATEXPAND 1 "2026-11-08" "import-citation-cff 0.3.0" "User Commands"
+.SH NAME
+cfflatexpand \- expand CFF metadata in a LaTeX manuscript
+.SH SYNOPSIS
+.B cfflatexpand
+[\fIoption\fR]... \fImanuscript.tex\fR
+.SH DESCRIPTION
+.B cfflatexpand
+rewrites a LaTeX manuscript that uses the
+.B import-citation-cff
+package so that it can be built without the package and without its
+Citation File Format (CFF) file, for example for a journal that accepts
+only plain LaTeX files.
+.PP
+The metadata commands of the package, such as
+.BR \ecff ,
+are replaced with their values, and the loading of the package and
+.B \eincludecff
+are removed.
+.B \ecffsetauthors
+becomes the author declarations that it makes with the built-in author
+styles, author style plugins, and custom templates; the
+.B style
+option of the package is its default style.
+The declarations are rendered by
+.BR lualatex ,
+run with shell escape disabled.
+The output still needs the class or package that provides them, such as
+authblk.
+.PP
+Commands that import-citation-cff does not define are copied unchanged,
+and metadata commands in verbatim text are not expanded.
+.B \einput
+and
+.B \einclude
+are also copied unchanged: to expand the metadata of included files,
+first flatten the manuscript with
+.BR latexpand (1).
+.SH OPTIONS
+.TP
+\fB\-o\fR \fIfile\fR, \fB\-\-output\fR \fIfile\fR, \fB\-\-output=\fIfile\fR
+Write to
+.I file
+instead of standard output;
+.B \-
+also means standard output.
+The input file is never overwritten, and a failed conversion leaves an
+existing
+.I file
+unchanged.
+.TP
+.BR \-h ", " \-\-help
+Show the help and exit.
+.TP
+.B \-\-version
+Show the version, which is that of import-citation-cff, and exit.
+.TP
+.B \-\-
+End option parsing, so that the next argument is the manuscript even if
+it starts with
+.BR \- .
+.SH EXIT STATUS
+.B cfflatexpand
+exits with 0 on success and with 1 on an error.
+.SH DIAGNOSTICS
+Errors go to standard error, with the location in the manuscript:
+.PP
+.RS
+.nf
+cfflatexpand: manuscript.tex:3:1: call \eincludecff before \ecff
+.fi
+.RE
+.PP
+Unsupported or invalid input produces no TeX output.
+.SH EXAMPLES
+Write the expanded manuscript to
+.IR submission.tex :
+.PP
+.RS
+.nf
+cfflatexpand manuscript.tex \-o submission.tex
+.fi
+.RE
+.PP
+Expand a manuscript whose metadata commands are also in included files:
+.PP
+.RS
+.nf
+latexpand manuscript.tex > manuscript\-flat.tex
+cfflatexpand manuscript\-flat.tex \-o submission.tex
+.fi
+.RE
+.SH "SEE ALSO"
+.BR latexpand (1),
+.BR luatex (1)
+.PP
+The manual of import-citation-cff, shown by
+.BR "texdoc import-citation-cff" .
+.SH BUGS
+Report bugs at https://github.com/JSS95/cfflatex/issues.
+.SH AUTHORS
+Jisoo Song.

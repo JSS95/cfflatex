@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   On Windows, it writes a batch file `cfflatexpand.cmd` instead, by default into `%USERPROFILE%\.local\bin`.
 - `l3build uninstall` removes the link.
 - CI and CD also run the tests on Windows.
+- `cfflatexpand` now has a man page, `cfflatexpand.1`, which the CTAN and TDS archives include.
+  `l3build install --full` installs it and links it into `~/.local/share/man/man1`,
+  and `l3build uninstall` removes it.
 
 ### Changed
 

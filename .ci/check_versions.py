@@ -35,6 +35,27 @@ def check_metadata(root: Path, version: str, date: str) -> None:
                 f"expected {expected}, found {actual}"
             )
 
+    # l3build tag sets the date and the version in the title line of the man
+    # page, as in the package.
+    man_page = (root / "cfflatexpand.1").read_text(encoding="utf-8")
+    title = re.search(
+        r'^\.TH[ \t]+CFFLATEXPAND[ \t]+1[ \t]+"([^"]*)"[ \t]+"import-citation-cff ([^"]*)"',
+        man_page,
+        flags=re.MULTILINE,
+    )
+    if title is None:
+        raise ValueError("Missing .TH title line in cfflatexpand.1")
+    man_date, man_version = title.groups()
+    for field, actual, expected in (
+        ("version", man_version, version),
+        ("date", man_date, date),
+    ):
+        if actual != expected:
+            raise ValueError(
+                f"cfflatexpand.1 {field} must match CHANGELOG.md: "
+                f"expected {expected}, found {actual}"
+            )
+
     # These CFF fields are optional. Check them when explicitly declared;
     # cff-version is the CFF schema version, and nested citations are separate.
     citation = (root / "CITATION.cff").read_text(encoding="utf-8")

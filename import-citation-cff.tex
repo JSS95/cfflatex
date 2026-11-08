@@ -121,6 +121,8 @@ scripts/import-citation-cff/
   cfflatexpand
 doc/latex/import-citation-cff/
   import-citation-cff.pdf
+doc/man/man1/
+  cfflatexpand.1
 \end{Verbatim}
 which can be achieved through one of the following methods.
 
@@ -132,12 +134,16 @@ the personal tree:
 l3build install --full
 \end{Verbatim}
 The |--full| option also typesets this manual and installs it with the other
-documentation. Without the option, only the package and the command are
-installed. This installation links the \texttt{cfflatexpand} command into the
-directory specified by the environment variable |CFFLATEXPAND_BINDIR|, which
-defaults to \texttt{\string~/.local/bin}. On Windows, the link is a batch file
-\texttt{cfflatexpand.cmd} that runs the command with \texttt{texlua}, and the
-directory defaults to |%USERPROFILE%\.local\bin|.
+documentation and the man page of the command. Without the option, only the
+package and the command are installed. This installation links the
+\texttt{cfflatexpand} command into the directory specified by the environment
+variable |CFFLATEXPAND_BINDIR|, which defaults to \texttt{\string~/.local/bin}.
+With |--full|, it also links the man page into \texttt{share/man/man1} beside
+that directory, by default \texttt{\string~/.local/share/man/man1}, where
+\texttt{man} finds it when the directory of the command is in |PATH|. On
+Windows, the link is a batch file \texttt{cfflatexpand.cmd} that runs the
+command with \texttt{texlua}, the directory defaults to
+|%USERPROFILE%\.local\bin|, and the man page is not linked.
 
 \subsubsection{From a release archive}
 \label{sec:release-archive}
@@ -163,6 +169,12 @@ link the command yourself:
 dir="$(kpsewhich -var-value TEXMFHOME)/scripts/import-citation-cff"
 ln -s "$dir/cfflatexpand" ~/.local/bin/cfflatexpand
 \end{Verbatim}
+The man page can be linked likewise for \texttt{man cfflatexpand}:
+\begin{Verbatim}
+page="$(kpsewhich -var-value TEXMFHOME)/doc/man/man1/cfflatexpand.1"
+mkdir -p ~/.local/share/man/man1
+ln -s "$page" ~/.local/share/man/man1/cfflatexpand.1
+\end{Verbatim}
 On Windows, write a batch file \texttt{cfflatexpand.cmd} instead, with the path
 of the command in your \texttt{TEXMFHOME}:
 \begin{Verbatim}
@@ -170,7 +182,7 @@ of the command in your \texttt{TEXMFHOME}:
 texlua "C:\Users\me\texmf\scripts\import-citation-cff\cfflatexpand" %*
 exit /b %errorlevel%
 \end{Verbatim}
-This link needs to be removed manually when uninstalling the command.
+These links need to be removed manually when uninstalling the command.
 
 \subsection{Checking the installation}
 
@@ -194,7 +206,7 @@ with
 l3build uninstall
 \end{Verbatim}
 If you set the environment variable |CFFLATEXPAND_BINDIR| when installing with
-\texttt{l3build}, you should also set the same variable when removing the link.
+\texttt{l3build}, you should also set the same variable when removing the links.
 If you manually extracted a release archive into \texttt{TEXMFHOME},
 uninstalling should be done manually.
 
@@ -826,8 +838,9 @@ The package has two options (Section~\ref{sec:check}).
 \label{sec:cli}
 
 \texttt{cfflatexpand} expands the metadata of a manuscript, as
-Section~\ref{sec:expanding} describes. The help that it prints with the |--help|
-option is:
+Section~\ref{sec:expanding} describes. On Unix, its man page, shown by
+|man cfflatexpand|, describes the command and its options. The help that it
+prints with the |--help| option is:
 \directlua{
   local file = assert(io.open('\jobname-cfflatexpand.txt', 'w'))
   file:write(require('cfflatexpand').help) file:close()

@@ -4,8 +4,10 @@
 --   l3build tag VERSION  set the version and today's date in the sources
 --   l3build ctan         run the tests and build the CTAN archive
 --   l3build upload       submit the CTAN archive (asks for your email)
---   l3build install      install into TEXMFHOME and link the command
---   l3build uninstall    remove the installation and the command link
+--   l3build install      install into TEXMFHOME and link the command; --full
+--                        also installs the manual and the man page, and
+--                        links the man page
+--   l3build uninstall    remove the installation and the links
 module = "import-citation-cff"
 
 sourcefiles = {
@@ -17,6 +19,9 @@ installfiles = sourcefiles
 scriptfiles = {"cfflatexpand"}
 -- Preserve the command's executable bit in both CTAN and TDS archives.
 exefiles = scriptfiles
+-- The man page of the command goes to doc/man/man1 in TDS archives and
+-- installations, where TeX Live's man directory finds it.
+scriptmanfiles = {"cfflatexpand.1"}
 -- CTAN installs a TDS archive only when TeX Live asks for it, so the CTAN
 -- archive leaves it out. l3build still writes it to build/distrib/tds/, where
 -- CD tests it and attaches it to the GitHub release.
@@ -26,8 +31,10 @@ packtdszip = false
 
 -- TeX Live links cfflatexpand into its binary directory, and tlmgr removes the
 -- link with the package. For the personal tree, l3build install links the
--- command into $CFFLATEXPAND_BINDIR, by default ~/.local/bin, and l3build
--- uninstall removes that link; an empty CFFLATEXPAND_BINDIR makes no link.
+-- command into $CFFLATEXPAND_BINDIR, by default ~/.local/bin, and with --full
+-- the man page into the share/man/man1 beside it, by default
+-- ~/.local/share/man/man1. l3build uninstall removes the links; an empty
+-- CFFLATEXPAND_BINDIR makes no links.
 -- An environment variable, because l3build reads its command-line options
 -- before this file and rejects unknown ones.
 --
@@ -49,15 +56,22 @@ local function native(path)
   return windows and (path:gsub("/", "\\")) or path
 end
 
--- The link and the installed command it points to, or nil for no link.
-local function command_link()
+local function parent(path)
+  return path:match("^(.*)[/\\][^/\\]*$")
+end
+
+-- The links to make, each with the installed file that it points to: the
+-- command, and with man_page, a link to the man page in share/man/man1 beside
+-- the command's directory, where man looks for the pages of a bin directory
+-- in PATH. None for an empty CFFLATEXPAND_BINDIR.
+local function command_links(man_page)
   local bindir = os.getenv("CFFLATEXPAND_BINDIR")
   if bindir == nil then
     local home = os.getenv(windows and "USERPROFILE" or "HOME")
     bindir = home and home .. "/.local/bin" or ""
   end
   if bindir == "" then
-    return nil
+    return {}
   end
   -- The tree that l3build installs into: --texmfhome, or else TEXMFHOME.
   local texmfhome = options["texmfhome"]
@@ -66,8 +80,20 @@ local function command_link()
     kpse.set_program_name("latex")
     texmfhome = kpse.var_value("TEXMFHOME")
   end
-  return native(absolute(bindir) .. "/cfflatexpand" .. (windows and ".cmd" or "")),
-    native(absolute(texmfhome) .. "/scripts/" .. module .. "/cfflatexpand")
+  bindir, texmfhome = absolute(bindir), absolute(texmfhome)
+  local links = {{
+    name = "the command",
+    link = native(bindir .. "/cfflatexpand" .. (windows and ".cmd" or "")),
+    target = native(texmfhome .. "/scripts/" .. module .. "/cfflatexpand"),
+  }}
+  if man_page and not windows then
+    links[2] = {
+      name = "the man page",
+      link = (parent(bindir) or "") .. "/share/man/man1/cfflatexpand.1",
+      target = texmfhome .. "/doc/man/man1/cfflatexpand.1",
+    }
+  end
+  return links
 end
 
 -- The batch file stands for the link on Windows. %% is a literal % in batch
@@ -101,10 +127,6 @@ local function make_link(link, command)
   end
 end
 
-local function parent(path)
-  return path:match("^(.*)[/\\][^/\\]*$")
-end
-
 local function make_directory(path)
   if path == "" or lfs.attributes(path, "mode") == "directory" then
     return
@@ -127,47 +149,62 @@ local function in_path(directory)
   return false
 end
 
-local install_files_target = target_list.install.func
-target_list.install.func = function(names)
-  local errorlevel = install_files_target(names)
-  local link, command = command_link()
-  if errorlevel ~= 0 or not link then
-    return errorlevel
-  elseif options["dry-run"] then
-    print("\nFor linking the command:\n- " .. link .. " -> " .. command)
-    return 0
-  end
-  local directory = parent(link)
-  if not is_link_to(link, command) then
-    if lfs.symlinkattributes(link, "mode") then
-      print("\nWarning: " .. link .. " exists, so cfflatexpand is not linked there."
-        .. " Set CFFLATEXPAND_BINDIR to link it elsewhere.")
+-- An existing file that is not the link is never replaced.
+local function link_installed(item)
+  if not is_link_to(item.link, item.target) then
+    if lfs.symlinkattributes(item.link, "mode") then
+      print("\nWarning: " .. item.link .. " exists, so " .. item.name
+        .. " is not linked there. Set CFFLATEXPAND_BINDIR to link it elsewhere.")
       return 0
     end
-    make_directory(directory)
-    make_link(link, command)
-    if not is_link_to(link, command) then
-      print("\nError: cannot link " .. link .. " to " .. command)
+    make_directory(parent(item.link))
+    make_link(item.link, item.target)
+    if not is_link_to(item.link, item.target) then
+      print("\nError: cannot link " .. item.link .. " to " .. item.target)
       return 1
     end
   end
-  print("\nLinked " .. link .. " -> " .. command)
-  if not in_path(directory) then
+  print("\nLinked " .. item.link .. " -> " .. item.target)
+  return 0
+end
+
+local install_files_target = target_list.install.func
+target_list.install.func = function(names)
+  local errorlevel = install_files_target(names)
+  if errorlevel ~= 0 then
+    return errorlevel
+  end
+  -- l3build installs the man page only with --full.
+  local links = command_links(options["full"])
+  for _, item in ipairs(links) do
+    if options["dry-run"] then
+      print("\nFor linking " .. item.name .. ":\n- " .. item.link .. " -> " .. item.target)
+    else
+      errorlevel = link_installed(item)
+      if errorlevel ~= 0 then
+        return errorlevel
+      end
+    end
+  end
+  local directory = links[1] and parent(links[1].link)
+  if directory and not options["dry-run"] and not in_path(directory) then
     print("Add " .. directory .. " to PATH to run cfflatexpand by name.")
   end
   return 0
 end
 
--- Only a link to the command of this tree is removed, never another file.
+-- Only the links to the files of this tree are removed, never another file.
 local uninstall_files_target = target_list.uninstall.func
 target_list.uninstall.func = function(names)
-  local link, command = command_link()
-  if link and is_link_to(link, command) then
-    if options["dry-run"] then
-      print("\nFor removal of the command link:\n- " .. link)
-    else
-      assert(os.remove(link))
-      print("\nRemoved the link " .. link)
+  -- l3build removes the man page with or without --full, and so its link.
+  for _, item in ipairs(command_links(true)) do
+    if is_link_to(item.link, item.target) then
+      if options["dry-run"] then
+        print("\nFor removal of the link to " .. item.name .. ":\n- " .. item.link)
+      else
+        assert(os.remove(item.link))
+        print("\nRemoved the link " .. item.link)
+      end
     end
   end
   return uninstall_files_target(names)
@@ -300,13 +337,18 @@ end
 local version = assert(package_version(), "Missing package version in import-citation-cff.sty")
 ctanzip = module .. "-" .. version
 
-tagfiles = {"import-citation-cff.sty", "CITATION.cff"}
+tagfiles = {"import-citation-cff.sty", "CITATION.cff", "cfflatexpand.1"}
 
 function update_tag(file, content, tagname, tagdate)
   if file == "import-citation-cff.sty" then
     return (content:gsub(
       "(\\ProvidesExplPackage{import%-citation%-cff}){[^}]*}{[^}]*}",
       "%1{" .. tagdate .. "}{" .. tagname .. "}"))
+  elseif file == "cfflatexpand.1" then
+    -- The date and the source of the man page title line.
+    return (content:gsub(
+      '(\n%.TH CFFLATEXPAND 1) "[^"]*" "import%-citation%-cff [^"]*"',
+      '%1 "' .. tagdate .. '" "import-citation-cff ' .. tagname .. '"'))
   elseif file == "CITATION.cff" then
     content = content:gsub("\nversion: [^\n]*", "\nversion: " .. tagname)
     return (content:gsub("\ndate%-released: [^\n]*",

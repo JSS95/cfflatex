@@ -86,6 +86,24 @@ jobs:
       - name: Lint
         run: pipx run ruff==0.16.1 check .
 
+  man:
+    name: Lint the man page (groff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install groff
+        run: sudo apt-get update && sudo apt-get install -y groff-base
+
+      # groff reports warnings without failing, so any output fails the job.
+      - name: Lint
+        run: |
+          warnings=$(groff -man -ww -z cfflatexpand.1 2>&1)
+          if [ -n "$warnings" ]; then
+            echo "$warnings"
+            exit 1
+          fi
+
   # Test stage.
 
   # The test jobs run on Linux and Windows. Windows checks the batch file that
@@ -93,7 +111,7 @@ jobs:
   # that the tests run through cmd.exe. Bash runs the steps on both.
   l3build:
     name: l3build (${{ matrix.os }}, TeX Live ${{ matrix.texlive }})
-    needs: [versions, badness, explcheck, luacheck, ruff]
+    needs: [versions, badness, explcheck, luacheck, ruff, man]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -171,7 +189,7 @@ jobs:
   # the package.
   expand:
     name: Expand the manual with cfflatexpand (${{ matrix.os }})
-    needs: [versions, badness, explcheck, luacheck, ruff]
+    needs: [versions, badness, explcheck, luacheck, ruff, man]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -212,7 +230,7 @@ jobs:
 
   doc:
     name: Build the manual
-    needs: [versions, badness, explcheck, luacheck, ruff]
+    needs: [versions, badness, explcheck, luacheck, ruff, man]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -260,6 +278,27 @@ jobs:
       # Typesets import-citation-cff.tex into import-citation-cff.pdf with LuaLaTeX (see build.lua).
       - name: Build the manual
         run: l3build doc
+
+      # l3build install --full also installs the manual and the man page, and
+      # links the man page into share/man/man1 beside the command link, where
+      # man finds it; l3build uninstall removes the files and both links.
+      # This job has the packages that typesetting the manual needs.
+      - name: Test installing the manual and the man page
+        run: |
+          export CFFLATEXPAND_BINDIR="$RUNNER_TEMP/local/bin"
+          texmf="$RUNNER_TEMP/texmf"
+          page="$RUNNER_TEMP/local/share/man/man1/cfflatexpand.1"
+          l3build install --full --texmfhome "$texmf"
+          test -f "$texmf/doc/latex/import-citation-cff/import-citation-cff.pdf"
+          test "$(readlink "$page")" = "$texmf/doc/man/man1/cfflatexpand.1"
+          cmp "$page" cfflatexpand.1
+          test "$(readlink "$CFFLATEXPAND_BINDIR/cfflatexpand")" = \
+            "$texmf/scripts/import-citation-cff/cfflatexpand"
+          "$CFFLATEXPAND_BINDIR/cfflatexpand" --version
+          l3build uninstall --texmfhome "$texmf"
+          test ! -L "$page"
+          test ! -e "$texmf/doc/man/man1/cfflatexpand.1"
+          test ! -L "$CFFLATEXPAND_BINDIR/cfflatexpand"
 
       - name: Upload the manual
         uses: actions/upload-artifact@v4

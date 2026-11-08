@@ -36,6 +36,11 @@ class ReleaseNotesTests(unittest.TestCase):
         )
         self.citation = self.root / "CITATION.cff"
         self.citation.write_text("cff-version: 1.2.0\n", encoding="utf-8")
+        self.man_page = self.root / "cfflatexpand.1"
+        self.man_page.write_text(
+            '.TH CFFLATEXPAND 1 "2026-11-06" "import-citation-cff 1.2.3"\n',
+            encoding="utf-8",
+        )
 
     def run_notes(self, tag="v1.2.3"):
         return subprocess.run(
@@ -113,6 +118,15 @@ class ReleaseNotesTests(unittest.TestCase):
         result = self.run_notes()
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("CITATION.cff version must match", result.stderr)
+        self.assertEqual(result.stdout, "")
+
+    def test_man_page_must_match_selected_entry(self):
+        self.man_page.write_text(
+            '.TH CFFLATEXPAND 1 "2026-11-06" "import-citation-cff 1.2.2"\n'
+        )
+        result = self.run_notes()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("cfflatexpand.1 version must match", result.stderr)
         self.assertEqual(result.stdout, "")
 
 
