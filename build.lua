@@ -135,7 +135,6 @@ uploadconfig = {
   ]],
   ctanPath = "/macros/latex/contrib/import-citation-cff",
   topic = {"metadata", "data-import"},
-  -- CTAN lists each URL only once, so the repository is not repeated as home.
   repository = "https://github.com/JSS95/cfflatex",
   bugtracker = "https://github.com/JSS95/cfflatex/issues",
 }
