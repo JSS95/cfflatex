@@ -141,15 +141,16 @@ defaults to \texttt{\string~/.local/bin}.
 \label{sec:release-archive}
 
 If you cannot use \texttt{l3build} in your environment, you can manually extract
-\texttt{import-citation-cff.tds.zip} into \texttt{TEXMFHOME}. Download the archive
-from release assets\footnote{\url{https://github.com/JSS95/cfflatex/releases}}
-and run:
+\texttt{import-citation-cff.tds.zip} into \texttt{TEXMFHOME}. Download the
+archive from release
+assets\footnote{\url{https://github.com/JSS95/cfflatex/releases}} and run:
 \begin{Verbatim}
 unzip import-citation-cff.tds.zip -d "$(kpsewhich -var-value TEXMFHOME)"
 \end{Verbatim}
-However, this installation does not link the \texttt{cfflatexpand} command and you
-need to link it manually as described in Section~\ref{sect:link-command}. You also need
-to manually remove the files when uninstalling, as described in Section~\ref{sect:uninstall}.
+However, this installation does not link the \texttt{cfflatexpand} command and
+you need to link it manually as described in Section~\ref{sect:link-command}.
+You also need to manually remove the files when uninstalling, as described in
+Section~\ref{sect:uninstall}.
 
 \subsection{Installing the command}
 \label{sect:link-command}
@@ -178,12 +179,15 @@ If you used \texttt{tlmgr} to install the package, you can uninstall it with
 \begin{Verbatim}
 tlmgr uninstall import-citation-cff
 \end{Verbatim}
-And if you used \texttt{l3build} to install the package, you can uninstall it with
+And if you used \texttt{l3build} to install the package, you can uninstall it
+with
 \begin{Verbatim}
 l3build uninstall
 \end{Verbatim}
-If you manually extracted a release archive into \texttt{TEXMFHOME}, uninstalling
-should be done manually.
+If you set the environment variable |CFFLATEXPAND_BINDIR| when installing with
+\texttt{l3build}, you should also set the same variable when removing the link.
+If you manually extracted a release archive into \texttt{TEXMFHOME},
+uninstalling should be done manually.
 
 \section{Tutorial}
 
