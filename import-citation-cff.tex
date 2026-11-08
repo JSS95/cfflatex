@@ -189,9 +189,9 @@ The \LaTeX{} manuscript then imports and accesses the metadata by
 By default, \cs{includecff} reads the top level of the CFF file. The
 |source=|\meta{key} option selects another citation under the top-level
 \meta{key}, such as \texttt{preferred-citation}. Any other top-level key is read
-in the same way. Note that CFF~1.2.0 defines \texttt{preferred-citation} as the
-only such key and allows no others, so a file with another key fails CFF
-validation.
+in the same way. However, note that the CFF standard
+schema\footnote{\url{https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md}}
+defines \texttt{preferred-citation} as the only such key and allows no others.
 
 \subsection{Reading CFF fields}
 \label{sec:any-field}
@@ -201,8 +201,7 @@ path. The keys and the indices, counting from~1, that lead to it, are separated
 by slashes. \cs{cffcount} gives the length of a list. With the |CITATION.cff| of
 this manual,
 \begin{center}
-  \begin{tabular}{ll}
-    |\cff{title}|                  & \cff{title}                  \\
+  \begin{tabular}{ll}             \\
     |\cff{authors/1/family-names}| & \cff{authors/1/family-names} \\
     |\cff{keywords/2}|             & \cff{keywords/2}             \\
     |\cffcount{keywords}|          & \cffcount{keywords}          \\
@@ -215,13 +214,14 @@ email address of the current author in \cs{cffforeachauthor}.
 
 \cs{cffforeachauthor} runs its argument once for each author of the citation,
 and \cs{cffauthorindex} gives the index of the current author. A document can
-thus list the authors without knowing how many there are. The following sets the
-author list of \cs{maketitle}, with \cs{and} between the authors:
+thus list the authors without knowing how many there are. For example, the
+following prints the list of authors separated by ``and'' between their names:
 \begin{Verbatim}
-\author{\cffforeachauthor{%
-  \ifnum\cffauthorindex>1 \and\fi
+\cffforeachauthor{%
+  \ifnum\cffauthorindex>1 and \fi
   \cffauthor{\cffauthorindex}{given-names}~%
-  \cffauthor{\cffauthorindex}{family-names}}}
+  \cffauthor{\cffauthorindex}{family-names}
+}
 \end{Verbatim}
 
 \subsection{Multiple affiliations}
