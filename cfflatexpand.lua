@@ -34,27 +34,35 @@ local opaque_environments = {
   luacode = true, ["luacode*"] = true,
 }
 
--- These constructs can change tokenization, hide commands, select another
--- execution order, or read unseen TeX. They need a later export contract.
-local unsupported = {}
-for name in ([[
-  input include includeonly InputIfFileExists IfFileExists subfile import
-  subimport includefrom subincludefrom def gdef edef xdef let futurelet
-  newcommand renewcommand providecommand DeclareRobustCommand
-  newenvironment renewenvironment NewDocumentEnvironment
-  RenewDocumentEnvironment ProvideDocumentEnvironment DeclareDocumentEnvironment
-  NewDocumentCommand RenewDocumentCommand ProvideDocumentCommand
-  DeclareDocumentCommand NewExpandableDocumentCommand RenewExpandableDocumentCommand
-  ProvideExpandableDocumentCommand DeclareExpandableDocumentCommand
-  newif unless csname endcsname catcode makeatletter makeatother
-  ExplSyntaxOn ExplSyntaxOff begingroup endgroup bgroup egroup
-  expandafter noexpand unexpanded detokenize string meaning scantokens expanded
-  uppercase lowercase
-  afterassignment aftergroup directlua endinput
-  Verb lstinline mintinline url path
-]]):gmatch("%S+") do
-  unsupported[name] = true
+-- The user commands of import-citation-cff. Any other command, including one
+-- whose name starts with cff, belongs to the document and is copied as is.
+local package_commands = {
+  includecff = true, cffsetauthors = true, cffdeclareauthorstyle = true,
+  cffemit = true, cffrenderauthor = true, cffrenderaffiliation = true,
+}
+for name in pairs(accessors) do
+  package_commands[name] = true
 end
+for name in pairs(loops) do
+  package_commands[name] = true
+end
+
+-- Commands whose last argument TeX reads verbatim, with the number of
+-- ordinary arguments before it. An optional argument may come first.
+local verbatim_commands = {
+  Verb = 0, lstinline = 0, mintinline = 1, url = 0, path = 0, href = 0,
+}
+
+-- \MakeShortVerb and \DefineShortVerb (fancyvrb) make a character delimit
+-- verbatim text, until \DeleteShortVerb or \UndefineShortVerb.
+local short_verb_commands = {
+  MakeShortVerb = true, DefineShortVerb = true,
+  DeleteShortVerb = false, UndefineShortVerb = false,
+}
+
+-- l3doc reads the argument of these environments verbatim, and makes | and "
+-- short verbatim characters in the document body.
+local l3doc_environments = {["function"] = true, variable = true, macro = true}
 
 function Scanner:fail(position, message)
   local before = self.text:sub(1, position - 1):gsub("\r\n", "\n"):gsub("\r", "\n")
@@ -89,9 +97,15 @@ function Scanner:skip(position)
   return position
 end
 
+-- \makeatletter makes @ a letter, and \ExplSyntaxOn makes _ and : letters.
 function Scanner:command(position)
-  local pattern = self.author_render and "^\\([A-Za-z@_:]+)" or "^\\([A-Za-z]+)"
-  local name = self.text:match(pattern, position)
+  local letters = "A-Za-z"
+  if self.author_render then
+    letters = "A-Za-z@_:"
+  else
+    letters = letters .. (self.at_letter and "@" or "") .. (self.expl_syntax and "_:" or "")
+  end
+  local name = self.text:match("^\\([" .. letters .. "]+)", position)
   if name then
     return name, position + #name + 1
   end
@@ -525,36 +539,10 @@ function Scanner:author_fragment(text, names)
   local child = setmetatable({
     text = text, filename = "[author template]", depth = 0, loop_depth = 0,
     indices = {}, model = self.model, author_render = true, author_names = names,
+    short_verbs = {},
   }, Scanner)
   local result = child:scan(1, #text)
   return result, child.needs_thanks
-end
-
--- Templates are TeX, not Lua expressions. Check the same lexical restrictions
--- before passing them to the existing renderer; getters may be partial (#1).
-function Scanner:author_options(argument)
-  local position = argument.first
-  while position <= argument.last do
-    local char = self.text:sub(position, position)
-    if char == "%" then
-      position = self:comment(position)
-    elseif char == "\\" then
-      local name, after = self:command(position)
-      if unsupported[name] or (name:match("^[iI]f") and name ~= "ifnum" and name ~= "ifodd")
-        or name == "cffsetauthors" or name == "includecff"
-        or name == "usepackage" or name == "RequirePackage"
-        or name == "begin" or name == "end"
-        or (name:match("^cff") and not accessors[name] and not loops[name]) then
-        self:fail(position, "unsupported TeX construct in author options: \\" .. name)
-      end
-      position = after
-    elseif self.text:sub(position, position + 1) == "^^" then
-      self:fail(position, "TeX ^^ character notation is not supported")
-    else
-      position = position + 1
-    end
-  end
-  return self.text:sub(argument.first, argument.last)
 end
 
 function Scanner:set_authors(position, after)
@@ -568,8 +556,9 @@ function Scanner:set_authors(position, after)
   if self.author_names ~= nil then
     self:fail(position, "only one \\cffsetauthors is supported")
   end
+  -- The renderer runs the options as they are, as compiling the document would.
   local argument, ending = self:optional(after)
-  local options = argument and self:author_options(argument) or ""
+  local options = argument and self.text:sub(argument.first, argument.last) or ""
   if self.document_style then
     -- A style= in the options of \cffsetauthors comes later and wins.
     options = "style=" .. self.document_style .. "," .. options
@@ -655,6 +644,90 @@ function Scanner:verb(position, after)
   return ending + 1
 end
 
+-- Text up to the next copy of the delimiter at position, on the same line
+-- unless multiline. Nothing in it is a command or a comment.
+function Scanner:delimited(position, what, multiline)
+  local delimiter = self.text:sub(position, position)
+  local ending = self.text:find(delimiter, position + 1, true)
+  local newline = not multiline and self.text:find("[\r\n]", position + 1)
+  if not ending or ending > self.limit or (newline and newline < ending) then
+    self:fail(position, "unclosed " .. what)
+  end
+  return ending + 1
+end
+
+-- A verbatim argument is a balanced brace group or delimited text.
+function Scanner:verbatim_argument(position, what, multiline)
+  while position <= self.limit and self.text:sub(position, position):match("[ \t\r\n]") do
+    position = position + 1
+  end
+  if position > self.limit then
+    self:fail(position, "expected the argument of " .. what)
+  end
+  if self.text:sub(position, position) ~= "{" then
+    return self:delimited(position, what, multiline)
+  end
+  local depth = 0
+  for index = position, self.limit do
+    local char = self.text:sub(index, index)
+    if char == "{" then
+      depth = depth + 1
+    elseif char == "}" then
+      depth = depth - 1
+      if depth == 0 then
+        return index + 1
+      end
+    end
+  end
+  self:fail(position, "unclosed argument of " .. what)
+end
+
+function Scanner:verbatim_command(name, position, after)
+  if name == "Verb" and self.text:sub(after, after) == "*" then
+    after = after + 1
+  end
+  local _, ending = self:optional(after)
+  for _ = 1, verbatim_commands[name] do
+    _, ending = self:argument(ending, "{", "}")
+  end
+  return self:verbatim_argument(ending, "\\" .. name)
+end
+
+function Scanner:short_verb_command(name, after)
+  local position = after
+  if self.text:sub(position, position) == "*" then
+    position = position + 1
+  end
+  local _
+  _, position = self:optional(position)
+  position = self:skip(position)
+  local braced = self.text:sub(position, position) == "{"
+  if braced then
+    position = self:skip(position + 1)
+  end
+  local char = self.text:match("^\\(.)", position)
+  if not char then
+    self:fail(position, "expected a character such as \\| after \\" .. name)
+  end
+  position = position + 2
+  if braced then
+    position = self:skip(position)
+    if self.text:sub(position, position) ~= "}" then
+      self:fail(position, "expected '}' after the character of \\" .. name)
+    end
+    position = position + 1
+  end
+  self.short_verbs[char] = short_verb_commands[name] or nil
+  return position
+end
+
+function Scanner:document_class(after)
+  local _, position = self:optional(after)
+  local argument, ending = self:argument(position, "{", "}")
+  self.l3doc = self.text:sub(argument.first, argument.last):match("^%s*(.-)%s*$") == "l3doc"
+  return ending
+end
+
 function Scanner:environment(position, after, begin)
   local argument, ending = self:argument(after, "{", "}")
   local name = self:literal(argument)
@@ -666,12 +739,20 @@ function Scanner:environment(position, after, begin)
     end
     return terminator + #marker
   end
+  if begin and self.l3doc and l3doc_environments[name] then
+    local _
+    _, ending = self:optional(ending)
+    return self:verbatim_argument(ending, "\\begin{" .. name .. "}", true)
+  end
   if name == "document" then
     if self.loop_depth > 0 or self.depth > 0 or #self.conditions > 0 then
       self:fail(position, "document boundaries must be outside groups, loops, and conditionals")
     end
     if begin then
       self.body = true
+      if self.l3doc then
+        self.short_verbs["|"], self.short_verbs['"'] = true, true
+      end
     else
       return self.limit + 1 -- TeX does not read beyond \end{document}.
     end
@@ -726,18 +807,13 @@ function Scanner:result(first, last)
   return join(parts)
 end
 
+-- \ifnum and \ifodd are tracked, so that a CFF load cannot hide in a branch
+-- and a branch cannot cross a loop boundary. Other conditionals are copied
+-- as is, so an \else or a \fi without a tracked conditional belongs to them.
 function Scanner:condition(name, position)
   if name == "ifnum" or name == "ifodd" then
     self.conditions[#self.conditions + 1] = {position = position}
-  elseif #self.conditions == 0 then
-    self:fail(position, "unmatched \\" .. name)
-  elseif name == "else" then
-    local current = self.conditions[#self.conditions]
-    if current.has_else then
-      self:fail(position, "duplicate \\else")
-    end
-    current.has_else = true
-  else
+  elseif name == "fi" then
     self.conditions[#self.conditions] = nil
   end
 end
@@ -753,19 +829,35 @@ function Scanner:scan(first, last)
     local char = text:sub(position, position)
     if char == "%" then
       position = self:comment(position)
+    elseif self.short_verbs[char] then
+      position = self:delimited(position, "short verbatim text")
     elseif char == "{" then
-      groups[#groups + 1] = position
+      -- Category code changes are local to the group.
+      groups[#groups + 1] = {
+        position = position, at_letter = self.at_letter, expl_syntax = self.expl_syntax,
+      }
       self.depth, position = self.depth + 1, position + 1
     elseif char == "}" then
       if #groups == 0 then
         self:fail(position, "unmatched '}'")
       end
+      self.at_letter, self.expl_syntax = groups[#groups].at_letter, groups[#groups].expl_syntax
       groups[#groups] = nil
       self.depth, position = self.depth - 1, position + 1
     elseif char == "\\" then
       local name, after = self:command(position)
       if name == "verb" then
         position = self:verb(position, after)
+      elseif verbatim_commands[name] then
+        position = self:verbatim_command(name, position, after)
+      elseif short_verb_commands[name] ~= nil then
+        position = self:short_verb_command(name, after)
+      elseif name == "makeatletter" or name == "makeatother" then
+        self.at_letter, position = name == "makeatletter", after
+      elseif name == "ExplSyntaxOn" or name == "ExplSyntaxOff" then
+        self.expl_syntax, position = name == "ExplSyntaxOn", after
+      elseif name == "documentclass" then
+        position = self:document_class(after)
       elseif name == "begin" or name == "end" then
         position = self:environment(position, after, name == "begin")
       elseif name == "usepackage" or name == "RequirePackage" then
@@ -796,26 +888,20 @@ function Scanner:scan(first, last)
         position = ending
       elseif loops[name] then
         position = self:loop(name, position, after)
-      elseif name:match("^cff") or (self.author_render and name:match("^__cfflatex")) then
+      elseif package_commands[name] or (self.author_render and name:match("^__cfflatex")) then
         self:fail(position, "unsupported import-citation-cff command: \\" .. name)
-      elseif name == "ifnum" or name == "ifodd" or name == "else" or name == "fi" then
+      elseif name == "ifnum" or name == "ifodd" or name == "fi" then
         self:condition(name, position)
         position = after
-      elseif name == "input" or name == "include" or name == "includeonly" then
-        self:fail(position, "external TeX inputs are not supported; first flatten the document with latexpand")
-      elseif unsupported[name] or name:match("^[iI]f") then
-        self:fail(position, "unsupported TeX construct: \\" .. name)
       else
         position = after
       end
-    elseif char == "^" and text:sub(position, position + 1) == "^^" then
-      self:fail(position, "TeX ^^ character notation is not supported")
     else
       position = position + 1
     end
   end
   if #groups ~= 0 then
-    self:fail(groups[#groups], "unclosed '{'")
+    self:fail(groups[#groups].position, "unclosed '{'")
   end
   if #self.conditions ~= 0 then
     self:fail(self.conditions[#self.conditions].position, "unclosed numeric conditional")
@@ -829,7 +915,7 @@ function expand.transform(text, filename, render_authors)
   local scanner = setmetatable({
     text = text, filename = filename, depth = 0, loop_depth = 0, indices = {},
     directory = filename:match("^(.*[/\\])") or "./",
-    render_authors = render_authors,
+    render_authors = render_authors, short_verbs = {},
   }, Scanner)
   return scanner:scan(1, #text)
 end

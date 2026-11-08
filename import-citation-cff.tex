@@ -276,6 +276,16 @@ of Section~\ref{sec:export-styles}. The |style| option of the package is its
 default style, as when compiling. The output still needs the class or package
 that provides its declarations.
 
+Only the commands of \pkg{import-citation-cff} change. Every other command,
+including a definition, a conditional, and a command of your own whose name
+starts with |cff|, is copied as it is. Metadata commands in verbatim text are
+not expanded: verbatim environments, \cs{verb}, \cs{Verb}, \cs{lstinline},
+\cs{mintinline}, \cs{url}, \cs{path}, the address of \cs{href}, characters made
+short verbatim with \cs{MakeShortVerb}, and, in an \pkg{l3doc} document, the
+short verbatim text and the command lists of the |function|, |variable|, and
+|macro| environments.
+
+\cs{input} and \cs{include} are copied, too, so the included files are not read.
 For a manuscript split into several TeX files, first merge it with latexpand.
 Keep the merged file beside the root manuscript and keep the literal CFF
 filename valid there:

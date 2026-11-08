@@ -124,9 +124,8 @@ python3 .ci/check_versions.py
 Run the LaTeX regression tests and the standalone export CLI tests:
 
 ```sh
-l3build check   # tests with pdfLaTeX and LuaLaTeX
-texlua tests/test_cfflatexpand.lua  # export CLI tests
-texlua tests/test_cfflatexpand.lua --installed  # temporary TeX-tree installation
+l3build check
+texlua tests/test_*.lua
 ```
 
 ### Build

@@ -20,22 +20,17 @@ end
 
 local help = [[Usage: cfflatexpand [OPTIONS] manuscript.tex
 
-Expand CFF fields, counts, author/affiliation/contact accessors, metadata
-loops, \cffsetauthors, and \cffauthornames, and remove import-citation-cff loading commands.
-Author declarations support built-in and file-based styles and custom templates.
-The current version supports one literal \includecff in a single TeX file.
-CFF filenames are relative to the input TeX file. \cffsetauthors requires
-LuaLaTeX and runs the shared author renderer with --no-shell-escape.
-Use one \cffsetauthors in the preamble, after \includecff and before
-\cffauthornames. Data-only expansion does not execute a TeX engine.
-For multiple TeX files, first flatten the document with latexpand.
-Indices accept decimal arithmetic and CFF accessors. Numeric \ifnum/\ifodd
-conditionals are preserved; both branches must contain supported input.
+Expand CFF content in a LaTeX manuscript so that it can be built without import-citation-cff.
 
   -o, --output FILE  Write to FILE instead of stdout; '-' also means stdout
   -h, --help         Show this help
       --version      Show the version shared with import-citation-cff
       --             End option parsing
+
+Author declarations support built-in and file-based styles and custom templates.
+Commands that import-citation-cff does not define are copied unchanged, and
+metadata commands in verbatim text are not expanded. \input and \include are
+unchanged. To expand included files, first flatten with latexpand.
 
 Diagnostics go to stderr. Unsupported or invalid input produces no TeX output.
 ]]
