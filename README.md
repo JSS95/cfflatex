@@ -12,36 +12,14 @@ This package imports metadata from `CITATION.cff` into your document, with custo
 
 ## Installation
 
-Install `import-citation-cff.sty`, `cfflatex-style-*.def`, `cfflatex.lua`, and `cfflatex-data.lua`
-in a local TeX tree such as `~/texmf/tex/latex/import-citation-cff/`.
-The support files use the short prefix `cfflatex`.
-Alternatively, you can put them next to your document.
-
-To install both the package and the `cfflatexpand` command from a source checkout:
+import-citation-cff is available on [CTAN](https://ctan.org/pkg/import-citation-cff).
+In TeX Live, install it with:
 
 ```sh
-l3build install --texmfhome "$HOME/texmf"
+tlmgr install import-citation-cff
 ```
 
-Each [GitHub release](https://github.com/JSS95/cfflatex/releases) also attaches `import-citation-cff.tds.zip`.
-As an alternative to installing from source, extract that archive into your local TeX tree.
-The archive of a particular release installs that version, which takes precedence over the one in your TeX distribution:
-
-```sh
-mkdir -p "$HOME/texmf"
-unzip import-citation-cff.tds.zip -d "$HOME/texmf"
-```
-
-Both methods place the package and Lua modules in `tex/latex/import-citation-cff/` and the command in `scripts/import-citation-cff/`.
-To make the command available in a POSIX shell:
-
-```sh
-export PATH="$HOME/texmf/scripts/import-citation-cff:$PATH"
-cfflatexpand --help
-```
-
-Add the `export` line to your shell configuration to keep it for future sessions.
-You can also run the script with `texlua` and its full path, without changing `PATH`.
+For manual installation, see the Installation section of the [manual](https://jss95.github.io/cfflatex/import-citation-cff.pdf).
 
 ## Quick start
 
