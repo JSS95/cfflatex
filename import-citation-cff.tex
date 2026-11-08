@@ -152,12 +152,8 @@ dir="$(kpsewhich -var-value TEXMFHOME)/scripts/import-citation-cff"
 export PATH="$dir:$PATH"                             # either this,
 ln -s "$dir/cfflatexpand" ~/.local/bin/cfflatexpand  # or this
 \end{Verbatim}
-Add the |export| line to the shell configuration to keep it for future sessions.
-The command finds its Lua modules through the \TeX{} search path, so it also
-works through a link. Otherwise, and on Windows, run it with \texttt{texlua} and
-its full path, for example |texlua "\$dir/cfflatexpand" --help|.
 
-\subsection{Checking the installation.}
+\subsection{Checking the installation}
 
 The following commands print the location of the package and the version of the
 command:
