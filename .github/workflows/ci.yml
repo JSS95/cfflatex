@@ -141,6 +141,39 @@ jobs:
             build/test*/*.diff
             build/test*/*.log
 
+  # The manual uses import-citation-cff like any document, so it also tests
+  # cfflatexpand on a real document: the expanded manual must compile without
+  # the package.
+  expand:
+    name: Expand the manual with cfflatexpand
+    needs: [versions, badness, explcheck, luacheck, ruff]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The packages of the manual, as in the doc job; preprint provides
+      # authblk, which the expanded author declarations use.
+      - name: Install TeX Live
+        uses: zauguin/install-texlive@c9f3ea3d51b2e04d092c4f9d208a19542d5dabcf # v4.5.0
+        with:
+          texlive_version: 2026
+          packages: >-
+            scheme-basic
+            lt3luabridge
+            lua-tinyyaml
+            alphalph
+            booktabs
+            csquotes
+            enumitem
+            fancyvrb
+            hologo
+            hypdoc
+            underscore
+            preprint
+
+      - name: Expand and compile the manual
+        run: texlua tests/test_expand_manual.lua
+
   doc:
     name: Build the manual
     needs: [versions, badness, explcheck, luacheck, ruff]

@@ -435,7 +435,7 @@ local ok, message = xpcall(function()
     local expected = replace(source, "\\usepackage{import-citation-cff}", "")
     expected = replace(expected, "\\includecff{CITATION.cff}", "")
     equal(result.stdout, replace(expected, "\\cff{title}", "Example Paper"))
-    write_file(f.input, replace(preamble .. "한글 \\cffunknown", "\n", "\r\n"))
+    write_file(f.input, replace(preamble .. "한글 \\cffemit", "\n", "\r\n"))
     failure(f:cli(f.input), f.input .. ":4:4:")
   end)
 
@@ -469,19 +469,72 @@ local ok, message = xpcall(function()
     failure(f:cli(f.input), "cannot read CFF")
   end)
 
-  test("unsupported constructs fail without partial output", function(f)
-    for _, construct in ipairs({[[\cffunknown]], [[\cffauthornames]], [[\input{other}]],
-      [[\include{other}]], [[\newcommand{\foo}{\cff{title}}]], [[\def\foo{\cff{title}}]],
-      [[\iffalse\cff{title}\fi]], [[\catcode1=2]], [[\csname cff\endcsname{title}]],
-      [[\ExplSyntaxOn]], [[\uppercase{\cff{title}}]], [[^^5ccff{title}]]}) do
+  test("commands the package does not define are copied unchanged", function(f)
+    for _, construct in ipairs({[[\cffunknown{title}]], [[\input{other}]],
+      [[\def\foo{bar}]], [[\newcommand{\foo}{bar}]], [[\providecommand\foo{bar}]],
+      [[\iffalse x\else y\fi]], [[\ifx a b\fi]], [[\let\ifdraft\iftrue]], [[\newif\ifdraft]],
+      [[\ifnum1=1 x\else\ifx a b y\else z\fi\fi]], [[\fi]], [[\else]], [[\catcode1=2]],
+      [[\csname cff\endcsname{title}]], [[\uppercase{x}]], [[^^5ccff{title}]],
+      [[\makeatletter\def\cff@x{}\makeatother]],
+      [[\ExplSyntaxOn\cs_new:Npn \cff_x:n #1 {}\ExplSyntaxOff]]}) do
+      write_file(f.input, replace(document, "\\title{\\cff{title}}", construct))
+      local result = f:cli(f.input)
+      success(result)
+      contains(result.stdout, "\n" .. construct .. "\n")
+    end
+  end)
+
+  test("metadata commands inside other commands are expanded", function(f)
+    write_file(f.input, replace(document, "\\title{\\cff{title}}",
+      [[\newcommand{\paper}{\cff{title}}\iffalse\cff{title}\fi\def\x{\cffcount{authors}}]]))
+    local result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, [[\newcommand{\paper}{Example Paper}\iffalse Example Paper\fi\def\x{1}]])
+  end)
+
+  test("package commands that cannot be converted fail without output", function(f)
+    for _, construct in ipairs({[[\cffauthornames]], [[\cffemit{x}]], [[\cffrenderauthor]],
+      [[\cffrenderaffiliation]], [[\cffdeclareauthorstyle{x}{}]]}) do
       write_file(f.input, replace(document, "\\title{\\cff{title}}", construct))
       failure(f:cli(f.input), f.input .. ":4:1:")
     end
   end)
 
+  test("verbatim arguments and short verbatim are copied unchanged", function(f)
+    local opaque = [[\Verb|\cff{title}| \Verb*+\cff+ \lstinline[language=TeX]{\cff{title}}]]
+      .. [[ \mintinline{latex}{\cff{a}} \mintinline[x]{tex}|\cff| \path|\cff|]]
+      .. [[ \url{https://example.org/%7E\cff{title}}]]
+    write_file(f.input, replace(document, "\\maketitle",
+      opaque .. "\n\\href{https://example.org/%20}{\\cff{title}}"))
+    local result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, opaque .. "\n\\href{https://example.org/%20}{Example Paper}")
+    local short = "\\MakeShortVerb{\\|}\n|\\cff{title}|\n\\DeleteShortVerb\\|\n|\\cff{title}|\n"
+    write_file(f.input, replace(document, "\\maketitle\n", short))
+    result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, "\\MakeShortVerb{\\|}\n|\\cff{title}|\n\\DeleteShortVerb\\|\n"
+      .. "|Example Paper|\n")
+  end)
+
+  test("l3doc short verbatim and command lists are copied unchanged", function(f)
+    write_file(f.input, replace(preamble, "{article}", "{l3doc}")
+      .. "\\title{|\\cff{title}|}\n\\begin{document}\n"
+      .. [[|\cff{title}| "\cffforeachauthor" \cff{title}]] .. "\n"
+      .. "\\begin{function}[EXP]{\\cff,\n  \\cffauthorindex}\n\\cff{title}\n\\end{function}\n"
+      .. "\\end{document}\n")
+    local result = f:cli(f.input)
+    success(result)
+    -- l3doc makes | a short verbatim character only in the document body.
+    contains(result.stdout, "\\title{|Example Paper|}")
+    contains(result.stdout, [[|\cff{title}| "\cffforeachauthor" Example Paper]])
+    contains(result.stdout, "\\begin{function}[EXP]{\\cff,\n  \\cffauthorindex}\n"
+      .. "Example Paper\n\\end{function}")
+  end)
+
   test("reloaded, nested, or late CFF includes are rejected", function(f)
     for _, pair in ipairs({
-      {replace(document, "\\title{", "\\includecff{CITATION.cff}\n\\title{"), "only one"},
+      {replace(document, "\\title{", "\\includecff{CITATION.cff}\n\\title{"), "only once"},
       {replace(document, "\\includecff{CITATION.cff}", "{\\includecff{CITATION.cff}}"), "top level"},
       {replace(document, "\\includecff{CITATION.cff}\n", ""), "call \\includecff"},
       {replace(document, "\\usepackage{import-citation-cff}\n", ""), "load import-citation-cff"},
@@ -502,7 +555,7 @@ local ok, message = xpcall(function()
   end)
 
   test("failed conversion preserves the destination", function(f)
-    write_file(f.input, replace(document, "\\maketitle", "\\cffunknown"))
+    write_file(f.input, replace(document, "\\maketitle", "\\cffemit"))
     local output = f.directory .. "/submission.tex"
     failure(f:cli(f.input, "--output", output), "unsupported")
     assert(not lfs.attributes(output))
@@ -739,8 +792,6 @@ local ok, message = xpcall(function()
       "\\ifnum1=1 " .. preamble .. "\\fi",
       "\\usepackage{import-citation-cff}\n\\ifodd1 \\includecff{CITATION.cff}\\fi",
       preamble .. [[\cffforeachauthor{\ifnum\cffauthorindex>1 x}]],
-      preamble .. [[\else]], preamble .. [[\fi]],
-      preamble .. [[\ifnum1=1 x\else y\else z\fi]],
       preamble .. [[\ifnum1=1 x]],
     }) do
       write_file(f.input, source)
@@ -758,12 +809,14 @@ local ok, message = xpcall(function()
     end
   end)
 
-  test("multiple-file inputs require explicit prior flattening", function(f)
+  test("included files are copied unchanged, not read", function(f)
     write_file(f.directory .. "/chapter.tex", "\\cff{title}")
     for _, command in ipairs({[[\input{chapter}]], [[\include{chapter}]],
       [[\includeonly{chapter}]]}) do
-      write_file(f.input, preamble .. command)
-      failure(f:cli(f.input), "first flatten the document with latexpand")
+      write_file(f.input, preamble .. command .. "\n")
+      local result = f:cli(f.input)
+      success(result)
+      contains(result.stdout, "\n" .. command .. "\n")
     end
   end)
 
@@ -995,6 +1048,7 @@ end={\cffemit{\journalEnd}},
     local marker = f.directory .. "/engine-call"
     write_file(bin .. "/lualatex", [[#!/bin/sh
 printf '%s\n' "$PWD" "$@" > "$CFFLATEXPAND_TEST_ENGINE_CALL"
+cat options.tex >> "$CFFLATEXPAND_TEST_ENGINE_CALL"
 printf 'engine failure\n'
 exit 1
 ]])
@@ -1005,11 +1059,14 @@ exit 1
     local worked, detail = pcall(function()
       success(f:cli(f.input))
       assert(not lfs.attributes(marker), "data-only expansion started TeX")
+      -- The engine runs the options as they are, as compiling the document would.
       for _, command in ipairs({[[\input{unseen}]], [[\directlua{error('bad')}]],
         [[\def\hidden{bad}]], [[\cffsetauthors]], [[^^5ccff{title}]]}) do
-        write_file(f.input, preamble .. "\\cffsetauthors[note={1}{" .. command .. "}]")
-        failure(f:cli(f.input), "supported")
-        assert(not lfs.attributes(marker), "invalid template started TeX")
+        local options = "note={1}{" .. command .. "}"
+        write_file(f.input, preamble .. "\\cffsetauthors[" .. options .. "]")
+        failure(f:cli(f.input), "LuaLaTeX author rendering failed: engine failure")
+        contains(read_file(marker), "\\cffsetauthors[" .. options .. "]")
+        assert(os.remove(marker))
       end
       write_file(f.input, preamble .. "\\cffsetauthors")
       failure(f:cli(f.input), "LuaLaTeX author rendering failed: engine failure")

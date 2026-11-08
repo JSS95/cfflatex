@@ -65,7 +65,7 @@ three tools:
   \item \LaTeX{} macros, e.g., \texttt{\textbackslash cff}, to access the
         imported metadata. The list of authors and their affiliations are
         specially handled. See Section~\ref{sec:reference} for details.
-  \item \LaTeX{} macro \texttt{\textbackslash setauthors[style=\dots]} to
+  \item \LaTeX{} macro \texttt{\textbackslash cffsetauthors[style=\dots]} to
         typeset the list of authors in desired style. See
         Section~\ref{sec:builtin-styles} for the list of supported styles.
   \item Command line tool \texttt{cfflatexpand} to expand the CFF metadata into
@@ -276,6 +276,21 @@ of Section~\ref{sec:export-styles}. The |style| option of the package is its
 default style, as when compiling. The output still needs the class or package
 that provides its declarations.
 
+Only the commands of \pkg{import-citation-cff} change. Every other command,
+including a definition, a conditional, and a command of your own whose name
+starts with |cff|, is copied as it is. Metadata commands in verbatim text are
+not expanded: verbatim environments, \cs{verb}, \cs{Verb}, \cs{lstinline},
+\cs{mintinline}, \cs{url}, \cs{path}, the address of \cs{href}, characters made
+short verbatim with \cs{MakeShortVerb}, and, in an \pkg{l3doc} document, the
+short verbatim text and the command lists of the |function|, |variable|, and
+|macro| environments.
+
+The commands of the package are read literally. Load the package once, and use
+\cs{includecff} and at most one \cs{cffsetauthors} after it at the top level of
+the preamble, with a literal file name and literal options, and
+\cs{cffauthornames} only after \cs{cffsetauthors}.
+
+\cs{input} and \cs{include} are copied, too, so the included files are not read.
 For a manuscript split into several TeX files, first merge it with latexpand.
 Keep the merged file beside the root manuscript and keep the literal CFF
 filename valid there:
@@ -606,8 +621,10 @@ The package has two options (Section~\ref{sec:check}).
     \cs{includecff} \oarg{options} \marg{file}
   \end{syntax}
   Reads the citation metadata in \meta{file}. The command can be used in the
-  preamble or in the document. Each call replaces the metadata read by the
-  previous one.
+  preamble or in the document, but only once: a document reads one CFF file.
+  \cs{title} and similar commands keep \cs{cff} and expand it later, when the
+  title page is typeset, so reading another file would change the values given
+  before it. A second call is an error and is ignored.
 
   \begin{description}
     \item[\texttt{source=}\textmd{\meta{key}}] reads the mapping under the
@@ -802,6 +819,8 @@ The following errors are reported while using the commands of
 Section~\ref{sec:reference}.
 \begin{description}
   \item[Call \cs{includecff} first.] No CFF file has been read yet.
+  \item[\cs{includecff} can be used only once.] A document reads one CFF file
+        (Section~\ref{sec:reference}). The second call is ignored.
   \item[style=\textmd{\meta{name}} needs the \textmd{\meta{package}} package.] Load
         \meta{package}, which the |requires| key of the style lists, before
         \cs{cffsetauthors}.

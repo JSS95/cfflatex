@@ -1,10 +1,9 @@
-% The CFF files that \includecff reads are listed as inputs in the .fls file
+% The CFF file that \includecff reads is listed as an input in the .fls file
 % of the -recorder option, so that latexmk and LaTeX Workshop rebuild the
 % document when one of them changes. See test_types in build.lua.
 \documentclass{article}
 \usepackage{import-citation-cff}
-\includecff[source=preferred-citation]{paper.cff}
-\includecff{data/citation file.cff}
+\includecff[source=preferred-citation]{data/citation file.cff}
 \begin{document}
 \cff{title}
 \end{document}

@@ -5,6 +5,11 @@
 \documentclass{article}
 \usepackage[T1]{fontenc}
 \usepackage[style=rsc]{import-citation-cff}
+% These tests read several CFF files, which a document cannot: forget the
+% loaded file before each \includecff.
+\ExplSyntaxOn
+\AddToHook { cmd/includecff/before } { \bool_gset_false:N \g__cfflatex_loaded_bool }
+\ExplSyntaxOff
 \includecff{rsc.cff}
 \cffsetauthors[
   note = {1}{Equal contribution.},

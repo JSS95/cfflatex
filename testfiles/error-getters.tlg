@@ -6,7 +6,7 @@ TEST 1: \cffauthor before \includecff
 ! Use of \??? doesn't match its definition.
 <argument> \???  
                  ! Package import-citation-cff Error: Call \includecff first.
-l. ......decff}{\TYPE{[\cffauthor{1}{given-names}]}}
+l. ......ecff}{\TYPE{[\cffauthor{1}{given-names}]}}
 If you say, e.g., `\def\a1{...}', then you must always
 put `1' after `\a', since control sequence names are
 made up of letters only. The macro here has not been
@@ -19,7 +19,7 @@ TEST 2: \cffforeachauthor before \includecff
 ! Package import-citation-cff Error: Call \includecff first.
 Type <return> to continue.
  ...                                              
-l. ......ncludecff}{\cffforeachauthor{\TYPE{never}}}
+l. ......cludecff}{\cffforeachauthor{\TYPE{never}}}
 LaTeX does not know anything more about this error, sorry.
 Try typing <return> to proceed.
 If that doesn't work, type X <return> to quit.

@@ -3,6 +3,11 @@
 \documentclass{article}
 \usepackage[T1]{fontenc}
 \usepackage{import-citation-cff}
+% These tests read several CFF files, which a document cannot: forget the
+% loaded file before each \includecff.
+\ExplSyntaxOn
+\AddToHook { cmd/includecff/before } { \bool_gset_false:N \g__cfflatex_loaded_bool }
+\ExplSyntaxOff
 \begin{document}
 \START
 \TEST{\cffauthor before \includecff}{\TYPE{[\cffauthor{1}{given-names}]}}
