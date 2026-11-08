@@ -19,7 +19,15 @@ In TeX Live, install it with:
 tlmgr install import-citation-cff
 ```
 
-For manual installation, see the Installation section of the [manual](https://jss95.github.io/cfflatex/import-citation-cff.pdf).
+### Install from source
+
+To install a specific version, acquire the source code and run:
+
+```sh
+l3build install --full
+```
+
+See the Installation section of the [manual](https://jss95.github.io/cfflatex/import-citation-cff.pdf) for more information.
 
 ## Quick start
 
@@ -44,7 +52,7 @@ preferred-citation:
       given-names: John
 ```
 
-Write:
+Write `manuscript.tex` (or with different name):
 
 ```latex
 \documentclass{article}
@@ -79,7 +87,7 @@ lualatex manuscript.tex
 To expand CFF variables:
 
 ```sh
-cfflatexpand manuscript.tex > submission.tex
+cfflatexpand manuscript.tex > expanded.tex
 ```
 
 ## Documentation
@@ -87,6 +95,14 @@ cfflatexpand manuscript.tex > submission.tex
 The latest document can be found at:
 
 > https://jss95.github.io/cfflatex/import-citation-cff.pdf
+
+### Local document
+
+Open the document of locally installed package:
+
+```sh
+texdoc import-citation-cff
+```
 
 ### Building the document
 

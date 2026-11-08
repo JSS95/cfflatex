@@ -138,8 +138,11 @@ unzip import-citation-cff.tds.zip -d "$(kpsewhich -var-value TEXMFHOME)"
 In a checkout of the repository, \texttt{l3build} installs the same files into
 the personal tree:
 \begin{Verbatim}
-l3build install
+l3build install --full
 \end{Verbatim}
+The |--full| option also typesets this manual and installs it with the other
+documentation. Without the option, only the package and the command are
+installed.
 
 \subsection{Installing the command}
 
