@@ -4,6 +4,8 @@
 --   l3build tag VERSION  set the version and today's date in the sources
 --   l3build ctan         run the tests and build the CTAN archive
 --   l3build upload       submit the CTAN archive (asks for your email)
+--   l3build install      install into TEXMFHOME and link the command
+--   l3build uninstall    remove the installation and the command link
 module = "import-citation-cff"
 
 sourcefiles = {
@@ -19,6 +21,113 @@ exefiles = scriptfiles
 -- archive leaves it out. l3build still writes it to build/distrib/tds/, where
 -- CD tests it and attaches it to the GitHub release.
 packtdszip = false
+
+-- Command link --------------------------------------------------------------
+
+-- TeX Live links cfflatexpand into its binary directory, and tlmgr removes the
+-- link with the package. For the personal tree, l3build install links the
+-- command into $CFFLATEXPAND_BINDIR, by default ~/.local/bin, and l3build
+-- uninstall removes that link; an empty CFFLATEXPAND_BINDIR makes no link.
+-- An environment variable, because l3build reads its command-line options
+-- before this file and rejects unknown ones.
+local lfs = require("lfs")
+local windows = package.config:sub(1, 1) == "\\"
+
+local function absolute(path)
+  return path:match("^/") and path or lfs.currentdir() .. "/" .. path
+end
+
+-- The link and the installed command it points to, or nil for no link.
+local function command_link()
+  local bindir = os.getenv("CFFLATEXPAND_BINDIR")
+  if bindir == nil then
+    bindir = os.getenv("HOME") and os.getenv("HOME") .. "/.local/bin" or ""
+  end
+  if bindir == "" or windows then
+    return nil
+  end
+  -- The tree that l3build installs into: --texmfhome, or else TEXMFHOME.
+  local texmfhome = options["texmfhome"]
+  if not texmfhome then
+    local kpse = require("kpse")
+    kpse.set_program_name("latex")
+    texmfhome = kpse.var_value("TEXMFHOME")
+  end
+  return absolute(bindir) .. "/cfflatexpand",
+    absolute(texmfhome) .. "/scripts/" .. module .. "/cfflatexpand"
+end
+
+local function is_link_to(link, target)
+  return lfs.symlinkattributes(link, "mode") == "link" and lfs.readlink(link) == target
+end
+
+local function make_directory(path)
+  if path == "" or lfs.attributes(path, "mode") == "directory" then
+    return
+  end
+  make_directory(path:match("^(.*)/[^/]*$") or "")
+  lfs.mkdir(path)
+end
+
+local function in_path(directory)
+  for entry in ((os.getenv("PATH") or "") .. ":"):gmatch("([^:]*):") do
+    if entry:gsub("/$", "") == directory then
+      return true
+    end
+  end
+  return false
+end
+
+local install_files_target = target_list.install.func
+target_list.install.func = function(names)
+  local errorlevel = install_files_target(names)
+  local link, command = command_link()
+  if errorlevel ~= 0 then
+    return errorlevel
+  elseif windows then
+    print("\nRun cfflatexpand with texlua and its full path; it is not linked on Windows.")
+    return 0
+  elseif not link then
+    return 0
+  elseif options["dry-run"] then
+    print("\nFor linking the command:\n- " .. link .. " -> " .. command)
+    return 0
+  end
+  local directory = link:match("^(.*)/[^/]*$")
+  if not is_link_to(link, command) then
+    if lfs.symlinkattributes(link, "mode") then
+      print("\nWarning: " .. link .. " exists, so cfflatexpand is not linked there."
+        .. " Set CFFLATEXPAND_BINDIR to link it elsewhere.")
+      return 0
+    end
+    make_directory(directory)
+    lfs.link(command, link, true)
+    if not is_link_to(link, command) then
+      print("\nError: cannot link " .. link .. " to " .. command)
+      return 1
+    end
+  end
+  print("\nLinked " .. link .. " -> " .. command)
+  if not in_path(directory) then
+    print("Add " .. directory .. " to PATH to run cfflatexpand by name.")
+  end
+  return 0
+end
+
+-- Only a link to the command of this tree is removed, never another file.
+local uninstall_files_target = target_list.uninstall.func
+target_list.uninstall.func = function(names)
+  local link, command = command_link()
+  if link and is_link_to(link, command) then
+    if options["dry-run"] then
+      print("\nFor removal of the command link:\n- " .. link)
+    else
+      assert(os.remove(link))
+      print("\nRemoved the link " .. link)
+    end
+  end
+  return uninstall_files_target(names)
+end
 
 -- Tests ---------------------------------------------------------------------
 

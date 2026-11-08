@@ -170,6 +170,7 @@ end
 local cache = mkdir(temporary .. "/tex-cache")
 local old_texmfvar, old_texmfcache = os.getenv("TEXMFVAR"), os.getenv("TEXMFCACHE")
 local old_texmfhome, old_path = os.getenv("TEXMFHOME"), os.getenv("PATH")
+local old_bindir = os.getenv("CFFLATEXPAND_BINDIR")
 os.setenv("TEXMFVAR", cache)
 os.setenv("TEXMFCACHE", cache)
 
@@ -257,8 +258,11 @@ local function test(name, body, skip)
 end
 
 local ok, message = xpcall(function()
+  local texmf, installed_command
+  -- l3build install links the command here, a directory that it creates.
+  local link_directory = temporary .. "/bin"
   if installed then
-    local texmf = mkdir(temporary .. "/texmf")
+    texmf = mkdir(temporary .. "/texmf")
     if tds then
       success(run_command({"unzip", "-q", tds, "-d", texmf}, temporary))
       for _, filename in ipairs({"import-citation-cff.pdf", "README.md", "LICENSE"}) do
@@ -266,11 +270,12 @@ local ok, message = xpcall(function()
           "TDS archive is missing " .. filename)
       end
     else
+      os.setenv("CFFLATEXPAND_BINDIR", link_directory)
       success(run_command({"l3build", "install", "--texmfhome", texmf}, root))
     end
     os.setenv("TEXMFHOME", texmf)
-    local command = texmf .. "/scripts/import-citation-cff/cfflatexpand"
-    equal(read_file(command), read_file(root .. "/cfflatexpand"))
+    installed_command = texmf .. "/scripts/import-citation-cff/cfflatexpand"
+    equal(read_file(installed_command), read_file(root .. "/cfflatexpand"))
     for _, filename in ipairs({"import-citation-cff.sty", "cfflatex.lua", "cfflatex-data.lua",
       "cfflatex-style-standard.def", "cfflatex-style-authblk.def",
       "cfflatexpand.lua", "cfflatexpand-authors.lua"}) do
@@ -281,14 +286,19 @@ local ok, message = xpcall(function()
       equal(located.stdout:gsub("[\r\n]+$", ""):gsub("\\", "/"), path:gsub("\\", "/"))
     end
     if windows then
-      cli = command
+      cli = installed_command
     else
-      assert(lfs.attributes(command, "permissions"):sub(3, 3) == "x",
+      assert(lfs.attributes(installed_command, "permissions"):sub(3, 3) == "x",
         "installed cfflatexpand is not executable")
-      local bin = mkdir(temporary .. "/bin")
-      cli = bin .. "/cfflatexpand"
-      assert(lfs.link(command, cli, true))
-      os.setenv("PATH", bin .. ":" .. old_path)
+      cli = link_directory .. "/cfflatexpand"
+      if tds then
+        -- An unpacked archive is not linked: link it as a user would.
+        mkdir(link_directory)
+        assert(lfs.link(installed_command, cli, true))
+      end
+      assert(lfs.symlinkattributes(cli, "mode") == "link" and lfs.readlink(cli) == installed_command,
+        "the command is not linked to " .. cli)
+      os.setenv("PATH", link_directory .. ":" .. old_path)
     end
     io.write(tds and "Testing the TDS archive\n" or "Testing l3build install\n")
   end
@@ -1234,6 +1244,15 @@ End}
       "{" .. package_directory .. "/import-citation-cff}"), "\\author{Jane Doe}", "\\cffsetauthors"))
     compile(f.directory, "manuscript.tex")
   end, not executable("lualatex") and "lualatex is required" or nil)
+
+  -- Last, because it removes the installation that the other tests use.
+  if installed and not tds and not windows then
+    test("l3build uninstall removes the command link", function()
+      success(run_command({"l3build", "uninstall", "--texmfhome", texmf}, root))
+      assert(not lfs.symlinkattributes(cli, "mode"), "the command link was not removed")
+      assert(not lfs.attributes(installed_command), "the installed command was not removed")
+    end)
+  end
 end, debug.traceback)
 
 assert(lfs.chdir(initial_directory))
@@ -1241,6 +1260,7 @@ os.setenv("TEXMFVAR", old_texmfvar)
 os.setenv("TEXMFCACHE", old_texmfcache)
 os.setenv("TEXMFHOME", old_texmfhome)
 os.setenv("PATH", old_path)
+os.setenv("CFFLATEXPAND_BINDIR", old_bindir)
 remove_tree(temporary)
 if not ok then
   io.stderr:write(message, "\n")
