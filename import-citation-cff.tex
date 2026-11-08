@@ -3,7 +3,8 @@
 %
 % The import-citation-cff manual. Typeset it with `l3build doc`, or with
 % `lualatex import-citation-cff.tex` next to import-citation-cff.sty, its
-% built-in style .def files, cfflatex.lua, cfflatex-data.lua, and CITATION.cff.
+% built-in style .def files, cfflatex.lua, cfflatex-data.lua, cfflatexpand.lua,
+% and CITATION.cff.
 \documentclass{l3doc}
 \usepackage{import-citation-cff}
 \usepackage{authblk}
@@ -64,7 +65,7 @@ three tools:
 \begin{itemize}
   \item \LaTeX{} macros, e.g., \texttt{\textbackslash cff}, to access the
         imported metadata. The list of authors and their affiliations are
-        specially handled. See Section~\ref{sec:reference} for details.
+        specially handled. See Section~\ref{sec:commands} for details.
   \item \LaTeX{} macro \texttt{\textbackslash cffsetauthors[style=\dots]} to
         typeset the list of authors in desired style. See
         Section~\ref{sec:builtin-styles} for the list of supported styles.
@@ -165,7 +166,7 @@ kpsewhich import-citation-cff.sty
 cfflatexpand --version
 \end{Verbatim}
 
-\section{Usage}
+\section{Tutorial}
 
 This manuscript itself is an example of using \pkg{import-citation-cff}. Its
 |CITATION.cff| is
@@ -241,36 +242,34 @@ commands. For example,
 \cffauthoraffiliation{1}{1} % first affiliation of the first author
 \cffauthoraffiliation{1}{2} % second affiliation of the first author
 \end{Verbatim}
-Refer to Section~\ref{sec:reference} for details.
 
 \subsection{Author style}
 \label{sec:setauthors}
 
-\cs{cffsetauthors} declares the authors of the citation for the title page in an
-author style, which |\cffsetauthors[style=|\meta{name}|]| selects. It marks each
-author with their affiliations, numbered among the distinct affiliations of the
-citation, and with a footnote for each contact of the citation that has the same
-names. Section~\ref{sec:builtin-styles} lists the styles that come with
+\cs{cffsetauthors} declares the authors of the citation for the title page. Its
+typesetting style can be customized using the |style| option.
+Section~\ref{sec:builtin-styles} lists the styles that come with
 \pkg{import-citation-cff}, and Section~\ref{sec:author-styles} explains how to
 write others. The other keys of \cs{cffsetauthors} change how a name is made,
 how the authors and the affiliations are declared, and the marks and the
-footnotes (Section~\ref{sec:reference}).
+footnotes (see Section~\ref{sec:commands}).
 
 \subsection{Expanding metadata}
+\label{sec:expanding}
 
-The Lua command-line tool \texttt{cfflatexpand} replaces metadata commands with
+The command line tool \texttt{cfflatexpand} replaces metadata commands with
 their values and removes the \pkg{import-citation-cff} package load and
 \cs{includecff}. The resulting source can be compiled without
-\pkg{import-citation-cff} or the CFF file. With the command installed as in
-Section~\ref{sec:installation}, run either
+\pkg{import-citation-cff} or the CFF file. This tool is useful for preparing a
+submission to a journal or conference that accepts only plain LaTeX files.
+
+With the command installed as in Section~\ref{sec:installation}, run either
 \begin{Verbatim}
 cfflatexpand manuscript.tex > submission.tex
 cfflatexpand manuscript.tex --output submission.tex
 cfflatexpand manuscript.tex -o submission.tex
 \end{Verbatim}
-From a source checkout, use \texttt{./cfflatexpand} instead. The command runs
-with \texttt{texlua}. Converting \cs{cffsetauthors} also requires LuaLaTeX,
-which runs with shell escape disabled.
+Section~\ref{sec:cli} lists the options of the command.
 
 \texttt{cfflatexpand} also converts \cs{cffsetauthors} with the keys of
 Section~\ref{sec:setauthors}, the built-in styles of
@@ -279,24 +278,9 @@ of Section~\ref{sec:export-styles}. The |style| option of the package is its
 default style, as when compiling. The output still needs the class or package
 that provides its declarations.
 
-Only the commands of \pkg{import-citation-cff} change. Every other command,
-including a definition, a conditional, and a command of your own whose name
-starts with |cff|, is copied as it is. Metadata commands in verbatim text are
-not expanded: verbatim environments, \cs{verb}, \cs{Verb}, \cs{lstinline},
-\cs{mintinline}, \cs{url}, \cs{path}, the address of \cs{href}, characters made
-short verbatim with \cs{MakeShortVerb}, and, in an \pkg{l3doc} document, the
-short verbatim text and the command lists of the |function|, |variable|, and
-|macro| environments.
-
-The commands of the package are read literally. Load the package once, and use
-\cs{includecff} and at most one \cs{cffsetauthors} after it at the top level of
-the preamble, with a literal file name and literal options, and
-\cs{cffauthornames} only after \cs{cffsetauthors}.
-
-\cs{input} and \cs{include} are copied, too, so the included files are not read.
-For a manuscript split into several TeX files, first merge it with latexpand.
-Keep the merged file beside the root manuscript and keep the literal CFF
-filename valid there:
+Only the commands of \pkg{import-citation-cff} change. Every other command, such
+as \cs{input} and \cs{include}, are copied as they are. If you want to expand
+metadata in included files, first run latexpand on them:
 \begin{Verbatim}
 latexpand manuscript.tex > manuscript-flat.tex
 cfflatexpand manuscript-flat.tex --output submission.tex
@@ -304,21 +288,8 @@ cfflatexpand manuscript-flat.tex --output submission.tex
 
 \section{How-to guides}
 
-\subsection{Text in the metadata}
-
-Values are inserted as text. The \TeX{} special characters
-\verb+\ { } % # $ & _ ~ ^+ are printed as themselves, so \LaTeX{} markup in the
-CFF file is not interpreted. Line breaks inside a value become spaces, so the
-paragraphs of a multi-paragraph abstract run together, and spaces at either end
-are dropped. Non-ASCII characters are kept. With pdf\LaTeX{}, use a font
-encoding that has them, such as \texttt{T1}.
-
-\subsection{Recording the CFF file}
-
-\cs{includecff} records the CFF file as an input in the |.fls| file that the
-|-recorder| option writes. Build tools that read it, such as latexmk and the
-LaTeX Workshop extension of Visual Studio Code, therefore rebuild the document
-when the CFF file changes.
+This section provides practical guidance on using the \pkg{import-citation-cff}
+package and its commands effectively.
 
 \subsection{Checking the title page}
 \label{sec:check}
@@ -351,73 +322,7 @@ When the check does not fit the document, load the package with the
 \usepackage[check=false]{import-citation-cff}
 \end{Verbatim}
 
-\section{Built-in author styles}
-\label{sec:builtin-styles}
-
-\pkg{import-citation-cff} comes with the following author styles. A document
-selects one with the |style| key of \cs{cffsetauthors} or the |style| option of
-the package (Sections~\ref{sec:setauthors} and~\ref{sec:check}). The other keys
-of \cs{cffsetauthors} override the defaults of the style.
-
-\subsection{\texttt{standard}}
-\label{sec:style-standard}
-
-The default style collects the authors in one \cs{author} of the standard
-classes, separated by \cs{and}, without the affiliations. The footnotes of the
-contacts and the notes are typeset by \cs{maketitle}, like those of \cs{thanks}.
-The check looks for the title in \cs{title} and every author in \cs{author}.
-
-\subsection{\texttt{authblk}}
-
-The style declares each author with \cs{author} and each distinct affiliation
-with \cs{affil} of the \pkg{authblk} package, which lists the affiliations below
-the authors. The marks of an author are the letters of their affiliations and
-the footnotes of the contacts and the notes. Load \pkg{authblk} before
-\cs{cffsetauthors}. The check is that of |standard|
-(Section~\ref{sec:style-standard}). The title page of this manual is made by
-\begin{Verbatim}
-\usepackage{authblk}
-\includecff{CITATION.cff}
-\title{\cff{title}}
-\cffsetauthors[style=authblk]
-\hypersetup{pdfauthor={\cffauthornames}}
-\end{Verbatim}
-
-\subsection{\texttt{rsc}}
-\label{sec:style-rsc}
-
-The style is for the article template of the Royal Society of
-Chemistry~\cite{rsc2019}, which typesets its title block by hand in a
-|@twocolumnfalse| environment, without \cs{maketitle}. It defines two commands
-for the template: \cs{rscauthors}, the line of the authors, and
-\cs{rscfootnotes}, the footnotes that the template lists after the block.
-\begin{Verbatim}
-\usepackage[style=rsc]{import-citation-cff}
-\includecff{CITATION.cff}
-\cffsetauthors[
-  note = {1}{These authors contributed equally to this work.},
-  note = {2}{These authors contributed equally to this work.},
-]
-...
- & \noindent\large{\rscauthors} \\
-...
-%%%FOOTNOTES%%%
-\rscfootnotes
-\end{Verbatim}
-The authors are separated by commas, with ``and'' before the last. Their marks
-are $\ast$ for a contact, the letters of the affiliations, and ${\ddag}$, \S,
-and \P{} for the notes. The template keeps ${\dag}$ for the electronic
-supplementary information. Authors with the same note share its symbol, and with
-one affiliation, no letter is needed. \cs{rscfootnotes} lists the contacts, then
-the affiliations, then the notes, each as
-|\footnotetext{\textit{$^{|\meta{mark}|}$~|\meta{text}|}}|. The default contact
-template is |Corresponding author. E-mail: #1{email}|.
-
-The check looks for the title, every author, and the abstract in the
-|@twocolumnfalse| block, for example through \cs{rscauthors}, and in the whole
-document if there is no such block.
-
-\section{Author style plugins}
+\subsection{Author style plugins}
 \label{sec:author-styles}
 
 An author style plugin is a definition file that registers a style for the
@@ -426,7 +331,7 @@ style declares the authors, and also tells the check of Section~\ref{sec:check}
 what to look for. The built-in styles of Section~\ref{sec:builtin-styles} are
 plugins written with the same interface.
 
-\subsection{Writing a definition file}
+\subsubsection{Writing a definition file}
 
 The support files of \pkg{import-citation-cff} share the short prefix
 \texttt{cfflatex}. A style named \meta{name} lives in the file
@@ -460,7 +365,7 @@ is an error. Define helper commands that are used outside the file globally.
 Definition files are read with normal document catcodes. Put \cs{ExplSyntaxOn}
 and \cs{ExplSyntaxOff} around expl3 code.
 
-\subsection{Plugin keys}
+\subsubsection{Plugin keys}
 
 A style definition accepts the keys of \cs{cffsetauthors}, except |style|, as
 its defaults. Each call of \cs{cffsetauthors} resets every key, then applies the
@@ -478,7 +383,7 @@ The following keys are only useful in a style definition.
         declares one \cs{author} in its |end| code.
   \item[\texttt{prepare-author}] code run before each author is declared, with
         |#1| equal to the index of the author. Use the public accessors of
-        Section~\ref{sec:reference} to inspect that author.
+        Section~\ref{sec:commands} to inspect that author.
   \item[\texttt{author-code}, \texttt{affiliation-code}] code run in place of
         the |author| and |affiliation| templates, with the same arguments.
   \item[\texttt{render}] code that replaces the default order of declarations.
@@ -494,7 +399,7 @@ passes each of them to \cs{cffemit} itself. The |author-code| and
 must pass each final declaration to \cs{cffemit}. An empty affiliation template
 or code gives no affiliations and no affiliation marks.
 
-\subsection{Rendering order}
+\subsubsection{Rendering order}
 
 \cs{cffsetauthors} runs a style in this order:
 \begin{enumerate}
@@ -509,7 +414,7 @@ or code gives no affiliations and no affiliation marks.
 \cs{cffauthornames} is available from the |begin| code on, and does not depend
 on the order of the renderer. \cs{cffrenderauthor} runs the |prepare-author|
 code before the author template. A |render| value can use the loops of
-Section~\ref{sec:reference} to change the order. For example, this renderer
+Section~\ref{sec:commands} to change the order. For example, this renderer
 declares each author followed by the affiliations of that author, repeating
 shared affiliations:
 \begin{Verbatim}
@@ -523,7 +428,7 @@ render = {
 },
 \end{Verbatim}
 
-\subsection{Checking the title page}
+\subsubsection{Checking the title page}
 \label{sec:check-styles}
 
 When a style is the author style of the document (Section~\ref{sec:check}), the
@@ -562,7 +467,7 @@ check-region = {
 The check does not run during export, so these keys do not affect
 \texttt{cfflatexpand}.
 
-\subsection{Supporting \texttt{cfflatexpand}}
+\subsubsection{Supporting \texttt{cfflatexpand}}
 \label{sec:export-styles}
 
 \texttt{cfflatexpand} converts \cs{cffsetauthors} by running the style, not by
@@ -607,8 +512,93 @@ A style therefore works with \texttt{cfflatexpand} if it follows these rules.
         whole declaration with \cs{edef}.
 \end{itemize}
 
+\section{Explanation}
+
+\subsection{Text in the metadata}
+
+Values are inserted as text. The \TeX{} special characters
+\verb+\ { } % # $ & _ ~ ^+ are printed as themselves, so \LaTeX{} markup in the
+CFF file is not interpreted. Line breaks inside a value become spaces, so the
+paragraphs of a multi-paragraph abstract run together, and spaces at either end
+are dropped. Non-ASCII characters are kept. With pdf\LaTeX{}, use a font
+encoding that has them, such as \texttt{T1}.
+
+\subsection{Recording the CFF file}
+
+\cs{includecff} records the CFF file as an input in the |.fls| file that the
+|-recorder| option writes. Build tools that read it, such as latexmk and the
+LaTeX Workshop extension of Visual Studio Code, therefore rebuild the document
+when the CFF file changes.
+
+\subsection{Built-in author styles}
+\label{sec:builtin-styles}
+
+\pkg{import-citation-cff} comes with the following author styles. A document
+selects one with the |style| key of \cs{cffsetauthors} or the |style| option of
+the package (Sections~\ref{sec:setauthors} and~\ref{sec:check}). The other keys
+of \cs{cffsetauthors} override the defaults of the style.
+
+\subsubsection{\texttt{standard}}
+\label{sec:style-standard}
+
+The default style collects the authors in one \cs{author} of the standard
+classes, separated by \cs{and}, without the affiliations. The footnotes of the
+contacts and the notes are typeset by \cs{maketitle}, like those of \cs{thanks}.
+The check looks for the title in \cs{title} and every author in \cs{author}.
+
+\subsubsection{\texttt{authblk}}
+
+The style declares each author with \cs{author} and each distinct affiliation
+with \cs{affil} of the \pkg{authblk} package, which lists the affiliations below
+the authors. The marks of an author are the letters of their affiliations and
+the footnotes of the contacts and the notes. Load \pkg{authblk} before
+\cs{cffsetauthors}. The check is that of |standard|
+(Section~\ref{sec:style-standard}). The title page of this manual is made by
+\begin{Verbatim}
+\usepackage{authblk}
+\includecff{CITATION.cff}
+\title{\cff{title}}
+\cffsetauthors[style=authblk]
+\hypersetup{pdfauthor={\cffauthornames}}
+\end{Verbatim}
+
+\subsubsection{\texttt{rsc}}
+\label{sec:style-rsc}
+
+The style is for the article template of the Royal Society of
+Chemistry~\cite{rsc2019}, which typesets its title block by hand in a
+|@twocolumnfalse| environment, without \cs{maketitle}. It defines two commands
+for the template: \cs{rscauthors}, the line of the authors, and
+\cs{rscfootnotes}, the footnotes that the template lists after the block.
+\begin{Verbatim}
+\usepackage[style=rsc]{import-citation-cff}
+\includecff{CITATION.cff}
+\cffsetauthors[
+  note = {1}{These authors contributed equally to this work.},
+  note = {2}{These authors contributed equally to this work.},
+]
+...
+ & \noindent\large{\rscauthors} \\
+...
+%%%FOOTNOTES%%%
+\rscfootnotes
+\end{Verbatim}
+The authors are separated by commas, with ``and'' before the last. Their marks
+are $\ast$ for a contact, the letters of the affiliations, and ${\ddag}$, \S,
+and \P{} for the notes. The template keeps ${\dag}$ for the electronic
+supplementary information. Authors with the same note share its symbol, and with
+one affiliation, no letter is needed. \cs{rscfootnotes} lists the contacts, then
+the affiliations, then the notes, each as
+|\footnotetext{\textit{$^{|\meta{mark}|}$~|\meta{text}|}}|. The default contact
+template is |Corresponding author. E-mail: #1{email}|.
+
+The check looks for the title, every author, and the abstract in the
+|@twocolumnfalse| block, for example through \cs{rscauthors}, and in the whole
+document if there is no such block.
+
 \section{Reference}
-\label{sec:reference}
+
+\subsection{Package options}
 
 The package has two options (Section~\ref{sec:check}).
 \begin{description}
@@ -618,6 +608,9 @@ The package has two options (Section~\ref{sec:check}).
         document, which the check uses and \cs{cffsetauthors} selects by
         default.
 \end{description}
+
+\subsection{\LaTeX{} Commands}
+\label{sec:commands}
 
 \begin{function}{\includecff}
   \begin{syntax}
@@ -801,7 +794,19 @@ The package has two options (Section~\ref{sec:check}).
   contact, counting from~1.
 \end{function}
 
-\section{Errors and warnings}
+\subsection{Command line tool}
+\label{sec:cli}
+
+\texttt{cfflatexpand} expands the metadata of a manuscript, as
+Section~\ref{sec:expanding} describes. The help that it prints with the |--help|
+option is:
+\directlua{
+  local file = assert(io.open('\jobname-cfflatexpand.txt', 'w'))
+  file:write(require('cfflatexpand').help) file:close()
+}
+\VerbatimInput{\jobname-cfflatexpand.txt}
+
+\subsection{Errors and warnings}
 
 The following errors stop compilation.
 \begin{description}
@@ -819,11 +824,11 @@ The following errors stop compilation.
 \end{description}
 
 The following errors are reported while using the commands of
-Section~\ref{sec:reference}.
+Section~\ref{sec:commands}.
 \begin{description}
   \item[Call \cs{includecff} first.] No CFF file has been read yet.
   \item[\cs{includecff} can be used only once.] A document reads one CFF file
-        (Section~\ref{sec:reference}). The second call is ignored.
+        (Section~\ref{sec:commands}). The second call is ignored.
   \item[style=\textmd{\meta{name}} needs the \textmd{\meta{package}} package.] Load
         \meta{package}, which the |requires| key of the style lists, before
         \cs{cffsetauthors}.

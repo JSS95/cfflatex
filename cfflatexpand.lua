@@ -4,6 +4,27 @@
 
 local data = require("cfflatex-data")
 local expand = {}
+
+expand.help = [[Usage: cfflatexpand [OPTIONS] manuscript.tex
+
+Expand CFF content in a LaTeX manuscript so that it can be built without
+import-citation-cff.
+
+  -o, --output FILE  Write to FILE instead of stdout; '-' also means stdout
+  -h, --help         Show this help
+      --version      Show the version shared with import-citation-cff
+      --             End option parsing
+
+Author declarations support built-in and file-based styles and custom
+templates. Commands that import-citation-cff does not define are copied
+unchanged, and metadata commands in verbatim text are not expanded.
+\input and \include are unchanged. To expand included files, first
+flatten with latexpand.
+
+Diagnostics go to stderr. Unsupported or invalid input produces no TeX
+output.
+]]
+
 local Scanner = {}
 Scanner.__index = Scanner
 local join
