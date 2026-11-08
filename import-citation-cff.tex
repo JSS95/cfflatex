@@ -71,7 +71,7 @@ three tools:
         Section~\ref{sec:builtin-styles} for the list of supported styles.
   \item Command line tool \texttt{cfflatexpand} to expand the CFF metadata into
         \LaTeX{} code. Useful when your document needs to be built without the
-        \pkg{import-citation-cff} package.
+        \pkg{import-citation-cff} package. See Section~\ref{sec:cli}.
 \end{itemize}
 These tools ensure that the metadata are synced across the repository, allowing
 for easier maintenance and automation of the development process.
@@ -148,13 +148,11 @@ installed.
 \subsection{Installing the command}
 
 A manual installation does not put \texttt{cfflatexpand} where the shell finds
-it. In a POSIX shell, either add its directory to |PATH|, or link the command
-into a directory that is already in |PATH|, such as
-\texttt{\string~/.local/bin}:
+it. After installation, link the command into a directory that is already in
+|PATH|, such as \texttt{\string~/.local/bin}:
 \begin{Verbatim}
 dir="$(kpsewhich -var-value TEXMFHOME)/scripts/import-citation-cff"
-export PATH="$dir:$PATH"                             # either this,
-ln -s "$dir/cfflatexpand" ~/.local/bin/cfflatexpand  # or this
+ln -s "$dir/cfflatexpand" ~/.local/bin/cfflatexpand
 \end{Verbatim}
 
 \subsection{Checking the installation}
