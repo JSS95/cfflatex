@@ -15,7 +15,10 @@ installfiles = sourcefiles
 scriptfiles = {"cfflatexpand"}
 -- Preserve the command's executable bit in both CTAN and TDS archives.
 exefiles = scriptfiles
-packtdszip = true
+-- CTAN installs a TDS archive only when TeX Live asks for it, so the CTAN
+-- archive leaves it out. l3build still writes it to build/distrib/tds/, where
+-- CD tests it and attaches it to the GitHub release.
+packtdszip = false
 
 -- Tests ---------------------------------------------------------------------
 
@@ -132,7 +135,6 @@ uploadconfig = {
   ]],
   ctanPath = "/macros/latex/contrib/import-citation-cff",
   topic = {"metadata", "data-import"},
-  home = "https://github.com/JSS95/cfflatex",
   repository = "https://github.com/JSS95/cfflatex",
   bugtracker = "https://github.com/JSS95/cfflatex/issues",
 }

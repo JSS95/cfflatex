@@ -51,8 +51,12 @@ jobs:
             hypdoc
             underscore
 
+      # The CTAN archive leaves out the TDS archive (packtdszip in build.lua);
+      # copy it beside the CTAN archive to test it and attach it to the release.
       - name: Build the package
-        run: l3build ctan
+        run: |
+          l3build ctan
+          cp build/distrib/tds/import-citation-cff.tds.zip .
 
       # Exercise the distributed files outside the checkout, including the
       # executable command and Kpathsea lookup through a bin-directory link.
@@ -64,7 +68,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: import-citation-cff-ctan
-          path: import-citation-cff-*.zip
+          path: |
+            import-citation-cff-*.zip
+            import-citation-cff.tds.zip
           if-no-files-found: error
 
       # Both release jobs use the exact same changelog entry.
@@ -112,12 +118,13 @@ jobs:
           gh release edit "$TAG" --repo "$GITHUB_REPOSITORY"
           --notes-file release-notes.md
 
-      - name: Upload the release asset
+      - name: Upload the release assets
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
         run: >-
           gh release upload "$TAG" "import-citation-cff-${TAG#v}.zip"
+          import-citation-cff.tds.zip
           --repo "$GITHUB_REPOSITORY" --clobber
 
   ctan:

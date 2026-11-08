@@ -1,6 +1,7 @@
 # import-citation-cff: Import CFF metadata into LaTeX
 
 With `import-citation-cff`, you don't need to write your metadata twice.
+This package imports metadata from `CITATION.cff` into your document, with customizable author list typesetting.
 
 ## Requirements
 
@@ -21,8 +22,9 @@ To install both the package and the `cfflatexpand` command from a source checkou
 l3build install --texmfhome "$HOME/texmf"
 ```
 
-The CTAN archive also includes `import-citation-cff.tds.zip`.
-As an alternative to installing from source, extract that archive into your local TeX tree:
+Each [GitHub release](https://github.com/JSS95/cfflatex/releases) also attaches `import-citation-cff.tds.zip`.
+As an alternative to installing from source, extract that archive into your local TeX tree.
+The archive of a particular release installs that version, which takes precedence over the one in your TeX distribution:
 
 ```sh
 mkdir -p "$HOME/texmf"
@@ -157,11 +159,11 @@ l3build doc     # import-citation-cff.pdf
 l3build ctan    # import-citation-cff-<version>.zip
 ```
 
-The CTAN archive includes the ready-to-install `import-citation-cff.tds.zip`, which is also
-written beside it. Test that archive with:
+`l3build ctan` also writes the ready-to-install TDS archive, which is not packed into the CTAN archive.
+Test that archive with:
 
 ```sh
-texlua tests/test_cfflatexpand.lua --tds import-citation-cff.tds.zip
+texlua tests/test_cfflatexpand.lua --tds build/distrib/tds/import-citation-cff.tds.zip
 ```
 
 ## License
