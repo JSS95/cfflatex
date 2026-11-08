@@ -1,6 +1,7 @@
 # import-citation-cff: Import CFF metadata into LaTeX
 
-With `import-citation-cff`, you don't need to write your metadata twice.
+With `import-citation-cff`, you don't need to write your metadata twice!
+
 This package imports metadata from `CITATION.cff` into your document, with customizable author list typesetting.
 
 ## Requirements
