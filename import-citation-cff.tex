@@ -124,16 +124,6 @@ doc/latex/import-citation-cff/
 \end{Verbatim}
 which can be achieved through one of the following methods.
 
-\subsubsection{From a release archive}
-
-Each release at source
-repository\footnote{\url{https://github.com/JSS95/cfflatex/releases}} attaches
-\texttt{import-citation-cff.tds.zip}, which has this arrangement. Extract it
-into the personal tree:
-\begin{Verbatim}
-unzip import-citation-cff.tds.zip -d "$(kpsewhich -var-value TEXMFHOME)"
-\end{Verbatim}
-
 \subsubsection{From a source checkout}
 
 In a checkout of the repository, \texttt{l3build} installs the same files into
@@ -143,17 +133,34 @@ l3build install --full
 \end{Verbatim}
 The |--full| option also typesets this manual and installs it with the other
 documentation. Without the option, only the package and the command are
-installed.
+installed. This installation links the \texttt{cfflatexpand} command into the
+directory specified by the environment variable |CFFLATEXPAND_BINDIR|, which
+defaults to \texttt{\string~/.local/bin}.
+
+\subsubsection{From a release archive}
+\label{sec:release-archive}
+
+If you cannot use \texttt{l3build} in your environment, you can manually extract
+\texttt{import-citation-cff.tds.zip} into \texttt{TEXMFHOME}. Download the archive
+from release assets\footnote{\url{https://github.com/JSS95/cfflatex/releases}}
+and run:
+\begin{Verbatim}
+unzip import-citation-cff.tds.zip -d "$(kpsewhich -var-value TEXMFHOME)"
+\end{Verbatim}
+However, this installation does not link the \texttt{cfflatexpand} command and you
+need to link it manually as described in Section~\ref{sect:link-command}. You also need
+to manually remove the files when uninstalling, as described in Section~\ref{sect:uninstall}.
 
 \subsection{Installing the command}
+\label{sect:link-command}
 
-A manual installation does not put \texttt{cfflatexpand} where the shell finds
-it. After installation, link the command into a directory that is already in
-|PATH|, such as \texttt{\string~/.local/bin}:
+After extracting a release archive following Section~\ref{sec:release-archive},
+link the command yourself:
 \begin{Verbatim}
 dir="$(kpsewhich -var-value TEXMFHOME)/scripts/import-citation-cff"
 ln -s "$dir/cfflatexpand" ~/.local/bin/cfflatexpand
 \end{Verbatim}
+This link needs to be removed manually when uninstalling the command.
 
 \subsection{Checking the installation}
 
@@ -163,6 +170,20 @@ command:
 kpsewhich import-citation-cff.sty
 cfflatexpand --version
 \end{Verbatim}
+
+\subsection{Uninstalling}
+\label{sect:uninstall}
+
+If you used \texttt{tlmgr} to install the package, you can uninstall it with
+\begin{Verbatim}
+tlmgr uninstall import-citation-cff
+\end{Verbatim}
+And if you used \texttt{l3build} to install the package, you can uninstall it with
+\begin{Verbatim}
+l3build uninstall
+\end{Verbatim}
+If you manually extracted a release archive into \texttt{TEXMFHOME}, uninstalling
+should be done manually.
 
 \section{Tutorial}
 
