@@ -74,6 +74,92 @@ and automation of the development process.
 \end{itemize}
 It supports \TeX{} Live 2025 and later.
 
+\section{Installation}
+\label{sec:installation}
+
+\pkg{import-citation-cff} is distributed on
+CTAN\footnote{\url{https://ctan.org/pkg/import-citation-cff}}. In \TeX{} Live,
+install it with
+\begin{Verbatim}
+tlmgr install import-citation-cff
+\end{Verbatim}
+Alternatively, you can install it manually from the source as described in
+Section~\ref{sec:manual-installation}.
+
+\subsection{Manual installation}
+\label{sec:manual-installation}
+
+A manual installation puts the files in the personal \TeX{} tree,
+\texttt{TEXMFHOME}. Find its location with
+\begin{Verbatim}
+kpsewhich -var-value TEXMFHOME
+\end{Verbatim}
+which is \texttt{\string~/texmf} by default in \TeX{} Live.
+The distributed files should be put inside \texttt{TEXMFHOME} as follows:
+\begin{Verbatim}
+tex/latex/import-citation-cff/
+  import-citation-cff.sty
+  cfflatex.lua
+  cfflatex-data.lua
+  cfflatex-style-*.def
+  cfflatexpand.lua
+  cfflatexpand-authors.lua
+scripts/import-citation-cff/
+  cfflatexpand
+doc/latex/import-citation-cff/
+  import-citation-cff.pdf
+\end{Verbatim}
+which can be achieved through one of the following methods.
+
+\subsubsection{From a release archive}
+
+Each release at source repository\footnote{\url{https://github.com/JSS95/cfflatex/releases}} attaches
+\texttt{import-citation-cff.tds.zip}, which has this arrangement. Extract it
+into the personal tree:
+\begin{Verbatim}
+unzip import-citation-cff.tds.zip -d "$(kpsewhich -var-value TEXMFHOME)"
+\end{Verbatim}
+
+\subsubsection{From a source checkout.}
+
+In a checkout of the repository, l3build installs the same files into the
+personal tree:
+\begin{Verbatim}
+l3build install
+\end{Verbatim}
+Add |--texmfhome| \meta{directory} to install them into another tree.
+
+\subsubsection{Next to a document.}
+
+Copying \texttt{import-citation-cff.sty}, \texttt{cfflatex-style-*.def},
+\texttt{cfflatex.lua}, and \texttt{cfflatex-data.lua} into the directory of a
+document is enough to compile that document, but does not install the command.
+
+\subsection{Running the command.}
+
+A manual installation does not put \texttt{cfflatexpand} where the shell finds
+it. In a POSIX shell, either add its directory to |PATH|, or link the command
+into a directory that is already in |PATH|, such as
+\texttt{\string~/.local/bin}:
+\begin{Verbatim}
+dir="$(kpsewhich -var-value TEXMFHOME)/scripts/import-citation-cff"
+export PATH="$dir:$PATH"                             # either this,
+ln -s "$dir/cfflatexpand" ~/.local/bin/cfflatexpand  # or this
+\end{Verbatim}
+Add the |export| line to the shell configuration to keep it for future sessions.
+The command finds its Lua modules through the \TeX{} search path, so it also
+works through a link. Otherwise, and on Windows, run it with \texttt{texlua} and
+its full path, for example |texlua "\$dir/cfflatexpand" --help|.
+
+\subsection{Checking the installation.}
+
+The following commands print the location of the package and the version of the
+command:
+\begin{Verbatim}
+kpsewhich import-citation-cff.sty
+cfflatexpand --version
+\end{Verbatim}
+
 \section{Usage}
 
 This manuscript itself is an example of using \pkg{import-citation-cff}. Its
@@ -208,12 +294,13 @@ When the check does not fit the document, load the package with the
 \end{Verbatim}
 
 \subsection{Expanding metadata}
+\label{sec:expanding}
 
 The Lua command-line tool \texttt{cfflatexpand} replaces metadata commands with
 their values and removes the \pkg{import-citation-cff} package load and
 \cs{includecff}. The resulting source can be compiled without
-\pkg{import-citation-cff} or the CFF file. Install the command as described in
-the README, then run either
+\pkg{import-citation-cff} or the CFF file. With the command installed as in
+Section~\ref{sec:installation}, run either
 \begin{Verbatim}
 cfflatexpand manuscript.tex > submission.tex
 cfflatexpand manuscript.tex --output submission.tex
