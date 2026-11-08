@@ -326,30 +326,27 @@ package and its commands effectively.
 \subsection{Checking the title page}
 \label{sec:check}
 
-By default, \pkg{import-citation-cff} checks that \cs{maketitle} typesets the
-metadata of the citation. The \cs{title} command should use |\cff{title}|, and
-the \cs{author} command should use \cs{cffauthor}, or \cs{cff} with a path such
-as |authors/1/family-names|, for every author of the citation. The check cannot
-see metadata that is expanded before \cs{maketitle}, such as an author list
-built with \cs{xdef} in the preamble, and it needs a class that keeps the title
-and the authors in \cs{@title} and \cs{@author}, as the standard classes do.
-
-What the check looks for, and where, depends on the author style of the
-document. A style for a journal template that typesets its title block without
+By default, \pkg{import-citation-cff} checks that all required metadata fields
+are present and correctly formatted in the \LaTeX{} document. What the check
+looks for, and where, depends on the author style specified by the |style|
+option of the package or the |style| key of \cs{cffsetauthors}. Default setting
+is to check that \cs{maketitle} typesets the metadata of the citation by using
+|\cff{title}| in the \cs{title} command and using either \cs{cffauthor} or
+\cs{cff} with a path such as |authors/1/family-names| in the \cs{author}
+command. A style for a journal template that typesets its title block without
 \cs{maketitle} can check other fields in that block
-(Section~\ref{sec:check-styles}). The |style| option of the package names the
-author style of the document, and also makes it the default style of
-\cs{cffsetauthors}:
+(Section~\ref{sec:check-styles}).
+
+The |style| option of the package names the author style of the document, and
+also makes it the default style of \cs{cffsetauthors}:
 \begin{Verbatim}
 \usepackage[style=authblk]{import-citation-cff}
 \end{Verbatim}
 The check uses this style even if \cs{cffsetauthors} selects another one.
 Without the option, the check uses the style of the last \cs{cffsetauthors} in
 the preamble, or else |standard|. Section~\ref{sec:builtin-styles} tells what
-each built-in style checks.
-
-When the check does not fit the document, load the package with the
-|check=false| option:
+each built-in style checks. When the check does not fit the document, load the
+package with the |check=false| option:
 \begin{Verbatim}
 \usepackage[check=false]{import-citation-cff}
 \end{Verbatim}
@@ -545,6 +542,8 @@ A style therefore works with \texttt{cfflatexpand} if it follows these rules.
 \end{itemize}
 
 \section{Explanation}
+
+This section explains the design details of \texttt{import-citation-cff}.
 
 \subsection{Text in the metadata}
 
