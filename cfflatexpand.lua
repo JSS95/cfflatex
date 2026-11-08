@@ -99,11 +99,11 @@ end
 
 -- \makeatletter makes @ a letter, and \ExplSyntaxOn makes _ and : letters.
 function Scanner:command(position)
-  local letters = "A-Za-z"
+  local letters
   if self.author_render then
     letters = "A-Za-z@_:"
   else
-    letters = letters .. (self.at_letter and "@" or "") .. (self.expl_syntax and "_:" or "")
+    letters = "A-Za-z" .. (self.at_letter and "@" or "") .. (self.expl_syntax and "_:" or "")
   end
   local name = self.text:match("^\\([" .. letters .. "]+)", position)
   if name then
@@ -682,13 +682,13 @@ function Scanner:verbatim_argument(position, what, multiline)
   self:fail(position, "unclosed argument of " .. what)
 end
 
-function Scanner:verbatim_command(name, position, after)
+function Scanner:verbatim_command(name, after)
   if name == "Verb" and self.text:sub(after, after) == "*" then
     after = after + 1
   end
-  local _, ending = self:optional(after)
+  local ending = select(2, self:optional(after))
   for _ = 1, verbatim_commands[name] do
-    _, ending = self:argument(ending, "{", "}")
+    ending = select(2, self:argument(ending, "{", "}"))
   end
   return self:verbatim_argument(ending, "\\" .. name)
 end
@@ -849,7 +849,7 @@ function Scanner:scan(first, last)
       if name == "verb" then
         position = self:verb(position, after)
       elseif verbatim_commands[name] then
-        position = self:verbatim_command(name, position, after)
+        position = self:verbatim_command(name, after)
       elseif short_verb_commands[name] ~= nil then
         position = self:short_verb_command(name, after)
       elseif name == "makeatletter" or name == "makeatother" then
