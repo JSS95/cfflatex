@@ -1178,13 +1178,13 @@
             \seq_put_right:Ne \l__cfflatex_mark_items_seq
               {
                 { affiliation }
-                {
-                  \__cfflatex_affiliation_mark:n
-                    {
-                      \prop_item:Nn \g__cfflatex_values_prop
-                        { authors / #1 / affiliation-indices / ##1 }
-                    }
-                }
+                  {
+                    \__cfflatex_affiliation_mark:n
+                      {
+                        \prop_item:Nn \g__cfflatex_values_prop
+                          { authors / #1 / affiliation-indices / ##1 }
+                      }
+                  }
               }
           }
       }

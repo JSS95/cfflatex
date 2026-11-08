@@ -511,8 +511,8 @@ this style puts the footnotes before the affiliation marks:
 \end{Verbatim}
 Inside a key of the style, the arguments of the mapped code are |##1| and |##2|,
 because |#1| is the argument of the key. Use only the documented functions:
-names that begin with |__cfflatex| are internal to the package and may change
-in any release. Give the helpers of the style a module name of its own, such as
+names that begin with |__cfflatex| are internal to the package and may change in
+any release. Give the helpers of the style a module name of its own, such as
 |mystyle| above.
 
 \subsubsection{Checking the title page}
@@ -901,8 +901,7 @@ declared.
   cannot be nested.
 \end{function}
 
-\begin{function}{\cfflatex_marks_get:N, \cfflatex_marks_set:n,
-  \cfflatex_marks_set:e, \cfflatex_marks_set:V}
+\begin{function}{\cfflatex_marks_get:N, \cfflatex_marks_set:n, \cfflatex_marks_set:e, \cfflatex_marks_set:V}
   \begin{syntax}
     \cs{cfflatex_marks_get:N} \meta{tl var}
     \cs{cfflatex_marks_set:n} \Arg{marks}
@@ -911,9 +910,8 @@ declared.
   |author| template receives as |#1|. \cs{cfflatex_marks_set:n} replaces them.
   By default, they are the mark of each affiliation and a
   \cs{cfflatex_author_footnote:n} for each contact and note, joined by the
-  |separator|.
-  Keep the footnotes and the metadata commands in the \meta{marks} unexpanded
-  (Section~\ref{sec:export-styles}).
+  |separator|. Keep the footnotes and the metadata commands in the \meta{marks}
+  unexpanded (Section~\ref{sec:export-styles}).
 \end{function}
 
 \begin{function}[EXP]{\cfflatex_marks_separator:}
@@ -921,8 +919,8 @@ declared.
     \cs{cfflatex_marks_separator:}
   \end{syntax}
   Expands to the value of the |separator| key, which the default marks use
-  between two marks. Inside an |e|-type or |x|-type expansion, the result is
-  not expanded further.
+  between two marks. Inside an |e|-type or |x|-type expansion, the result is not
+  expanded further.
 \end{function}
 
 \begin{function}{\cfflatex_author_footnote:n}
@@ -931,8 +929,8 @@ declared.
   \end{syntax}
   Like \cs{thanks} in \cs{maketitle}, typesets the next footnote symbol among
   the marks and adds a footnote with the \meta{text}. It makes the footnotes of
-  the default marks, and \texttt{cfflatexpand} replaces it with a
-  self-contained definition in its output.
+  the default marks, and \texttt{cfflatexpand} replaces it with a self-contained
+  definition in its output.
 \end{function}
 
 \subsection{Command line tool}
