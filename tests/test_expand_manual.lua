@@ -94,8 +94,10 @@ local ok, message = pcall(function()
   end
 
   -- The expanded manual compiles without the package; only the files that it
-  -- shows (CITATION.cff) and cites (the bibliography) are still needed.
-  for _, name in ipairs({"CITATION.cff", "import-citation-cff.bib"}) do
+  -- shows (CITATION.cff and the help of cfflatexpand, from its Lua modules)
+  -- and cites (the bibliography) are still needed.
+  for _, name in ipairs({"CITATION.cff", "import-citation-cff.bib", "cfflatexpand.lua",
+    "cfflatex-data.lua"}) do
     write_file(directory .. "/" .. name, read_file(root .. "/" .. name))
   end
   write_file(directory .. "/import-citation-cff.sty",

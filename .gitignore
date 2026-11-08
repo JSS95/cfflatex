@@ -342,6 +342,8 @@ TSWLatexianTemp*
 *.luabridge.err
 # Compiled documents (no PDF is tracked in this repository).
 *.pdf
+# The manual writes the help of cfflatexpand here to typeset it.
+import-citation-cff-cfflatexpand.txt
 # l3build test and build output, and the CTAN archives from `l3build ctan`.
 build/
 import-citation-cff-*.zip

@@ -7,5 +7,29 @@
     // root file, every file l3build copies would start a concurrent build,
     // which overwrites the .aux files and makes `l3build doc` and
     // `l3build ctan` fail.
-    "latex-workshop.latex.search.rootFiles.exclude": ["build/**"]
+    "latex-workshop.latex.search.rootFiles.exclude": ["build/**"],
+    // The manual needs LuaLaTeX: the package runs its Lua code directly there
+    // (pdfLaTeX would need shell escape), and the manual reads the help of
+    // cfflatexpand with \directlua. latexmk also runs BibTeX for the
+    // references and reruns LuaLaTeX until the cross-references settle.
+    "latex-workshop.latex.tools": [
+        {
+            "name": "latexmk-lualatex",
+            "command": "latexmk",
+            "args": [
+                "-lualatex",
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "-outdir=%OUTDIR%",
+                "%DOC%"
+            ]
+        }
+    ],
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "latexmk (LuaLaTeX)",
+            "tools": ["latexmk-lualatex"]
+        }
+    ]
 }
