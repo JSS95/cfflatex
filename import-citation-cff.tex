@@ -233,7 +233,12 @@ does not natively support multiple affiliations per author.
 \pkg{import-citation-cff} allows multiple affiliations per author by separating
 them with semicolons in the \texttt{affiliation} field. Affiliations of each
 author can be accessed individually by \cs{cffauthoraffiliation} and related
-commands. Refer to Section~\ref{sec:reference} for details.
+commands. For example,
+\begin{Verbatim}
+\cffauthoraffiliation{1}{1} % first affiliation of the first author
+\cffauthoraffiliation{1}{2} % second affiliation of the first author
+\end{Verbatim}
+Refer to Section~\ref{sec:reference} for details.
 
 \subsection{Author style}
 \label{sec:setauthors}
@@ -247,6 +252,39 @@ names. Section~\ref{sec:builtin-styles} lists the styles that come with
 write others. The other keys of \cs{cffsetauthors} change how a name is made,
 how the authors and the affiliations are declared, and the marks and the
 footnotes (Section~\ref{sec:reference}).
+
+\subsection{Expanding metadata}
+
+The Lua command-line tool \texttt{cfflatexpand} replaces metadata commands with
+their values and removes the \pkg{import-citation-cff} package load and
+\cs{includecff}. The resulting source can be compiled without
+\pkg{import-citation-cff} or the CFF file. With the command installed as in
+Section~\ref{sec:installation}, run either
+\begin{Verbatim}
+cfflatexpand manuscript.tex > submission.tex
+cfflatexpand manuscript.tex --output submission.tex
+cfflatexpand manuscript.tex -o submission.tex
+\end{Verbatim}
+From a source checkout, use \texttt{./cfflatexpand} instead. The command runs
+with \texttt{texlua}. Converting \cs{cffsetauthors} also requires LuaLaTeX,
+which runs with shell escape disabled.
+
+\texttt{cfflatexpand} also converts \cs{cffsetauthors} with the keys of
+Section~\ref{sec:setauthors}, the built-in styles of
+Section~\ref{sec:builtin-styles}, and author style plugins that follow the rules
+of Section~\ref{sec:export-styles}. The |style| option of the package is its
+default style, as when compiling. The output still needs the class or package
+that provides its declarations.
+
+For a manuscript split into several TeX files, first merge it with latexpand.
+Keep the merged file beside the root manuscript and keep the literal CFF
+filename valid there:
+\begin{Verbatim}
+latexpand manuscript.tex > manuscript-flat.tex
+cfflatexpand manuscript-flat.tex --output submission.tex
+\end{Verbatim}
+
+\section{How-to guides}
 
 \subsection{Text in the metadata}
 
@@ -293,37 +331,6 @@ When the check does not fit the document, load the package with the
 |check=false| option:
 \begin{Verbatim}
 \usepackage[check=false]{import-citation-cff}
-\end{Verbatim}
-
-\subsection{Expanding metadata}
-
-The Lua command-line tool \texttt{cfflatexpand} replaces metadata commands with
-their values and removes the \pkg{import-citation-cff} package load and
-\cs{includecff}. The resulting source can be compiled without
-\pkg{import-citation-cff} or the CFF file. With the command installed as in
-Section~\ref{sec:installation}, run either
-\begin{Verbatim}
-cfflatexpand manuscript.tex > submission.tex
-cfflatexpand manuscript.tex --output submission.tex
-cfflatexpand manuscript.tex -o submission.tex
-\end{Verbatim}
-From a source checkout, use \texttt{./cfflatexpand} instead. The command runs
-with \texttt{texlua}. Converting \cs{cffsetauthors} also requires LuaLaTeX,
-which runs with shell escape disabled.
-
-\texttt{cfflatexpand} also converts \cs{cffsetauthors} with the keys of
-Section~\ref{sec:setauthors}, the built-in styles of
-Section~\ref{sec:builtin-styles}, and author style plugins that follow the rules
-of Section~\ref{sec:export-styles}. The |style| option of the package is its
-default style, as when compiling. The output still needs the class or package
-that provides its declarations.
-
-For a manuscript split into several TeX files, first merge it with latexpand.
-Keep the merged file beside the root manuscript and keep the literal CFF
-filename valid there:
-\begin{Verbatim}
-latexpand manuscript.tex > manuscript-flat.tex
-cfflatexpand manuscript-flat.tex --output submission.tex
 \end{Verbatim}
 
 \section{Built-in author styles}
