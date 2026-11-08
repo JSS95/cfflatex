@@ -981,8 +981,9 @@
   }
 
 % Like \thanks in \maketitle, but typesets the footnote symbol as text among
-% the marks of an author, so that it does not overlap them.
-\cs_new_protected:Npn \__cfflatex_thanks:n #1
+% the marks of an author, so that it does not overlap them. Public: styles put
+% it in marks of their own, and cfflatexpand replaces it in the output.
+\cs_new_protected:Npn \cfflatex_author_footnote:n #1
   {
     \stepcounter {footnote}
     \protected@xdef \@thefnmark {\thefootnote}
@@ -990,6 +991,28 @@
     \protected@xdef \@thanks
       {\@thanks \protect \footnotetext [\int_use:N \c@footnote] {#1}}
   }
+
+% The marks of the current author, for the prepare-author code of a style.
+% \l__cfflatex_mark_items_seq holds them as {<kind>}{<value>} items: the kind is
+% affiliation, contact, or note, and the value is the affiliation mark, such as
+% a, or the text of the footnote. \l__cfflatex_marks_tl is what the author
+% template receives as #1: the affiliation marks as they are and the footnotes
+% as \cfflatex_author_footnote:n, joined by the separator.
+\seq_new:N \l__cfflatex_mark_items_seq
+\tl_new:N \l__cfflatex_marks_tl
+\cs_new_protected:Npn \__cfflatex_marks_map:nn #1#2 {}
+\cs_new_protected:Npn \cfflatex_marks_map_inline:n #1
+  {
+    \cs_set_protected:Npn \__cfflatex_marks_map:nn ##1##2 {#1}
+    \seq_map_inline:Nn \l__cfflatex_mark_items_seq
+      { \__cfflatex_marks_map:nn ##1 }
+  }
+\cs_new_protected:Npn \cfflatex_marks_get:N #1
+  { \tl_set_eq:NN #1 \l__cfflatex_marks_tl }
+\cs_new_protected:Npn \cfflatex_marks_set:n #1
+  { \tl_set:Nn \l__cfflatex_marks_tl {#1} }
+\cs_generate_variant:Nn \cfflatex_marks_set:n { e , V }
+\cs_new:Npn \cfflatex_marks_separator: { \exp_not:V \l__cfflatex_separator_tl }
 
 % The names of the #2-th entry of the authors or the contacts #1, which
 % identify a contact with an author.
@@ -1019,14 +1042,23 @@
           { { \int_eval:n {#1} } { \exp_not:n {#2} } }
       }
   }
-% Adds a footnote with the text #3 to the marks of the #1-th author if the note
-% is for the #2-th author.
+% Adds a note with the text #3 to the marks of the #1-th author if the note is
+% for the #2-th author.
 \cs_new_protected:Npn \__cfflatex_add_note_mark:nnn #1#2#3
   {
     \int_compare:nNnT {#1} = {#2}
-      { \seq_put_right:Nn \l__cfflatex_marks_seq { \__cfflatex_thanks:n {#3} } }
+      { \seq_put_right:Nn \l__cfflatex_mark_items_seq { { note } {#3} } }
   }
-\tl_new:N \l__cfflatex_marks_tl
+% Adds the mark of the item {<kind>}{<value>} to the marks of the author.
+\cs_new_protected:Npn \__cfflatex_put_mark:nn #1#2
+  {
+    \str_if_eq:nnTF {#1} { affiliation }
+      { \seq_put_right:Nn \l__cfflatex_marks_seq {#2} }
+      {
+        \seq_put_right:Nn \l__cfflatex_marks_seq
+          { \cfflatex_author_footnote:n {#2} }
+      }
+  }
 \tl_new:N \l__cfflatex_name_tl
 \tl_new:N \l__cfflatex_author_who_tl
 \tl_new:N \l__cfflatex_contact_who_tl
@@ -1137,18 +1169,21 @@
 % Declares the #1-th author.
 \cs_new_protected:Npn \__cfflatex_set_author:n #1
   {
-    \seq_clear:N \l__cfflatex_marks_seq
+    \seq_clear:N \l__cfflatex_mark_items_seq
     \bool_if:NT \l__cfflatex_affiliations_bool
       {
         \int_step_inline:nn
           { \__cfflatex_count:n { authors / #1 / affiliation-count } }
           {
-            \seq_put_right:Ne \l__cfflatex_marks_seq
+            \seq_put_right:Ne \l__cfflatex_mark_items_seq
               {
-                \__cfflatex_affiliation_mark:n
+                { affiliation }
                   {
-                    \prop_item:Nn \g__cfflatex_values_prop
-                      { authors / #1 / affiliation-indices / ##1 }
+                    \__cfflatex_affiliation_mark:n
+                      {
+                        \prop_item:Nn \g__cfflatex_values_prop
+                          { authors / #1 / affiliation-indices / ##1 }
+                      }
                   }
               }
           }
@@ -1165,16 +1200,16 @@
               {
                 \tl_set:No \l__cfflatex_contact_tl
                   { \__cfflatex_contact:n { \cffcontact {##1} } }
-                \seq_put_right:Ne \l__cfflatex_marks_seq
-                  {
-                    \exp_not:N \__cfflatex_thanks:n
-                      { \exp_not:V \l__cfflatex_contact_tl }
-                  }
+                \seq_put_right:Ne \l__cfflatex_mark_items_seq
+                  { { contact } { \exp_not:V \l__cfflatex_contact_tl } }
               }
           }
       }
     \seq_map_inline:Nn \l__cfflatex_notes_seq
       { \__cfflatex_add_note_mark:nnn {#1} ##1 }
+    \seq_clear:N \l__cfflatex_marks_seq
+    \seq_map_inline:Nn \l__cfflatex_mark_items_seq
+      { \__cfflatex_put_mark:nn ##1 }
     \tl_set:Ne \l__cfflatex_marks_tl
       { \seq_use:NV \l__cfflatex_marks_seq \l__cfflatex_separator_tl }
     \__cfflatex_prepare_author:n {#1}

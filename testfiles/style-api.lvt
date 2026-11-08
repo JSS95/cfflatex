@@ -1,0 +1,16 @@
+% The public interface of author styles: the marks of each author by kind, and
+% the marks that the author template receives.
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{import-citation-cff}
+\includecff{authors-contacts.cff}
+\begin{document}
+\START
+\TEST{marks by kind}{
+  \cffsetauthors[style=api, note = {1}{Equal contribution}]
+}
+\TEST{no affiliations and no contacts}{
+  \cffsetauthors[style=api, affiliation = {}, contact = {}]
+}
+\END
