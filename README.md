@@ -1,6 +1,12 @@
+![CTAN Version](https://img.shields.io/ctan/v/import-citation-cff)
+[![License](https://img.shields.io/github/license/JSS95/cfflatex)](https://github.com/JSS95/cfflatex/blob/master/LICENSE)
+[![CI](https://github.com/JSS95/cfflatex/actions/workflows/ci.yml/badge.svg)](https://github.com/JSS95/cfflatex/actions/workflows/ci.yml)
+[![CD](https://github.com/JSS95/cfflatex/actions/workflows/cd.yml/badge.svg)](https://github.com/JSS95/cfflatex/actions/workflows/cd.yml)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://jss95.github.io/cfflatex/import-citation-cff.pdf)
+
 # import-citation-cff: Import CFF metadata into LaTeX
 
-With `import-citation-cff`, you don't need to write your metadata twice!
+Don't write your metadata twice!
 
 This package imports metadata from `CITATION.cff` into your document, with customizable author list typesetting.
 
@@ -17,14 +23,6 @@ In TeX Live, install it with:
 
 ```sh
 tlmgr install import-citation-cff
-```
-
-### Install from source
-
-To install a specific version, acquire the source code and run:
-
-```sh
-l3build install --full
 ```
 
 See the Installation section of the [manual](https://jss95.github.io/cfflatex/import-citation-cff.pdf) for more information.
@@ -50,6 +48,10 @@ preferred-citation:
       given-names: Jane
     - family-names: Doe
       given-names: John
+  contact:
+    - family-names: Doe
+      given-names: Jane
+      email: jane@doe.org
 ```
 
 Write `manuscript.tex` (or with different name):
@@ -57,16 +59,13 @@ Write `manuscript.tex` (or with different name):
 ```latex
 \documentclass{article}
 \usepackage[T1]{fontenc}
+\usepackage[style=authblk]{authblk}
 \usepackage{import-citation-cff}
 
 %\includecff{CITATION.cff}  % reads fields in top level
 \includecff[source=preferred-citation]{CITATION.cff}  % reads fields in preferred-citation
 \title{\cff{title}}
-\author{
-  \cffauthor{1}{given-names}~\cffauthor{1}{family-names}
-  \and
-  \cffauthor{2}{given-names}~\cffauthor{2}{family-names}
-}
+\cffsetauthors
 \date{}
 
 \begin{document}
@@ -96,29 +95,11 @@ The latest document can be found at:
 
 > https://jss95.github.io/cfflatex/import-citation-cff.pdf
 
-### Local document
-
-Open the document of locally installed package:
-
-```sh
-texdoc import-citation-cff
-```
-
 On Unix, the man page of the `cfflatexpand` command is also available:
 
 ```sh
 man cfflatexpand
 ```
-
-### Building the document
-
-Run:
-
-```sh
-l3build doc
-```
-
-The manual is `import-citation-cff.pdf`.
 
 ## Development
 
