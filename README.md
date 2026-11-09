@@ -59,8 +59,8 @@ Write `manuscript.tex` (or with different name):
 ```latex
 \documentclass{article}
 \usepackage[T1]{fontenc}
-\usepackage[style=authblk]{authblk}
-\usepackage{import-citation-cff}
+\usepackage{authblk}
+\usepackage[style=authblk]{import-citation-cff}
 
 %\includecff{CITATION.cff}  % reads fields in top level
 \includecff[source=preferred-citation]{CITATION.cff}  % reads fields in preferred-citation
