@@ -1,4 +1,4 @@
-![CTAN Version](https://img.shields.io/ctan/v/import-citation-cff)
+[![CTAN Version](https://img.shields.io/ctan/v/import-citation-cff)](https://ctan.org/pkg/import-citation-cff)
 [![License](https://img.shields.io/github/license/JSS95/cfflatex)](https://github.com/JSS95/cfflatex/blob/master/LICENSE)
 [![CI](https://github.com/JSS95/cfflatex/actions/workflows/ci.yml/badge.svg)](https://github.com/JSS95/cfflatex/actions/workflows/ci.yml)
 [![CD](https://github.com/JSS95/cfflatex/actions/workflows/cd.yml/badge.svg)](https://github.com/JSS95/cfflatex/actions/workflows/cd.yml)
