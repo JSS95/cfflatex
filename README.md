@@ -37,21 +37,21 @@ message: Please cite the paper in preferred-citation.
 type: software
 title: My Paper Code
 authors:
-    - family-names: Doe
-      given-names: John
+    - family-names: Song
+      given-names: Jisoo
 preferred-citation:
   type: article
   title: My Paper
   abstract: My paper abstract.
   authors:
-    - family-names: Doe
-      given-names: Jane
+    - family-names: Song
+      given-names: Jisoo
     - family-names: Doe
       given-names: John
   contact:
-    - family-names: Doe
-      given-names: Jane
-      email: jane@doe.org
+    - family-names: Song
+      given-names: Jisoo
+      email: jeesoo9595@snu.ac.kr
 ```
 
 Write `manuscript.tex` (or with different name):
@@ -150,7 +150,8 @@ Test that archive with:
 texlua tests/test_cfflatexpand.lua --tds build/distrib/tds/import-citation-cff.tds.zip
 ```
 
-## License
+## Contact
 
-import-citation-cff is distributed under the MIT License.
+Developed by Jisoo Song <jeesoo9595@snu.ac.kr>, distributed under the MIT License.
+
 Report bugs at <https://github.com/JSS95/cfflatex/issues>.
