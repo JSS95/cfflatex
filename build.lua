@@ -331,10 +331,11 @@ local function package_version()
   local file = assert(io.open("import-citation-cff.sty", "r"))
   local content = file:read("a")
   file:close()
-  return content:match("\\ProvidesExplPackage{import%-citation%-cff}{[^}]*}{([^}]*)}")
+  return content:match("\\ProvidesExplPackage{import%-citation%-cff}{([^}]*)}{([^}]*)}")
 end
 
-local version = assert(package_version(), "Missing package version in import-citation-cff.sty")
+local date, version = package_version()
+assert(version, "Missing package version in import-citation-cff.sty")
 ctanzip = module .. "-" .. version
 
 tagfiles = {"import-citation-cff.sty", "CITATION.cff", "cfflatexpand.1"}
@@ -361,7 +362,8 @@ end
 -- --file with the CHANGELOG entry shared with GitHub as the CTAN announcement.
 uploadconfig = {
   pkg = "import-citation-cff",
-  version = version,
+  -- CTAN asks for the version and the date, as in "1.2.3 2026-11-09".
+  version = version .. " " .. date,
   author = "Jisoo Song",
   uploader = "Jisoo Song",
   license = "mit",
