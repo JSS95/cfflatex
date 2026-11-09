@@ -377,6 +377,18 @@ local ok, message = xpcall(function()
     contains(read_file(output), "\\title{Example Paper}")
   end)
 
+  test("the revtex style writes the author block with affiliation marks", function(f)
+    write_file(f.cff, read_file(root .. "/testfiles/support/revtex.cff"))
+    write_file(f.input, replace(document, "{import-citation-cff}", "[style=revtex]{import-citation-cff}")
+      .. "\\title{\\cff{title}}\\date{}\\begin{document}\\maketitle\\end{document}\n")
+    local result = f:cli(f.input)
+    success(result)
+    contains(result.stdout, "\\textsuperscript{a}")
+    contains(result.stdout, "\\textsuperscript{b}")
+    contains(result.stdout, "\\affiliation{Department of Physics and Astronomy, University of Barcelona}")
+    contains(result.stdout, "\\affiliation{Department of Materials Science, Northwestern University}")
+  end)
+
   test("help, version, and option errors", function(f)
     for _, pair in ipairs({{"--help", "--output"}, {"--version", "import-citation-cff"}}) do
       local result = f:cli(pair[1])

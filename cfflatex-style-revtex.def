@@ -7,11 +7,13 @@
 \cffdeclareauthorstyle { revtex }
   {
     contact = {},
-    prepare-author =
+    prepare-author = {},
+    author =
       {
-        \cfflatex_marks_set:n { }
+        \tl_if_blank:nTF {#1}
+          { \author {#2} }
+          { \author {#2\textsuperscript {#1}} }
       },
-    author = { \author {#2} },
     affiliation = { \affiliation {#2} },
   }
 
