@@ -1,0 +1,19 @@
+% SPDX-License-Identifier: MIT
+% Copyright (c) 2026 import-citation-cff contributors
+\ProvidesFile{cfflatex-style-revtex.def}
+  [import-citation-cff REVTeX author style]
+\ExplSyntaxOn
+
+\cffdeclareauthorstyle { revtex }
+  {
+    contact = {},
+    prepare-author =
+      {
+        \cfflatex_marks_set:n { }
+      },
+    author = { \author {#2} },
+    affiliation = { \affiliation {#2} },
+  }
+
+\ExplSyntaxOff
+\endinput

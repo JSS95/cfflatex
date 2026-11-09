@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: Please cite this article.
+title: Magneto-optical response of the stacked kagome lattice
+abstract: We report the finite-temperature optical response of a stacked kagome lattice and compare the measured spectra to a microscopic model.
+authors:
+  - family-names: García
+    given-names: Ana
+    affiliation: Department of Physics and Astronomy, University of Barcelona
+  - family-names: Patel
+    given-names: Rao
+    affiliation: "Department of Materials Science, Northwestern University; Department of Physics, Brown University"
+  - family-names: Lee
+    given-names: Min
+    affiliation: Applied Materials Laboratory, University of Washington
+contact:
+  - family-names: García
+    given-names: Ana
+    email: ana.garcia@ub.edu
+preferred-citation:
+  type: article
+  title: Sample REVTeX author block
+  authors:
+    - family-names: García
+      given-names: Ana
+      affiliation: Department of Physics and Astronomy, University of Barcelona
+    - family-names: Patel
+      given-names: Rao
+      affiliation: "Department of Materials Science, Northwestern University; Department of Physics, Brown University"

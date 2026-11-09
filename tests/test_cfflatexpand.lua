@@ -294,7 +294,7 @@ local ok, message = xpcall(function()
     equal(read_file(installed_command), read_file(root .. "/cfflatexpand"))
     for _, filename in ipairs({"import-citation-cff.sty", "cfflatex.lua", "cfflatex-data.lua",
       "cfflatex-style-standard.def", "cfflatex-style-authblk.def",
-      "cfflatexpand.lua", "cfflatexpand-authors.lua"}) do
+      "cfflatex-style-revtex.def", "cfflatexpand.lua", "cfflatexpand-authors.lua"}) do
       local path = texmf .. "/tex/latex/import-citation-cff/" .. filename
       equal(read_file(path), read_file(root .. "/" .. filename))
       local located = run_command({"kpsewhich", filename}, temporary)

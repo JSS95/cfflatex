@@ -97,7 +97,7 @@ function authors.render(model, options, source_directory, document_directory)
   local ok, result = pcall(function()
     for _, filename in ipairs({"import-citation-cff.sty", "cfflatex.lua", "cfflatex-data.lua",
       "cfflatex-style-standard.def", "cfflatex-style-authblk.def",
-      "cfflatex-style-rsc.def"}) do
+      "cfflatex-style-rsc.def", "cfflatex-style-revtex.def"}) do
       local contents = read_file(source_directory .. filename)
       if not contents then
         contents = read_file(kpse.find_file(filename, "tex") or filename)
